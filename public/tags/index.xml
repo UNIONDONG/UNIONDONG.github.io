@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Donge Blog</title>
+    <link>http://example.org/tags/</link>
+    <description>Recent content in Tags on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 04 Jan 2023 16:30:00 +0000</lastBuildDate><atom:link href="http://example.org/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Embeded Technology</title>
+      <link>http://example.org/tags/Embeded-Technology/</link>
+      <pubDate>Wed, 04 Jan 2023 16:30:00 +0000</pubDate>
+      
+      <guid>http://example.org/tags/Embeded-Technology/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式学习路线</title>
+      <link>http://example.org/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/</link>
+      <pubDate>Wed, 04 Jan 2023 16:30:00 +0000</pubDate>
+      
+      <guid>http://example.org/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式工程师养成记</title>
+      <link>http://example.org/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/</link>
+      <pubDate>Wed, 04 Jan 2023 16:30:00 +0000</pubDate>
+      
+      <guid>http://example.org/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
