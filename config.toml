@@ -89,7 +89,7 @@ home = ["HTML", "RSS", "Algolia"]
   #git           = "full profile url for git user"
   
   [[params.friend_link]]
-  title = "Donge的CSDN"
+  title = "一十二画"
   href =  "https://blog.csdn.net/dong__ge"
 
   [[params.bookmark_link]]
