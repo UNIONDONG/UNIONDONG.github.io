@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <meta property="og:site_name" content="Donge Blog">
+    <meta property="og:type" content="article">
+
+    
+    <meta property="og:image" content="/img/home-bg3.jpg">
+    <meta property="twitter:image" content="/img/home-bg3.jpg" />
+    
+
+    
+    <meta name="title" content="【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细" />
+    <meta property="og:title" content="【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细" />
+    <meta property="twitter:title" content="【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细" />
+    
+
+    
+    <meta name="description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】">
+    <meta property="og:description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】" />
+    <meta property="twitter:description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】" />
+    
+
+    
+    <meta property="twitter:card" content="summary" />
+    
+    
+
+    <meta name="keyword"  content="董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细 |  董哥的博客</title>
+
+    <link rel="canonical" href="/post/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF/2023-01-04-10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/">
+
+    
+    
+    
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    
+    <link rel="stylesheet" href="/css/hugo-theme-cleanwhite.min.css">
+
+    
+    <link rel="stylesheet" href="/css/zanshang.css">
+
+    
+    <link rel="stylesheet" href="/css/font-awesome.all.min.css">
+
+    
+    
+
+    
+    <script src="/js/jquery.min.js"></script>
+
+    
+    <script src="/js/bootstrap.min.js"></script>
+
+    
+    <script src="/js/hux-blog.min.js"></script>
+
+    
+    <script src="/js/lazysizes.min.js"></script>
+
+    
+    
+
+</head>
+
+
+
+
+
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Donge Blog</a>
+        </div>
+
+        
+        
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">All Posts</a>
+                    </li>
+                    
+                        
+                    
+                    
+		    
+                        <li><a href="/archive//">ARCHIVE</a></li>
+                    
+                        <li><a href="/about//">ABOUT</a></li>
+                    
+		            <li>
+                        <a href="/search"><i class="fa fa-search"></i></a>
+		           </li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+</nav>
+<script>
+    
+    
+    
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        
+            $navbar.className = " ";
+            
+            setTimeout(function(){
+                
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+
+
+<style type="text/css">
+    header.intro-header {
+        background-image: url('/img/home-bg3.jpg')
+    }
+</style>
+
+<header class="intro-header" >
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0" title="嵌入式工程师养成记">
+                            嵌入式工程师养成记
+                        </a>
+                        
+                        <a class="tag" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF" title="嵌入式学习路线">
+                            嵌入式学习路线
+                        </a>
+                        
+                        <a class="tag" href="/tags/embeded-technology" title="Embeded Technology">
+                            Embeded Technology
+                        </a>
+                        
+                    </div>
+                    <h1>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        
+                            Posted by 
+                            
+                                Donge
+                             
+                            on 
+                            Wednesday, January 4, 2023
+                            
+                            
+                            
+                            
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+<article>
+    <div class="container">
+        <div class="row">
+
+            
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                
+                <div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206141400958.jpeg" alt = "0c70cff6aab3f2894c2bfd2c973e9620" alt = "img"  width = "15%" height = "15%"/></div>
+<center><font color ="grey">我的圈子：<a href="https://t.zsxq.com/0eUcTOhdO">
+高级工程师聚集地</a></font></center>
+<center><font color ="grey"> 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！</font></center>
+<center><b> 创作理念：专注分享高质量嵌入式文章，让大家读有所得！</b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/media_all.jpg" alt="img" width = "70%" height = "10%"/>
+</div>
+<div align=center><img src="https://bdn.135editor.com/files/images/editor_styles/d1c723e7e296ca791c2fb3b39ebee0f3.jpg" alt="img" width = "70%" height ="10%"/>
+</div>
+<p><strong>人们常说：“人生就是一场场游戏，我们要做的，就是打怪，升级，通关”，学习嵌入式的过程也是如此。</strong></p>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/v2-75599ba24a4cf13c06ec719bddc7731c_720w.jpg" alt="查看源图像">
+
+</p>
+<h2 id="1前言">1、前言</h2>
+<p>最近看到知乎上，给我推送了很多类似的回答，借此机会，也想着重新审视一下自己的学习历程，以及结合自身和大牛，分享一些学习经验，希望对大家有所启发和帮助。</p>
+<p><strong><font color = "blue">本文主要目的是为了：</font></strong></p>
+<ul>
+<li><strong>提供一张嵌入式学习路线地图</strong></li>
+<li><strong>提供不同阶段的学习建议</strong></li>
+<li><strong>推荐不同阶段的学习资料</strong></li>
+</ul>
+<p><strong>3000余字，耗时1周，建议收藏；码字不易，如有帮助，慷慨三连</strong></p>
+<p> </p>
+<p><strong><font color = "blue">本文将嵌入式学习路线分为几个方面：</font></strong></p>
+<ul>
+<li><strong>嵌入式基础必备知识</strong></li>
+<li><strong>51单片机</strong></li>
+<li><strong>STM32单片机</strong></li>
+<li><strong>小而美的RTOS</strong></li>
+<li><strong>ARM+LINUX</strong></li>
+</ul>
+<blockquote>
+<p>在这个快节奏的时代，能静下心，耐住性子看看文章，实属不易。</p>
+</blockquote>
+<p> </p>
+<h2 id="2嵌入式基础必备知识">2、嵌入式基础必备知识</h2>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/R-C.7a41d73d6ddf3507857a84fdce729da0" alt="查看源图像">
+
+</p>
+<p>老子曰：“合抱之木，生于毫末：九层之台，起于垒土；千里之行，始于足下”，根基的重要性不言而喻。</p>
+<p>那么对于嵌入式这条路线而言，如何建立一个稳固的根基？</p>
+<p> </p>
+<h3 id="21学习内容">2.1、学习内容</h3>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093005641.png" alt="image-20220618093005641">
+
+</p>
+<ul>
+<li><strong>C语言基础</strong></li>
+</ul>
+<p>该部分，主要包括几个核心知识点：<strong>三大语法结构</strong>、<strong>常用的数据类型</strong>、<strong>函数</strong>、<strong>结构体</strong>、<strong>指针</strong>、<strong>文件操作</strong>等。</p>
+<ul>
+<li><strong>硬件基础知识</strong></li>
+</ul>
+<p>该部分，核心知识点在于：<strong>电路基础知识</strong>、<strong>数电模电基础知识</strong>、<strong>常用的电子元器件</strong>等。</p>
+<ul>
+<li><strong>数据结构</strong></li>
+</ul>
+<p>核心知识点：<strong>数组</strong>、<strong>队列</strong>、<strong>链表</strong>、<strong>堆栈</strong>、<strong>树</strong>、<strong>图</strong>、<strong>散列表</strong>等。</p>
+<ul>
+<li><strong>操作系统</strong></li>
+</ul>
+<p>核心知识点：<strong>进程管理</strong>、<strong>内存管理</strong>、<strong>文件管理</strong>、<strong>输入输出管理</strong>等。</p>
+<ul>
+<li><strong>计算机原理</strong></li>
+</ul>
+<p>核心知识点：<strong>数据表示和运算</strong>、<strong>存储系统</strong>、<strong>指令系统</strong>、<strong>总线系统</strong>、<strong>中央处理器</strong>、<strong>输入输出系统</strong>等。</p>
+<p> </p>
+<h3 id="22学习建议">2.2、学习建议</h3>
+<ul>
+<li>对于<strong>C语言基础学习</strong>，一定要重点熟练掌握，根基的牢固直接决定了我们的代码质量。</li>
+<li>对于<strong>硬件基础学习</strong>，要适当了解，要能够看懂一些简单的电路结构，认识常用的电子元器件。</li>
+<li>对于<strong>数据结构学习</strong>，前五个是必备学习的，可能在刚开始学习的时候，可能会感觉不到作用在哪里，但是随着接触到嵌入式底层设计以及算法设计的时候，才会恍然大悟。</li>
+<li>对于<strong>操作系统学习</strong>，重点学习其思想，对相关知识点有一个大概的了解，后续接触到继续重点学习，这些无论是RTOS，还是Linux，都有涉及到的。</li>
+<li>对于<strong>计算机原理学习</strong>，可以将其看作是嵌入式系统的各个模块的详解，会让你对嵌入式有一个整体的了解，每一个部分都值得深究。</li>
+</ul>
+<p> </p>
+<h3 id="23学习资料">2.3、学习资料</h3>
+<ul>
+<li><strong>C语言基础</strong>：推荐经典书籍**《C语言程序设计》（第2版）谭浩强版本**。</li>
+<li><strong>硬件基础</strong>：大学里面的《数电模电》书籍所涉及的知识即可。</li>
+<li><strong>数据结构</strong>：推荐经典书籍**《数据结构》——严蔚敏版**。</li>
+<li><strong>操作系统、计算机原理</strong>：我用的是**《王道》的系列丛书**，个人感觉不错。</li>
+</ul>
+<p><strong>计算机组成、数据结构、操作系统、数据库</strong>是嵌入式或者说计算机的入门必读书籍，并且也被列入高校教材内，是真正的基础知识。</p>
+<p> </p>
+<p><span style="color: red;"><strong>以上，不一定是全部看完才能体验编程的乐趣，这个基础是一个循序渐进的过程，也不是一朝一夕就能完成的，可以先有一个大概，后续做项目时，哪里不懂补哪里！</strong></span></p>
+<p>这里涉及到一个重要的学习方法：<span style="color: purple;"><strong>项目导向的学习法</strong>。</span></p>
+<p> </p>
+<h2 id="3嵌入式入门篇51单片机">3、嵌入式入门篇——51单片机</h2>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618091321192.png" alt="image-20220618091321192">
+
+</p>
+<p>在上面的基础知识进行熟悉之后（<strong>C语言基础、计算机组成、硬件基础必备</strong>），我们准备叩开嵌入式世界的大门。</p>
+<p>入门篇，依旧推荐<strong>51单片机</strong>，当然有人会说，直接上<strong>STM32</strong>岂不更好？</p>
+<p><strong>我的看法</strong>：建议新手还是以51单片机来入门，因为STM32体系架构比51大很多，对于新手刚开始可能会不太容易适应。</p>
+<p> </p>
+<h3 id="31学习内容">3.1、学习内容</h3>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093041553.png" alt="image-20220618093041553">
+
+</p>
+<p>该部分，主要在最小嵌入式系统中，实现各种有趣的实验。通过51单片机的学习，我们要做到：</p>
+<ul>
+<li><strong>软件类</strong>：</li>
+</ul>
+<p>主要知识点有：<strong>认识单片机</strong>、<strong>熟悉逻辑运算</strong>、<strong>点亮一颗LED灯</strong>、<strong>按键检测</strong>、<strong>串口通信</strong>、<strong>定时器</strong>、<strong>中断</strong>等。</p>
+<ul>
+<li><strong>硬件类</strong>：</li>
+</ul>
+<p>主要知识点有：<strong>电阻元器件了解</strong>，<strong>基本模块电路了解</strong>，<strong>时钟电路</strong>，<strong>尝试绘制51单片机原理图和PCB</strong></p>
+<p> </p>
+<h3 id="32学习建议">3.2、学习建议</h3>
+<ul>
+<li>对于<strong>软件类</strong>，我们主要做到：认识单片机，熟悉单片机的GPIO的输入、输出操作，串口通信协议掌握等，<strong>这些部分都是任何一款嵌入式设备的必备技能</strong>。</li>
+<li>对于<strong>硬件类</strong>：我们主要做到：<strong>能看懂电路图</strong>，<strong>熟悉</strong>一些简单模块的<strong>设计电路</strong>，了解<code>Altium Designer</code>的使用方法。</li>
+</ul>
+<p> </p>
+<h3 id="33学习资料">3.3、学习资料</h3>
+<p><strong>51单片机</strong>：<strong>郭天祥的51单片机教程</strong>，经典著作，经久不衰，强烈推荐。</p>
+<p> </p>
+<p>庄子说：“水之积也不厚，则其负大舟也无力。“</p>
+<p><font color ="red"><strong>该部分，是嵌入式领域的基石，只有将基础打牢，才能负得起Linux泰坦号。</strong></font></p>
+<p> </p>
+<h2 id="4stm32进阶篇">4、STM32进阶篇</h2>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/R-C.82c650b05899fa6ba581ec216a500e7a" alt="查看源图像">
+
+</p>
+<p>STM32是C51的进阶版，拥有C51的基础知识，开发STM32会得心应手。</p>
+<p><code>STM32</code>的系统架构以及硬件设计相比于<code>C51</code>来说，都是上升了一个维度的，这也是为什么我推荐入门学习<code>C51</code>的原因。</p>
+<p> </p>
+<p>以<code>STM32F407</code>平台为基础，去学习目前嵌入式主流的一些技术，探寻底层的原理，做到不同平台，都能够得心应手。</p>
+<p> </p>
+<h3 id="41学习内容">4.1、学习内容</h3>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093112817.png" alt="image-20220618093112817">
+
+</p>
+<ul>
+<li><strong>基础练习</strong></li>
+</ul>
+<p>该部分，主要练习：<strong>点亮LED灯</strong>、<strong>GPIO的输入输出操作</strong>、<strong>中断操作</strong>、<strong>UART通信</strong>、<strong>IIC通信</strong>等</p>
+<ul>
+<li><strong>进阶练习</strong></li>
+</ul>
+<p>该部分，主要练习：<strong>DMA通信</strong>、<strong>SPI通信</strong>、<strong>CAN通信</strong>、<strong>LCD显示屏</strong>，<strong>ADC</strong>等</p>
+<ul>
+<li><strong>高阶练习</strong></li>
+</ul>
+<p>该部分，主要学习：<strong>STM32时钟架构</strong>、<strong>总线架构</strong>、<strong>电源管理</strong>、<strong>代码框架</strong>、<strong>SDIO通信</strong>、<strong>USB通信</strong>等。</p>
+<p> </p>
+<h3 id="42学习建议">4.2、学习建议</h3>
+<ul>
+<li>对于<strong>基础练习</strong>，主要目的是为了方便让我们从<code>C51</code>到<code>STM32</code>环境的过渡。</li>
+<li>对于<strong>进阶练习</strong>，主要练习一些通信类相关的协议，可以结合一些传感器进行开发。</li>
+<li>对于<strong>高阶练习</strong>，主要目的是为了熟悉单片机的设计架构，编程的框架，以及一些更复杂的通信技术。</li>
+</ul>
+<p><span style="color: blue;"><strong>另外，STM32会有寄存器和库函数两个版本，建议交叉学习，理解会更加深刻。</strong></span></p>
+<p> </p>
+<h3 id="43学习资料">4.3、学习资料</h3>
+<p><strong>STM32单片机</strong>：推荐<a href="http://47.111.11.73/docs/index.html">正点原子</a>、<a href="https://doc.embedfire.com/products/link/zh/latest/index.html">野火</a>的<code>STM32F103</code>或者<code>STM32F407</code>系列。</p>
+<p>两家的学习资料都非常丰富，既有详细的文档说明，也有完整的学习视频教程，非常适合新手入门学习。</p>
+<p> </p>
+<p><font color = "red"><strong>俗话说：“有道无术，术尚可求，有术无道，止于术”。要明白道和术的区别，不要本末倒置</strong>。</font></p>
+<p> </p>
+<h2 id="5小而美的rtos">5、小而美的RTOS</h2>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/OIP-C.M5oPSD9DUCqGLi0LKZDvEwAAAA" alt="查看源图像">
+
+</p>
+<p><code>RTOS</code>，实时操作系统，可以理解为<code>STM32</code>与<code>Linux</code>之间的桥梁，由于其实现思想大都取之于<code>Linux</code>，所以也称之为<code>精简版的Linux</code>。</p>
+<p>我们常用的有实时操作系统有：<code>UCOS</code>，<code>VxWork</code>，<code>FreeRtos</code>，近些年<code>RT-Thread</code>也异军突起。</p>
+<p>学习这些简单的嵌入式系统，一来能够帮助我们为学习Linux操作系统打下基础，二来也能够扩宽我们的职业道路。</p>
+<p>前面也说过了，无论是<code>UCOS</code>、<code>FreeRtos</code>、<code>Rt-thread</code>，其内部的设计思想大同小异，下面主要以<code>Ucos</code>为例。</p>
+<h3 id="51学习内容">5.1、学习内容</h3>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618092246693.png" alt="image-20220618092246693">
+
+</p>
+<ul>
+<li><strong>实时系统学习</strong></li>
+</ul>
+<p>该部分，主要学习：<strong>移植Ucos系统</strong>、<strong>多任务管理</strong>、<strong>调度算法</strong>、<strong>消息队列</strong>、<strong>信号量互斥量</strong>、<strong>事件</strong>、<strong>内存管理</strong>等。</p>
+<p> </p>
+<h3 id="52学习建议">5.2、学习建议</h3>
+<ul>
+<li>对于<strong>实时系统学习</strong>，除了上述的那些核心知识点外，还要结合<code>2.1 基础必备知识</code>的<strong>操作系统书籍</strong>加深理解。</li>
+</ul>
+<p> </p>
+<h3 id="53学习资料">5.3、学习资料</h3>
+<p><strong>RTOS</strong>的学习：依旧推荐<a href="http://47.111.11.73/docs/book-videos/zdyzshipin/4free/ucosIII.html">正点原子</a>，<a href="https://doc.embedfire.com/products/link/zh/latest/tutorial/ebf_ucos_tutorial.html">野火</a>，因为这些实时操作系统开发，可以基于STM32开发板，同时也有非常详细的文档和视频教学。</p>
+<p> </p>
+<h2 id="6armlinux篇">6、ARM+Linux篇</h2>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/OIP-C.A1ogVu3PjQ0ujKxhTNOSXwHaEK" alt="查看源图像">
+
+</p>
+<p>学习完<code>RTOS</code>后，基本嵌入式所涉及的技术已经掌握一半了，你也可以独立完成一些小的项目，也可以找到一个不错的工作，但是一定不要自我满足，有机会一定要接触Linux。</p>
+<p><span style="color: red;"><strong>还是那句话：<code>ARM+Linux</code>，也是最为复杂的东西，如果你不去接触<code>Linux</code>，你永远不知道嵌入式的魅力。</strong></span></p>
+<p> </p>
+<p><strong>Linux开发</strong>又分为<strong>驱动开发</strong>，<strong>内核开发</strong>，<strong>应用开发</strong>，每一个方向都需要几年甚至几十年的积累。</p>
+<blockquote>
+<p>作为初学者，我们要做的就是宏观了解，扩大我们的知识面，然后去选择自己感兴趣的方面。</p>
+</blockquote>
+<h3 id="61学习内容">6.1、学习内容</h3>
+<p>
+  <img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618092751914.png" alt="image-20220618092751914">
+
+</p>
+<ul>
+<li><strong>Linux基础篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>Linux常用命令</strong>、<strong>VIM学习</strong>、<strong>Linux的Shell编程</strong>、<strong>Gcc编译</strong>、<strong>Makefile</strong>等。</p>
+<ul>
+<li><strong>驱动篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>内核模块编译原理</strong>、<strong>字符设备驱动框架</strong>、<strong>平台设备驱动</strong>、<strong>设备树</strong>、<strong>Pinctrl子系统</strong>、<strong>I2C子系统</strong>、<strong>中断子系统</strong>、<strong>块设备驱动框架</strong>、<strong>Bootloader</strong>等</p>
+<ul>
+<li><strong>内核篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>系统调用</strong>、<strong>存储管理</strong>、<strong>进程管理</strong>、<strong>内存管理</strong>、<strong>文件管理</strong>等。</p>
+<ul>
+<li><strong>应用篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>QT编程</strong>、<strong>TCP/IP协议</strong>、<strong>HTTP协议</strong>等。</p>
+<p> </p>
+<h3 id="62学习建议">6.2、学习建议</h3>
+<ul>
+<li>对于<strong>基础学习</strong>，刚接触到<code>Linux</code>，一般比较难上手，与之前的单片机完全不同，需要一个熟悉环境的过程。</li>
+<li>对于<strong>驱动学习</strong>，重要在于明白“<strong>如何在Linux环境下编写驱动程序</strong>”，驱动的底层原理还是那样，加了一层层的框架，需要我们去熟悉。</li>
+<li>对于<strong>内核学习</strong>，上述也是系统的几大核心特色，重点在于&quot;<strong>如何使Linux性能最优</strong>&quot;</li>
+<li>对于<strong>应用学习</strong>，上述的几个方面也是基础，重点还在于<strong>开发什么应用</strong>，去学习哪方面的知识，没有定论。</li>
+</ul>
+<p><span style="color: blue;">对于Linux，有句老话“学习Linux，3年才算入门，5年才勉强算Linux工程师，对于不太熟悉的领域，博主也不敢妄加断言。”</span></p>
+<p> </p>
+<h3 id="63学习资料">6.3、学习资料</h3>
+<ul>
+<li>对于<strong>基础学习</strong>，推荐**《鸟哥的Linux私房菜》<strong>，</strong>《Unix环境高级编程》**等入门书籍。</li>
+<li>对于<strong>驱动开发</strong>，推荐**《Linux设备驱动开发详解》**，<strong>Linux内核源码详解</strong>等。</li>
+<li>对于<strong>内核学习</strong>，推荐**《Linux Shell脚本攻略》<strong>、</strong>《深入理解Linux内核》**等。</li>
+<li>对于<strong>应用开发</strong>，推荐**《嵌入式Linux应用开发完全手册》<strong>、</strong>《Unix网络编程》**等。</li>
+<li>另外，推荐<a href="http://47.111.11.73/docs/index.html">正点原子</a>，<a href="https://doc.embedfire.com/products/link/zh/latest/index.html">野火</a>，<a href="http://download.100ask.org/">韦东山</a>三个Linux开发教程，韦老师的课程好评居多，但还是看哪个更适合自己。</li>
+</ul>
+<p> </p>
+<h2 id="7总结">7、总结</h2>
+<p>全文整体的学习路线：<span style="color: red;"><strong>嵌入式基础学习</strong> -&gt; <strong>51单片机</strong> -&gt; <strong>STM32单片机</strong> -&gt; <strong>RTOS篇</strong> -&gt; <strong>ARM+Linux</strong></span></p>
+<p>每一个部分，也都从<strong>学习内容</strong>，<strong>学习建议</strong>，<strong>学习资料</strong>三个方面来展开，层层深入，步步指引。</p>
+<p>文章既是我的学习历程，又结合了一些大佬的学习分享，不断调整总结出来的，如有异同，可以讨论。</p>
+<p>全文3000余字，耗时1周，如有帮助，望不吝点赞关注。</p>
+<p>最后，文章所涉及的学习资料以及整理的思维导图，全部会在我的星球【<strong>嵌入式艺术</strong>】分享！</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+
+
+                
+                
+<div class="entry-shang text-center">
+    
+	    <p>「真诚赞赏，手留余香」</p>
+	
+	<button class="zs show-zs btn btn-bred">赞赏支持</button>
+</div>
+<div class="zs-modal-bg"></div>
+<div class="zs-modal-box">
+	<div class="zs-modal-head">
+		<button type="button" class="close">×</button>
+		<span class="author"><a href=""><img src="/img/favicon.png" />Donge Blog</a></span>
+        
+	        <p class="tip"><i></i><span>真诚赞赏，手留余香</span></p>
+		
+ 
+	</div>
+	<div class="zs-modal-body">
+		<div class="zs-modal-btns">
+			<button class="btn btn-blink" data-num="2">2元</button>
+			<button class="btn btn-blink" data-num="5">5元</button>
+			<button class="btn btn-blink" data-num="10">10元</button>
+			<button class="btn btn-blink" data-num="50">50元</button>
+			<button class="btn btn-blink" data-num="100">100元</button>
+			<button class="btn btn-blink" data-num="1">任意金额</button>
+		</div>
+		<div class="zs-modal-pay">
+			<button class="btn btn-bred" id="pay-text">2元</button>
+			<p>使用<span id="pay-type">微信</span>扫描二维码完成支付</p>
+			<img src="/img/reward/wechat-2.png"  id="pay-image"/>
+		</div>
+	</div>
+	<div class="zs-modal-footer">
+		<label><input type="radio" name="zs-type" value="wechat" class="zs-type" checked="checked"><span ><span class="zs-wechat"><img src="/img/reward/wechat-btn.png"/></span></label>
+		<label><input type="radio" name="zs-type" value="alipay" class="zs-type" class="zs-alipay"><img src="/img/reward/alipay-btn.png"/></span></label>
+	</div>
+</div>
+<script type="text/javascript" src="/js/reward.js"></script>
+
+                
+
+                
+
+                
+
+
+
+            </div>
+
+            
+            
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+            
+
+            
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </div>
+                </section>
+                
+
+                
+                
+                <section>
+                    <hr>
+                    <h5>FRIENDS</h5>
+                    <ul class="list-inline">
+                        
+                        <li><a target="_blank" href="https://blog.csdn.net/dong__ge">一十二画</a></li>
+                        
+                    </ul>
+                </section>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">                  
+                    
+                    <li>
+                        <a href="mailto:xihangdong@163.com">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		           
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/Embedded_Art">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+
+		            
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/uniondong">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+            
+            
+            
+           
+                   <li>
+                       <a href='' rel="alternate" type="application/rss+xml" title="Donge Blog" >
+                           <span class="fa-stack fa-lg">
+                               <i class="fas fa-circle fa-stack-2x"></i>
+                               <i class="fas fa-rss fa-stack-1x fa-inverse"></i>
+                           </span>
+                       </a>
+                   </li>
+            
+             </ul>
+		<p class="copyright text-muted">
+                    Copyright &copy; Donge Blog 2023
+                    <br>
+                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+
+<script>
+    function loadAsync(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+
+
+
+
+
+<script>
+    
+    if($('#tag_cloud').length !== 0){
+        loadAsync("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+
+<script>
+    loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+
+<script>
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https'){
+       bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+      }
+      else{
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+      }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+
+<script>
+    
+    var _baId = '73ec01d6658ee89cd64c8711bbdbcaa5';
+
+    
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<script type="text/javascript">
+    function generateCatalog(selector) {
+
+        
+        
+        
+        
+            _containerSelector = 'div.post-container'
+        
+
+        
+        var P = $(_containerSelector), a, n, t, l, i, c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        
+        $(selector).html('')
+
+        
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#" + $(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="' + i + '" rel="nofollow">' + t + '</a>');
+            l = $('<li class="' + n + '_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    
+    $(".catalog-toggle").click((function (e) {
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    
+
+
+    loadAsync("\/js\/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+
+</body>
+</html>

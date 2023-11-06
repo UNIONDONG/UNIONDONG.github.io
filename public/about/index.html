@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <meta property="og:site_name" content="Donge Blog">
+    <meta property="og:type" content="article">
+
+    
+    <meta property="og:image" content="/img/home-bg3.jpg">
+    <meta property="twitter:image" content="/img/home-bg3.jpg" />
+    
+
+    
+    <meta name="title" content="" />
+    <meta property="og:title" content="" />
+    <meta property="twitter:title" content="" />
+    
+
+    
+    <meta name="description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】">
+    <meta property="og:description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】" />
+    <meta property="twitter:description" content="高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】" />
+    
+
+    
+    <meta property="twitter:card" content="summary" />
+    
+    
+
+    <meta name="keyword"  content="董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title> 董哥的博客</title>
+
+    <link rel="canonical" href="/about/">
+
+    
+    
+    
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    
+    <link rel="stylesheet" href="/css/hugo-theme-cleanwhite.min.css">
+
+    
+    <link rel="stylesheet" href="/css/zanshang.css">
+
+    
+    <link rel="stylesheet" href="/css/font-awesome.all.min.css">
+
+    
+    
+
+    
+    <script src="/js/jquery.min.js"></script>
+
+    
+    <script src="/js/bootstrap.min.js"></script>
+
+    
+    <script src="/js/hux-blog.min.js"></script>
+
+    
+    <script src="/js/lazysizes.min.js"></script>
+
+    
+    
+
+</head>
+
+
+
+
+
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Donge Blog</a>
+        </div>
+
+        
+        
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">All Posts</a>
+                    </li>
+                    
+                        
+                    
+                    
+		    
+                        <li><a href="/archive//">ARCHIVE</a></li>
+                    
+                        <li><a href="/about//">ABOUT</a></li>
+                    
+		            <li>
+                        <a href="/search"><i class="fa fa-search"></i></a>
+		           </li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+</nav>
+<script>
+    
+    
+    
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        
+            $navbar.className = " ";
+            
+            setTimeout(function(){
+                
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+
+<header class="intro-header" style="background-image: url('/img/home-bg3.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Donge Blog </h1>
+                    
+		    <span class="subheading">专注分享高质量嵌入式文章，让大家读有所得！</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+<article>
+    <div class="container">
+        <div class="row">
+            
+            <div class="
+            col-lg-8 col-lg-offset-1
+            col-md-8 col-md-offset-1
+            col-sm-12
+            col-xs-12
+            post-container">
+            
+                 
+ <select class="sel-lang" onchange= "onLanChange(this.options[this.options.selectedIndex].value)">
+    <option value="0" selected> 中文 | Chinese </option>
+    <option value="1"> 英文 | English </option>
+</select>
+
+                
+                <div class="zh post-container">
+                    
+                    <h2 id="1个人介绍">1、个人介绍</h2>
+<p>🙍🏻‍♂️  大家好，我是董哥，一名工作多年的嵌入式<code>Linux</code>开发工程师。以下是我的基本信息介绍：</p>
+<ul>
+<li>参加全国机器人大赛<code>（Robocon）</code>，两次获得全国一等奖</li>
+<li>毕业后斩获科沃斯，石头，格力等多家头部机器人公司的<code>offer</code>，后入职世界五百强格力电器担任嵌入式开发工程师</li>
+<li>现今就职于独角兽芯片企业，担任嵌入式<code>Linux</code>驱动开发工程师</li>
+<li>熟练使用<code>C/C++</code>语言开发，熟悉各类<code>MCU</code>开发，如<code>STM32</code>，<code>ARM</code>，<code>SOC</code>等，熟悉<code>Ucos</code>，<code>RT-thread</code>实时操作系统等</li>
+<li>目前主要负责<code>Linux</code>驱动，系统开发，<code>WiFi&amp;BT</code>开发等相关工作，同时跟进并参与多款百万级量产项目的研发。</li>
+<li>荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。</li>
+</ul>
+<h2 id="2技术与分享">2、技术与分享</h2>
+<p>记录<code>Blog</code>是一项值得挑战的事情，一方面是对自我技术的沉淀，另一方面也是四万万嵌入式开发者前行路上的加速剂；并且网上大多数文章七零八落，每个人对技术的理解程度不同，因此好的文章，永不过时！</p>
+<p>我的一些自媒体平台：</p>
+<ul>
+<li><code>CSDN</code>：<a href="https://blog.csdn.net/dong__ge">卍一十二画卍</a></li>
+<li>知乎：<a href="https://www.zhihu.com/people/Embedded_Art">嵌入式艺术</a></li>
+<li>公众号：嵌入式艺术</li>
+<li>知识星球：<a href="https://t.zsxq.com/0eUcTOhdO">嵌入式艺术</a></li>
+</ul>
+<h2 id="3我的星球">3、我的星球</h2>
+<p>🚩  【嵌入式艺术】星球，目前是处于起步阶段，我们的目标是：携手共创高质量的嵌入式基地，兼收并蓄，群英荟萃，实现升职加薪创业梦！</p>
+<p>🛎️  <strong>我们提供的服务有</strong>：</p>
+<ol>
+<li>提供一个高级嵌入式工程师聚集地，聚焦嵌入式工程师成长与发展。</li>
+<li>高质量嵌入式项目、技术的拆解与分析</li>
+<li>高效率的嵌入式开发工具分享</li>
+<li>AIGC + 嵌入式 应用，跟上时代的脚步</li>
+<li>嵌入式的行业趋势与热点分析</li>
+</ol>
+<p>🛎️  <strong>我们后续要做的事情</strong>：</p>
+<ol>
+<li>引入更多嵌入式领域大咖加入我们的星球，为大家提供更好的服务！</li>
+<li>引入更多优质公司的内推岗位，以便大家走内部推荐通道，加入头部企业！</li>
+<li>拆解更多嵌入式项目，为大家提供实战经验，以目标为导向，实现更好的学习效果！</li>
+<li>星球不定期举办激励活动，有实物激励以及现金激励两种，希望大家踊跃参加！</li>
+</ol>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art_New.gif" alt="Embeded_Art_New"></p>
+
+                </div>
+            
+                
+                <div class="en post-container">
+                    <h2 id="about-me">About Me</h2>
+<p><strong><em>Huabing Zhao</em></strong> is a software architect, an Istio Member and an ONAP PTL. He has a solid experience in the information and telecommunication technology industry for more than 17 years.</p>
+<p>Throughout his career, he has built a number of large-scale, cross-country software systems, most of them are still running in production.</p>
+<p>He loves open source and has been contributing to various open source projects, he is a member of Istio,  previous PTL of ONAP, the author of the Hugo clean-white theme and the open source project Aeraki Mesh.</p>
+<p>He also has strong interests in various technical topics such as Cloud Native, Artificial Intelligence, Cryptocurrencies, Smart Home, etc. He love sharing his ideas about these things in his blog.</p>
+<p>Huabing holds a BSc in Computer Science and Technology from Chongqing University in China.</p>
+<p>Currently, Huabing works as a senior engineer at <a href="https://cloud.tencent.com/">Tencent Cloud</a> and also wears the hat of PTL in ONAP open source project. For now, his main focus is to build a managed service mesh solution on cloud.</p>
+<p>While he is free, he likes writing technical blog posts, watching movies, swimming, hiking, travelling and learning languages.</p>
+<p>Feel free to connect Huabing at Github and Linkedin, leave your thoughts in his blog or share your ideas by <a href="mailto:zhaohuabing@zhaohuabing.com">writing him an email</a>.</p>
+<h2 id="publications">Publications</h2>
+<table>
+<thead>
+<tr>
+<th>Title</th>
+<th>Type</th>
+<th>Publisher</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.zhaohuabing.com/post/2021-08-26-istio-handbook/">Istio Service Mesh Advanced Practical</a></td>
+<td>Book</td>
+<td>电子工业出版社</td>
+<td><a href="https://item.jd.com/13200745.html">Buy now</a></td>
+</tr>
+<tr>
+<td><a href="https://www.zhaohuabing.com/post/2021-09-08-distributed-tracing-with-jaeger-kubernetes-and-istio/">Distributed Tracing with Jaeger, Kubernetes, and Istio</a></td>
+<td>Live Project</td>
+<td>Manning</td>
+<td><a href="https://www.manning.com/liveprojectseries/distributed-tracing-ser">30% off</a></td>
+</tr>
+<tr>
+<td><a href="https://zhaohuabing.com/post/2021-08-27-cloud-native-data-center">Cloud Native Data Center Networking</a></td>
+<td>Translation</td>
+<td>中国电力出版社</td>
+<td><a href="https://item.jd.com/12929975.html">Buy now</a></td>
+</tr>
+<tr>
+<td><a href="http://localhost:1313/post/2021-10-08-istio-operation-bible/">Istio Operation Bible</a></td>
+<td>ebook</td>
+<td></td>
+<td><a href="https://istio-operation-bible.aeraki.net/">Read online</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="presentations-selected">Presentations (Selected)</h2>
+<table>
+<thead>
+<tr>
+<th>Year</th>
+<th>City</th>
+<th>Conference</th>
+<th>Title</th>
+<th>Slides</th>
+<th>Video</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2022</td>
+<td>Virtual</td>
+<td><a href="https://events.istio.io/istiocon-2022">IstioCon</a></td>
+<td><a href="https://events.istio.io/istiocon-2022/sessions/tencent-music-aeraki/">Tencent Music’s service mesh practice with Istio and Aeraki</a></td>
+<td><a href="/slides/tencent-music-service-mesh-practice-with-istio-and-aeraki.pdf">slides</a></td>
+<td><a href="https://www.youtube.com/watch?v=6t_yPsq4Pi4">Video</a></td>
+</tr>
+<tr>
+<td>2022</td>
+<td>Virtual</td>
+<td><a href="https://a2m.msup.com.cn/course?aid=2699&amp;cid=15382">A2M</a></td>
+<td><a href="https://a2m.msup.com.cn/course?aid=2699&amp;cid=15382">全栈服务网格 - Aeraki Mesh 助你在 Istio 服务网格中管理任何七层流量</a></td>
+<td><a href="/slides/full-stack-service-mesh-a2m-20220422.pdf">slides</a></td>
+<td></td>
+</tr>
+<tr>
+<td>2022</td>
+<td>Virtual</td>
+<td><a href="https://cloud.tencent.com/developer/salon/live-1403">云原生正发声</a></td>
+<td><a href="https://mp.weixin.qq.com/s/zp9q99mGyH2VD9Dij2owWg">Areaki Mesh 在 2022 冬奥会视频直播应用中的服务网格实践</a></td>
+<td><a href="http://localhost:1313/img/2022-03-30-aeraki-mesh-winter-olympics-practice/slides.pdf">Slides</a></td>
+<td><a href="https://youtu.be/uXxatQTKzW8">Video</a></td>
+</tr>
+<tr>
+<td>2021</td>
+<td>Virtual</td>
+<td><a href="https://events.istio.io/istiocon-2021/">IstioCon</a></td>
+<td><a href="https://events.istio.io/istiocon-2021/sessions/how-to-manage-any-layer-7-traffic-in-an-istio-service-mesh/">How to manage any layer-7 traffic in an Istio service mesh?</a></td>
+<td><a href="/slides/how-to-manage-any-layer-7-traffic-in-istio.pdf">Slides</a></td>
+<td><a href="https://www.youtube.com/watch?v=sBS4utF68d8">Video</a></td>
+</tr>
+<tr>
+<td>2020</td>
+<td>Virtual</td>
+<td><a href="https://www.cnbpa.org/">CNBPS</a></td>
+<td><a href="https://cloud.tencent.com/developer/article/1723804">Istio 流量管理原理与协议扩展</a></td>
+<td><a href="/slides/cnbps2020-istio-aeraki.pdf">Slides</a></td>
+<td><a href="https://www.youtube.com/watch?v=lB5d4qbZqzU">Video</a></td>
+</tr>
+<tr>
+<td>2019</td>
+<td>Chengdu</td>
+<td><a href="https://cloudnative.to/blog/service-mesh-meetup-chengdu-20191028/">Service Mesher Meetup</a></td>
+<td><a href="https://cloudnative.to/blog/service-mesh-meetup-chengdu-20191028/">What Can Service Mesh Learn From SDN?</a></td>
+<td><a href="/slides/what-can-service-mesh-learn-from-sdn-servicemesher-meetup-20191026.pdf">Slides</a></td>
+<td><a href="https://youtu.be/nGkxp-2OsKg">Video</a></td>
+</tr>
+<tr>
+<td>2019</td>
+<td>Xi&rsquo;an</td>
+<td>ONAP Workshop</td>
+<td>Service Mesh Practice with 5G Management System</td>
+<td><a href="/slides/service-mesh-practice-with-5g-management-system-lfn.pdf">Slides</a></td>
+<td></td>
+</tr>
+<tr>
+<td>2018</td>
+<td>Nanjing</td>
+<td><a href="https://www.bagevent.com/event/1624048?aId=">GNTC</a></td>
+<td><a href="https://www.sdnlab.com/22596.html">Service Mesh in Action with ONAP</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2017</td>
+<td>Santa Clara</td>
+<td><a href="https://wiki.onap.org/display/DW/ONAP+Beijing+Release+Developer+Forum%2C+Dec.+11-13%2C+2017%2C+Santa+Clara%2C+CA+US">NAP Developer Forum</a></td>
+<td><a href="https://onapbeijing2017.sched.com/event/D5q2">MSB to Support Carrier Grade ONAP Microservice Architecture with Service Mesh</a></td>
+<td><a href="https://wiki.onap.org/display/DW/MSB+Service+Mesh+Planning?preview=%2F20873876%2F20873874%2FMSB+to+Support+Carrier+Grade+ONAP+Microservice+Architecture+with+Service+Mesh.pdf">Slides</a></td>
+<td></td>
+</tr>
+<tr>
+<td>2017</td>
+<td>Santa Clara</td>
+<td><a href="https://wiki.onap.org/display/DW/ONAP@ONS2017">ONS</a></td>
+<td>Microservice Powered Orchestration</td>
+<td><a href="https://wiki.onap.org/display/DW/ONAP@ONS2017?preview=%2F3245268%2F3245309%2FMicroservice+Powered+Orchestration+Architecture.pdf">Slides</a></td>
+<td></td>
+</tr>
+<tr>
+<td>2017</td>
+<td>New Jersey</td>
+<td><a href="https://wiki.onap.org/display/DW/ONAP+Project+Developer+Event%3A+May+2+-+5%2C+2017%2C+Middletown%2C+NJ%2C+USA">ONAP Developer Event</a></td>
+<td>MSB Technical Deep Dive and ONAP Use Cases</td>
+<td><a href="https://www.slideshare.net/HuabingZhao/msb-depp-dive/">Slides</a></td>
+<td></td>
+</tr>
+<tr>
+<td>2017</td>
+<td>Paris</td>
+<td><a href="https://wiki.onap.org/display/DW/ONAP+Developer+Event+September+25-28%2C+2017%2C+Paris-Saclay%2C+France">ONAP Developer Event</a></td>
+<td><a href="https://wiki.onap.org/display/DW/September+26-28+Topics#September2628Topics-M2">Microservice Bus Tutorial</a></td>
+<td><a href="https://www.slideshare.net/HuabingZhao/microservice-bus-tutorial">Slides</a></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="open-source-projects">Open Source Projects</h2>
+<table>
+<thead>
+<tr>
+<th>Project</th>
+<th>Role</th>
+<th>Website</th>
+<th>GitHub</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Aeraki Mesh</td>
+<td>Creator</td>
+<td><a href="https://aeraki.net">https://aeraki.net</a></td>
+<td><a href="http://github.com/aeraki-mesh">http://github.com/aeraki-mesh</a></td>
+</tr>
+<tr>
+<td>Istio</td>
+<td>Contributor</td>
+<td><a href="https://istio.io">https://istio.io</a></td>
+<td><a href="https://github.com/istio/istio">https://github.com/istio/istio</a></td>
+</tr>
+<tr>
+<td>Envoy</td>
+<td>Contributor</td>
+<td><a href="https://www.envoyproxy.io">https://www.envoyproxy.io</a></td>
+<td><a href="https://github.com/envoyproxy/envoy">https://github.com/envoyproxy/envoy</a></td>
+</tr>
+<tr>
+<td>ONAP</td>
+<td>PTL</td>
+<td><a href="https://www.onap.org">https://www.onap.org</a></td>
+<td></td>
+</tr>
+<tr>
+<td>hugo-theme-cleanwhite</td>
+<td>Creator</td>
+<td><a href="https://themes.gohugo.io/themes/hugo-theme-cleanwhite">https://themes.gohugo.io/themes/hugo-theme-cleanwhite</a></td>
+<td><a href="https://github.com/zhaohuabing/hugo-theme-cleanwhite">https://github.com/zhaohuabing/hugo-theme-cleanwhite</a></td>
+</tr>
+</tbody>
+</table>
+
+                </div>
+            
+             
+            
+
+
+
+            
+            </div>
+            
+            
+
+<div class="
+    col-lg-3 col-lg-offset-0
+    col-md-3 col-md-offset-0
+    col-sm-12
+    col-xs-12
+    sidebar-container
+">
+    
+	
+    <section class="visible-md visible-lg">
+	
+        <div class="short-about">
+            
+            <a href="/about">
+               <img src="/img/dxh.jpg" alt="avatar" style="cursor: pointer" />
+            </a>
+            
+            
+                <p>君子慎独, 不欺暗室</p>
+            
+           
+           <ul class="list-inline">
+               
+               <li>
+                   <a href="mailto:xihangdong@163.com">
+                      <span class="fa-stack fa-lg">
+                          <i class="fa fa-circle fa-stack-2x"></i>
+                          <i class="fa fa-envelope fa-stack-1x fa-inverse"></i>
+                      </span>
+                   </a>
+               </li>
+               
+               
+               
+               <li>
+                   <a target="_blank" href="https://www.zhihu.com/people/Embedded_Art">
+                       <span class="fa-stack fa-lg">
+                           <i class="fas fa-circle fa-stack-2x"></i>
+                           <i class="fab fa-stack-1x fa-inverse">知</i>
+                       </span>
+                   </a>
+               </li>
+               
+               
+               
+               
+               
+               <li>
+                   <a target="_blank" href="https://github.com/uniondong">
+                       <span class="fa-stack fa-lg">
+                           <i class="fas fa-circle fa-stack-2x"></i>
+                           <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                       </span>
+                   </a>
+               </li>
+               
+               
+               
+               
+               
+               
+            
+            
+               
+               
+               
+               
+                </ul>
+            </div>
+    </section>
+	
+    
+    
+    
+    
+    <section>
+        <hr class="hidden-sm hidden-xs">
+        <h5>FEATURED TAGS</h5>
+        <div class="tags">
+            
+            
+               
+            
+               
+            
+               
+            
+        </div>
+    </section>
+    
+
+    
+    
+    <section>
+        <hr class="hidden-sm hidden-xs">
+        <h5>FRIENDS</h5>
+        <ul class="list-inline">
+            
+            <li><a target="_blank" href="https://blog.csdn.net/dong__ge">一十二画</a></li>
+            
+        </ul>
+    </section>
+    
+    
+</div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">                  
+                    
+                    <li>
+                        <a href="mailto:xihangdong@163.com">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		           
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/Embedded_Art">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+
+		            
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/uniondong">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+            
+            
+            
+           
+                   <li>
+                       <a href='' rel="alternate" type="application/rss+xml" title="Donge Blog" >
+                           <span class="fa-stack fa-lg">
+                               <i class="fas fa-circle fa-stack-2x"></i>
+                               <i class="fas fa-rss fa-stack-1x fa-inverse"></i>
+                           </span>
+                       </a>
+                   </li>
+            
+             </ul>
+		<p class="copyright text-muted">
+                    Copyright &copy; Donge Blog 2023
+                    <br>
+                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+
+<script>
+    function loadAsync(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+
+
+
+
+
+<script>
+    
+    if($('#tag_cloud').length !== 0){
+        loadAsync("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+
+<script>
+    loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+
+<script>
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https'){
+       bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+      }
+      else{
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+      }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+
+<script>
+    
+    var _baId = '73ec01d6658ee89cd64c8711bbdbcaa5';
+
+    
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<script type="text/javascript">
+    function generateCatalog(selector) {
+
+        
+        
+        
+        
+            _containerSelector = 'div.post-container'
+        
+
+        
+        var P = $(_containerSelector), a, n, t, l, i, c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        
+        $(selector).html('')
+
+        
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#" + $(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="' + i + '" rel="nofollow">' + t + '</a>');
+            l = $('<li class="' + n + '_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    
+    $(".catalog-toggle").click((function (e) {
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    
+
+
+    loadAsync("\/js\/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<script type="text/javascript">
+    
+    var $zh = document.querySelector(".zh");
+    var $en = document.querySelector(".en");
+    var $select = document.querySelector("select");
+
+    
+    function getLang() { return new URLSearchParams(document.location.search).get("lang") }
+
+    function setLang(newLang) {
+        var params = new URLSearchParams(document.location.search)
+        params.set("lang", newLang)
+        document.location.search = params.toString()  
+    }
+
+    
+    function _render() {
+        var lang = getLang()
+        
+        if (lang == "en") {
+            $select.selectedIndex = 1;
+            $en.style.display = "block";
+            $en.classList.add("active");
+            $zh.style.display = "none";
+            $zh.classList.remove("active");
+            
+        } else {
+            $select.selectedIndex = 0;
+            $zh.style.display = "block";
+            $zh.classList.add("active");
+            $en.style.display = "none";
+            $en.classList.remove("active");
+        }
+        
+        generateCatalog(".catalog-body");
+    }
+
+    
+    function onLanChange(index) {
+        if (index == 0) {
+            lang = "zh"
+        } else {
+            lang = "en"
+        }
+        setLang(lang)
+    }
+
+    
+    _render();
+</script>
+
+
+
+
+</body>
+</html>

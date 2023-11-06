@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Embeded Technology on Donge Blog</title>
+    <link>/tags/embeded-technology/</link>
+    <description>Recent content in Embeded Technology on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 04 Jan 2023 16:30:00 +0000</lastBuildDate><atom:link href="/tags/embeded-technology/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</title>
+      <link>/post/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF/2023-01-04-10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/</link>
+      <pubDate>Wed, 04 Jan 2023 16:30:00 +0000</pubDate>
+      
+      <guid>/post/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E6%88%90%E9%95%BF%E4%B9%8B%E8%B7%AF/2023-01-04-10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/</guid>
+      <description>我的圈子：高级工程师聚集地 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！ 创作理念：专</description>
+    </item>
+    
+  </channel>
+</rss>
