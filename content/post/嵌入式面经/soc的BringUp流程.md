@@ -4,7 +4,7 @@ date:        2023-11-12
 author:      "Donge"
 image:       "img/post-bg-miui6.jpg"
 tags:        ["嵌入式面经", "嵌入式基础必备知识", "嵌入式Linux"]
-categories:  ["Linux" ]
+categories:  ["Tech"]
 ---
 
 ## 1、Bring Up流程
@@ -18,7 +18,7 @@ categories:  ["Linux" ]
 3.  **`U-Boot`启动**：`U-boot`的主要作用是：引导加载`Kernel`和`DTS`。`U-boot`在启动之后，同样初始化`Soc`硬件资源，然后会计时等待，并执行默认的启动命令，将`Kernel`和`DTS`信息从存储介质中读取出来并加载到内存中执行。
 4.  **`Kernel`启动**：在`U-Boot`加载了内核映像和设备树之后，系统会启动`Linux`。在这个阶段，系统会初始化各种硬件设备，加载驱动程序并启动用户空间应用程序。
 
-> 顺便介绍一下 我的圈子：[高级工程师聚集地](https://t.zsxq.com/0eUcTOhdO)，助力大家更上一层楼！
+> 更多干货可见：[高级工程师聚集地](https://t.zsxq.com/0eUcTOhdO)，助力大家更上一层楼！
 
 &nbsp;
 

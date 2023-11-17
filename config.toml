@@ -149,3 +149,32 @@ params = ["categories", "tags"]
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+
+sectionPagesMenu = 'main'
+
+[menu]
+[[menu.main]]
+    name = 'Products'
+    pageRef = '/products'
+    weight = 10
+[[menu.main]]
+    name = 'Hardware'
+    pageRef = '/products/hardware'
+    parent = 'Products'
+    weight = 1
+[[menu.main]]
+    name = 'Software'
+    pageRef = '/products/software'
+    parent = 'Products'
+    weight = 2
+[[menu.main]]
+    name = 'Services'
+    pageRef = '/services'
+    weight = 20
+[[menu.main]]
+    name = 'Hugo'
+    pre = '<i class="fa fa-heart"></i>'
+    url = 'https://gohugo.io/'
+    weight = 30
+    [menu.main.params]
+      rel = 'external'
