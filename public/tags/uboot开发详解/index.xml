@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Uboot开发详解 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</link>
+    <description>Recent content in Uboot开发详解 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 17 Nov 2023 22:11:57 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>二、uboot启动流程分析</title>
+      <link>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</link>
+      <pubDate>Fri, 17 Nov 2023 22:11:57 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</guid>
+      <description>我的圈子：高级工程师聚集地 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！ 创作理念：专</description>
+    </item>
+    
+    <item>
+      <title>一、uboot基础了解</title>
+      <link>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</link>
+      <pubDate>Fri, 17 Nov 2023 20:50:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</guid>
+      <description>我的圈子：高级工程师聚集地 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！ 创作理念：专</description>
+    </item>
+    
+  </channel>
+</rss>

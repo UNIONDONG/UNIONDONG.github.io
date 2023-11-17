@@ -6,7 +6,16 @@
     <description>Recent content in Tags on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 12 Nov 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://uniondong.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 17 Nov 2023 22:11:57 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Uboot开发详解</title>
+      <link>https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Fri, 17 Nov 2023 22:11:57 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>嵌入式Linux</title>
       <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/</link>
