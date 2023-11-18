@@ -1,9 +1,9 @@
 ---
 date: '2023-11-17T22:11:57+08:00'
 title:       '二、uboot启动流程分析'
-description: ""
+description: "同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着SPL和Uboot。SPL（BL1阶段）：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现.Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。"
 author:      "Donge"
-image:       ""
+image:       "img/post-bg-ios9-web.jpg"
 tags:
     - Uboot开发详解
 categories:  ["Tech"]

@@ -1,9 +1,9 @@
 ---
 date: '2023-11-17T20:50:32+08:00'
 title:       '一、uboot基础了解'
-description: ""
+description: "U-Boot，全称 Universal Boot Loader，是遵循GPL条款的从FADSROM、8xxROM、PPCBOOT逐步发展演化而来的 开放源码项目。U-boot，是一个主要用于嵌入式系统的引导加载程序，可以支持多种不同的计算机系统结构，其主要作用为：==引导系统的启动！==目前，U-Boot不仅支持Linux系统的引导，还支持NetBSD, VxWorks, QNX, RTEMS, ARTOS, LynxOS, android等多种嵌入式操作系统!"
 author:      "Donge"
-image:       ""
+image:       "img/post-bg-halting.jpg"
 published: true
 showtoc: false
 tags: 
