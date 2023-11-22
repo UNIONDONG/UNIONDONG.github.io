@@ -6,7 +6,16 @@
     <description>Recent content on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Nov 2023 22:11:57 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 22 Nov 2023 22:52:44 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【Linux API 揭秘】module_init与module_exit</title>
+      <link>https://uniondong.github.io/post/linux-api-%E6%8F%AD%E7%A7%98/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</link>
+      <pubDate>Wed, 22 Nov 2023 22:52:44 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/post/linux-api-%E6%8F%AD%E7%A7%98/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</guid>
+      <description>我的圈子：高级工程师聚集地 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！ 创作理念：专</description>
+    </item>
+    
     <item>
       <title>二、uboot启动流程分析</title>
       <link>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</link>

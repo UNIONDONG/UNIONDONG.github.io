@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <meta property="og:site_name" content="Donge Blog">
+    <meta property="og:type" content="article">
+
+    
+    <meta property="og:image" content="img/post-bg-coffee.jpeg">
+    <meta property="twitter:image" content="img/post-bg-coffee.jpeg" />
+    
+
+    
+    <meta name="title" content="【Linux API 揭秘】module_init与module_exit" />
+    <meta property="og:title" content="【Linux API 揭秘】module_init与module_exit" />
+    <meta property="twitter:title" content="【Linux API 揭秘】module_init与module_exit" />
+    
+
+    
+    <meta name="description" content="module_init与module_exit的实现">
+    <meta property="og:description" content="module_init与module_exit的实现" />
+    <meta property="twitter:description" content="module_init与module_exit的实现" />
+    
+
+    
+    <meta property="twitter:card" content="summary" />
+    
+    
+
+    <meta name="keyword"  content="董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>【Linux API 揭秘】module_init与module_exit |  董哥的博客</title>
+
+    <link rel="canonical" href="/post/linux-api-%E6%8F%AD%E7%A7%98/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/">
+
+    
+    
+    
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    
+    <link rel="stylesheet" href="/css/hugo-theme-cleanwhite.min.css">
+
+    
+    <link rel="stylesheet" href="/css/zanshang.css">
+
+    
+    <link rel="stylesheet" href="/css/font-awesome.all.min.css">
+
+    
+    
+
+    
+    <script src="/js/jquery.min.js"></script>
+
+    
+    <script src="/js/bootstrap.min.js"></script>
+
+    
+    <script src="/js/hux-blog.min.js"></script>
+
+    
+    <script src="/js/lazysizes.min.js"></script>
+
+    
+    
+
+</head>
+
+
+
+
+
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Donge Blog</a>
+        </div>
+
+        
+        
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">All Posts</a>
+                    </li>
+                    
+                        
+                        <li>
+                            <a href="/categories/tech/">tech</a>
+                        </li>
+                        
+                    
+                    
+		    
+                        <li><a href="/archive//">ARCHIVE</a></li>
+                    
+                        <li><a href="/about//">ABOUT</a></li>
+                    
+		            <li>
+                        <a href="/search"><i class="fa fa-search"></i></a>
+		           </li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+    
+</nav>
+<script>
+    
+    
+    
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        
+            $navbar.className = " ";
+            
+            setTimeout(function(){
+                
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+
+
+<style type="text/css">
+    header.intro-header {
+        background-image: url('/img/post-bg-coffee.jpeg')
+    }
+</style>
+
+<header class="intro-header" >
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/tags/linux-api-%E6%8F%AD%E7%A7%98" title="Linux API 揭秘">
+                            Linux API 揭秘
+                        </a>
+                        
+                    </div>
+                    <h1>【Linux API 揭秘】module_init与module_exit</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        
+                            Posted by 
+                            
+                                     &#34;Donge&#34;
+                             
+                            on 
+                            Wednesday, November 22, 2023
+                            
+                            
+                            
+                            
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+<article>
+    <div class="container">
+        <div class="row">
+
+            
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                
+                <div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206141400958.jpeg" alt = "0c70cff6aab3f2894c2bfd2c973e9620" alt = "img"  width = "15%" height = "15%"/></div>
+<center><font color ="grey">我的圈子：<a href="https://t.zsxq.com/0eUcTOhdO">
+高级工程师聚集地</a></font></center>
+<center><font color ="grey"> 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！</font></center>
+<center><b> 创作理念：专注分享高质量嵌入式文章，让大家读有所得！</b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/media_all.jpg" alt="img" width = "70%" height = "10%"/>
+</div>
+<div align=center><img src="https://bdn.135editor.com/files/images/editor_styles/d1c723e7e296ca791c2fb3b39ebee0f3.jpg" alt="img" width = "70%" height ="10%"/>
+</div>
+<blockquote>
+<p><strong>Linux Version：6.6</strong></p>
+<p><strong>Author：Donge</strong></p>
+<p><strong>Github：linux-api-insides</strong></p>
+</blockquote>
+<p> </p>
+<h2 id="1函数作用">1、函数作用</h2>
+<p><code>module_init</code>和<code>module_exit</code>是驱动中最常用的两个接口，主要用来注册、注销设备驱动程序。</p>
+<p>并且这两个接口的实现机制是一样的，我们先以<code>module_init</code>为切入点分析。</p>
+<p> </p>
+<h2 id="2module_init函数解析">2、module_init函数解析</h2>
+<h3 id="21-module_init">2.1 module_init</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#ifndef MODULE
+</span><span style="color:#ff79c6"></span><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * module_init() - driver initialization entry point
+</span><span style="color:#6272a4"> * @x: function to be run at kernel boot time or module insertion
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * module_init() will either be called during do_initcalls() (if
+</span><span style="color:#6272a4"> * builtin) or at module insertion time (if a module).  There can only
+</span><span style="color:#6272a4"> * be one per module.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define module_init(x)	__initcall(x);
+</span><span style="color:#ff79c6"></span>
+......
+
+<span style="color:#ff79c6">#else </span><span style="color:#6272a4">/* MODULE */</span><span style="color:#ff79c6">
+</span><span style="color:#ff79c6"></span>
+......
+    
+<span style="color:#6272a4">/* Each module must use one module_init(). */</span>
+<span style="color:#ff79c6">#define module_init(initfn)					\
+</span><span style="color:#ff79c6">    static inline initcall_t __maybe_unused __inittest(void)		\
+</span><span style="color:#ff79c6">    { return initfn; }					\
+</span><span style="color:#ff79c6">    int init_module(void) __copy(initfn)			\
+</span><span style="color:#ff79c6">        __attribute__((alias(#initfn)));		\
+</span><span style="color:#ff79c6">    ___ADDRESSABLE(init_module, __initdata);
+</span><span style="color:#ff79c6"></span>
+......
+
+<span style="color:#ff79c6">#endif
+</span></code></pre></div><p><strong>函数名称</strong>：<code>module_init</code></p>
+<p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/module.h">include/linux/module.h</a></p>
+<p><strong>函数解析</strong>：</p>
+<blockquote>
+<p>在<code>Linux</code>内核中，驱动程序可以以两种方式存在：内建<code>(Builtin)</code>和模块<code>(Module)</code>。内建驱动就是在编译时，直接编译进内核镜像中；而模块驱动则是在内核运行过程中动态加载卸载的。</p>
+</blockquote>
+<p><code>module_init</code>函数的定义位置有两处，使用<code>MODULE</code>宏作为判断依据。<code>MODULE</code>是一个预处理器宏，仅当该驱动作为模块驱动时，编译的时候会加入<code>MODULE</code>的定义。</p>
+<blockquote>
+<p>这里难免会有疑问：为什么会有两套实现呢？</p>
+</blockquote>
+<p>其实，当模块被编译进内核时，代码是存放在内存的<code>.init</code>字段，该字段在内核代码初始化后，就会被释放掉了，所以当可动态加载模块需要加载时，就需要重新定义了。</p>
+<p> </p>
+<h4 id="211-模块方式">2.1.1 模块方式</h4>
+<p>当驱动作为可加载模块时，<code>MODULE</code>宏被定义，我们简单分析一下相关代码</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define module_init(initfn)					\
+</span><span style="color:#ff79c6">    static inline initcall_t __maybe_unused __inittest(void)		\
+</span><span style="color:#ff79c6">    { return initfn; }					\
+</span><span style="color:#ff79c6">    int init_module(void) __copy(initfn)			\
+</span><span style="color:#ff79c6">        __attribute__((alias(#initfn)));		\
+</span><span style="color:#ff79c6">    ___ADDRESSABLE(init_module, __initdata);
+</span></code></pre></div><ul>
+<li><code>static inline initcall_t __maybe_unused __inittest(void) { return initfn; }</code>：一个内联函数，返回传入的<code>initfn</code>函数。
+<ul>
+<li><code>__maybe_unused</code> ：编译器指令，用于告诉编译器，该函数可能不会使用，以避免编译器产生警告信息。</li>
+</ul>
+</li>
+<li><code>int init_module(void) __copy(initfn) __attribute__((alias(#initfn)));</code>：<code>init_module</code>函数的声明
+<ul>
+<li><code>__copy(initfn)</code>：编译器指令，也就是将我们的<code>initfn</code>函数代码复制到<code>init_module</code>中，</li>
+<li><code>__attribute__((alias(#initfn)))</code>：编译器指令，将<code>init_module</code>函数符号的别名设置为<code>initfn</code>。</li>
+</ul>
+</li>
+<li>__<code>_ADDRESSABLE(init_module, __initdata);</code>：一个宏定义，主要用于将<code>init_module</code>函数的地址放入<code>__initdata</code>段，这样，当模块被加载时，<code>init_module</code>函数的地址就可以被找到并调用。</li>
+</ul>
+<p><strong>总的来说，如果是可加载的<code>ko</code>模块，<code>module_init</code>宏主要定义了<code>init_module</code>函数，并且将该函数与<code>initfn</code>函数关联起来，使得当模块被加载时，初始化函数可以被正确地调用。</strong></p>
+<p> </p>
+<h4 id="212-内建方式">2.1.2 内建方式</h4>
+<p>当模块编译进内核时，<code>MODULE</code>宏未被定义，所以走下面流程</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define module_init(x)	__initcall(x);
+</span></code></pre></div><p> </p>
+<h3 id="22-__initcall">2.2 __initcall</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define __initcall(fn) device_initcall(fn)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define device_initcall(fn)		__define_initcall(fn, 6)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __define_initcall(fn, id) ___define_initcall(fn, id, .initcall##id)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ___define_initcall(fn, id, __sec)			\
+</span><span style="color:#ff79c6">    __unique_initcall(fn, id, __sec, __initcall_id(fn))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __unique_initcall(fn, id, __sec, __iid)			\
+</span><span style="color:#ff79c6">    ____define_initcall(fn,					\
+</span><span style="color:#ff79c6">        __initcall_stub(fn, __iid, id),			\
+</span><span style="color:#ff79c6">        __initcall_name(initcall, __iid, id),		\
+</span><span style="color:#ff79c6">        __initcall_section(__sec, __iid))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ____define_initcall(fn, __unused, __name, __sec)	\
+</span><span style="color:#ff79c6">    static initcall_t __name __used 			\
+</span><span style="color:#ff79c6">        __attribute__((__section__(__sec))) = fn;
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __initcall_stub(fn, __iid, id)	fn
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Format: &lt;modname&gt;__&lt;counter&gt;_&lt;line&gt;_&lt;fn&gt; */</span>
+<span style="color:#ff79c6">#define __initcall_id(fn)					\
+</span><span style="color:#ff79c6">    __PASTE(__KBUILD_MODNAME,				\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(__COUNTER__,					\
+</span><span style="color:#ff79c6">    __PASTE(_,						\
+</span><span style="color:#ff79c6">    __PASTE(__LINE__,					\
+</span><span style="color:#ff79c6">    __PASTE(_, fn))))))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Format: __&lt;prefix&gt;__&lt;iid&gt;&lt;id&gt; */</span>
+<span style="color:#ff79c6">#define __initcall_name(prefix, __iid, id)			\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(prefix,						\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(__iid, id))))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __initcall_section(__sec, __iid)			\
+</span><span style="color:#ff79c6">    #__sec &#34;.init&#34;
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Indirect macros required for expanded argument pasting, eg. __LINE__. */</span>
+<span style="color:#ff79c6">#define ___PASTE(a,b) a##b
+</span><span style="color:#ff79c6">#define __PASTE(a,b) ___PASTE(a,b)
+</span></code></pre></div><p><strong>函数名称</strong>：<code>__initcall</code></p>
+<p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/init.h">include/linux/init.h</a></p>
+<p><strong>函数解析</strong>：设备驱动初始化函数</p>
+<p> </p>
+<h4 id="221-代码调用流程">2.2.1 代码调用流程</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">module_init(fn)
+    <span style="color:#ff79c6">|--&gt;</span> __initcall(fn)
+        <span style="color:#ff79c6">|--&gt;</span> device_initcall(fn)
+            <span style="color:#ff79c6">|--&gt;</span> __define_initcall(fn, <span style="color:#bd93f9">6</span>)
+                <span style="color:#ff79c6">|--&gt;</span> ___define_initcall(fn, id, __sec)
+                    <span style="color:#ff79c6">|--&gt;</span> __initcall_id(fn)
+                    <span style="color:#ff79c6">|--&gt;</span> __unique_initcall(fn, id, __sec, __iid)
+                        <span style="color:#ff79c6">|--&gt;</span> ____define_initcall(fn, __unused, __name, __sec)
+                            <span style="color:#ff79c6">|--&gt;</span> __initcall_stub(fn, __iid, id)
+                            <span style="color:#ff79c6">|--&gt;</span> __initcall_name(prefix, __iid, id)
+                            <span style="color:#ff79c6">|--&gt;</span> __initcall_section(__sec, __iid)
+                        <span style="color:#ff79c6">|--&gt;</span> ____define_initcall(fn, __unused, __name, __sec)
+</code></pre></div><p> </p>
+<blockquote>
+<p>进行函数分析前，我们先要明白<code>#</code>和<code>##</code>的概念</p>
+</blockquote>
+<h4 id="222-和的作用">2.2.2 #和##的作用</h4>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>作用</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>##</td>
+<td><code>##</code>符号 可以是连接的意思</td>
+<td>例如 <code>__initcall_##fn##id</code> 为<code>__initcall_fnid</code>那么，<code>fn = test_init</code>，<code>id = 6</code>时，<code>__initcall##fn##id</code> 为 <code>__initcall_test_init6</code></td>
+</tr>
+<tr>
+<td>#</td>
+<td><code>#</code>符号 可以是<strong>字符串化的意思</strong></td>
+<td>例如 <code>#id</code> 为 <code>&quot;id&quot;</code>，<code>id=6</code> 时，<code>#id</code> 为<code>&quot;6&quot;</code></td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h4 id="223-函数解析">2.2.3 函数解析</h4>
+<blockquote>
+<p>下面分析理解比较有难度的函数</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define device_initcall(fn)		__define_initcall(fn, 6)
+</span><span style="color:#ff79c6">#define __define_initcall(fn, id) ___define_initcall(fn, id, .initcall##id)
+</span></code></pre></div><ul>
+<li><code>.initcall##id</code>：通过<code>##</code>来拼接两个字符串：<code>.initcall6</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define ___define_initcall(fn, id, __sec)			\
+</span><span style="color:#ff79c6">    __unique_initcall(fn, id, __sec, __initcall_id(fn))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Format: &lt;modname&gt;__&lt;counter&gt;_&lt;line&gt;_&lt;fn&gt; */</span>
+<span style="color:#ff79c6">#define __initcall_id(fn)					\
+</span><span style="color:#ff79c6">    __PASTE(__KBUILD_MODNAME,				\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(__COUNTER__,					\
+</span><span style="color:#ff79c6">    __PASTE(_,						\
+</span><span style="color:#ff79c6">    __PASTE(__LINE__,					\
+</span><span style="color:#ff79c6">    __PASTE(_, fn))))))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Indirect macros required for expanded argument pasting, eg. __LINE__. */</span>
+<span style="color:#ff79c6">#define ___PASTE(a,b) a##b
+</span><span style="color:#ff79c6">#define __PASTE(a,b) ___PASTE(a,b)
+</span></code></pre></div><ul>
+<li><code>___PASTE</code>：拼接两个字符串</li>
+<li><code>__initcall_id</code>：<strong>它用于生成一个唯一的标识符，这个标识符用于标记初始化函数</strong>。
+<ul>
+<li><code>__KBUILD_MODNAME</code>：当前正在编译的模块的名称</li>
+<li><code>__COUNTER__</code>：一个每次使用都会递增计数器，用于确保生成名称的唯一性</li>
+<li><code>__LINE__</code>：当前代码的行号</li>
+</ul>
+</li>
+</ul>
+<p> </p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define __unique_initcall(fn, id, __sec, __iid)			\
+</span><span style="color:#ff79c6">    ____define_initcall(fn,					\
+</span><span style="color:#ff79c6">        __initcall_stub(fn, __iid, id),			\
+</span><span style="color:#ff79c6">        __initcall_name(initcall, __iid, id),		\
+</span><span style="color:#ff79c6">        __initcall_section(__sec, __iid))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ____define_initcall(fn, __unused, __name, __sec)	\
+</span><span style="color:#ff79c6">    static initcall_t __name __used 			\
+</span><span style="color:#ff79c6">        __attribute__((__section__(__sec))) = fn;
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __initcall_stub(fn, __iid, id)	fn
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* Format: __&lt;prefix&gt;__&lt;iid&gt;&lt;id&gt; */</span>
+<span style="color:#ff79c6">#define __initcall_name(prefix, __iid, id)			\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(prefix,						\
+</span><span style="color:#ff79c6">    __PASTE(__,						\
+</span><span style="color:#ff79c6">    __PASTE(__iid, id))))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __initcall_section(__sec, __iid)			\
+</span><span style="color:#ff79c6">    #__sec &#34;.init&#34;
+</span></code></pre></div><p><code>__unique_initcall</code>：调用<code>____define_initcall</code>，关键实现部分</p>
+<p><code>____define_initcall</code>：定义一个名为 <code>__name</code> 的 <code>initcall_t</code> 类型的静态变量，并将其初始化为 <code>fn</code>，并放入特定的<code>__sec</code>段中。</p>
+<ul>
+<li><code>__initcall_stub</code>：表示唯一的函数名<code>fn</code></li>
+<li><code>__initcall_name</code>：表示一个唯一的变量名</li>
+<li><code>__initcall_section</code>： 生成一个唯一的段名。</li>
+<li><code>#__sec &quot;.init&quot;</code>：将两个字符串拼接起来，比如：<code>__sec=.initcall6</code>，拼接后的段为：<code>.initcall6.init</code>，该段为最终存储的段。</li>
+</ul>
+<p> </p>
+<p><strong>字段通过链接器链接起来，形成一个列表进行统一管理。</strong></p>
+<blockquote>
+<p>这些字段我们可以在<code>arch/arm/kernel/vmlinux.lds</code>中查看。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">......
+__initcall6_start <span style="color:#ff79c6">=</span> .; KEEP(<span style="color:#ff79c6">*</span>(.initcall6.init)) KEEP(<span style="color:#ff79c6">*</span>(.initcall6s.init)) 
+......
+</code></pre></div><p> </p>
+<h2 id="3module_exit函数解析">3、module_exit函数解析</h2>
+<blockquote>
+<p><code>module_exit</code>和<code>module_init</code>的实现机制几乎没有差别，下面就简单介绍一下。</p>
+</blockquote>
+<h3 id="31-module_exit">3.1 module_exit</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#ifndef MODULE
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * module_exit() - driver exit entry point
+</span><span style="color:#6272a4"> * @x: function to be run when driver is removed
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * module_exit() will wrap the driver clean-up code
+</span><span style="color:#6272a4"> * with cleanup_module() when used with rmmod when
+</span><span style="color:#6272a4"> * the driver is a module.  If the driver is statically
+</span><span style="color:#6272a4"> * compiled into the kernel, module_exit() has no effect.
+</span><span style="color:#6272a4"> * There can only be one per module.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define module_exit(x)	__exitcall(x);
+</span><span style="color:#ff79c6"></span>
+......
+
+<span style="color:#ff79c6">#else </span><span style="color:#6272a4">/* MODULE */</span><span style="color:#ff79c6">
+</span><span style="color:#ff79c6"></span>
+......
+    
+<span style="color:#6272a4">/* This is only required if you want to be unloadable. */</span>
+<span style="color:#ff79c6">#define module_exit(exitfn)					\
+</span><span style="color:#ff79c6">    static inline exitcall_t __maybe_unused __exittest(void)		\
+</span><span style="color:#ff79c6">    { return exitfn; }					\
+</span><span style="color:#ff79c6">    void cleanup_module(void) __copy(exitfn)		\
+</span><span style="color:#ff79c6">        __attribute__((alias(#exitfn)));		\
+</span><span style="color:#ff79c6">    ___ADDRESSABLE(cleanup_module, __exitdata);
+</span><span style="color:#ff79c6"></span>
+......
+
+<span style="color:#ff79c6">#endif
+</span></code></pre></div><p><strong>函数名称</strong>：<code>module_exit</code></p>
+<p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/module.h">include/linux/module.h</a></p>
+<h4 id="311-模块方式">3.1.1 模块方式</h4>
+<p>作为模块方式，与<code>module_init</code>的实现方式一样，定义<code>cleanup_module</code>与<code>exitfn</code>函数相关联，存放在<code>__exitdata</code>段内。</p>
+<p> </p>
+<h4 id="312-内建方式">3.1.2 内建方式</h4>
+<p>当模块编译进内核时，<code>MODULE</code>宏未被定义，所以走下面流程</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define module_exit(x)	__exitcall(x);
+</span></code></pre></div><p> </p>
+<h3 id="32-__exitcall">3.2 __exitcall</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define __exitcall(fn)						\
+</span><span style="color:#ff79c6">    static exitcall_t __exitcall_##fn __exit_call = fn
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __exit_call	__used __section(&#34;.exitcall.exit&#34;)
+</span></code></pre></div><p><strong>函数名称</strong>：<code>__initcall</code></p>
+<p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/init.h">include/linux/init.h</a></p>
+<p><strong>函数解析</strong>：设备驱动卸载函数</p>
+<p><code>__exitcall_##fn</code>：定义一个新的 <code>exitcall_t</code> 类型的静态变量，并赋值为<code>fn</code></p>
+<p><code>__exit_call</code>：<code>__used __section(&quot;.exitcall.exit&quot;)</code>，定义该函数存储的段</p>
+<p> </p>
+<h2 id="4扩展">4、扩展</h2>
+<blockquote>
+<p><strong>还记得<code>__define_initcall</code>的定义吗？</strong></p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define pure_initcall(fn)       __define_initcall(fn, 0)  
+</span><span style="color:#ff79c6"></span>  
+<span style="color:#ff79c6">#define core_initcall(fn)       __define_initcall(fn, 1)  
+</span><span style="color:#ff79c6">#define core_initcall_sync(fn)      __define_initcall(fn, 1s)  
+</span><span style="color:#ff79c6">#define postcore_initcall(fn)       __define_initcall(fn, 2)  
+</span><span style="color:#ff79c6">#define postcore_initcall_sync(fn)  __define_initcall(fn, 2s)  
+</span><span style="color:#ff79c6">#define arch_initcall(fn)       __define_initcall(fn, 3)  
+</span><span style="color:#ff79c6">#define arch_initcall_sync(fn)      __define_initcall(fn, 3s)  
+</span><span style="color:#ff79c6">#define subsys_initcall(fn)     __define_initcall(fn, 4)  
+</span><span style="color:#ff79c6">#define subsys_initcall_sync(fn)    __define_initcall(fn, 4s)  
+</span><span style="color:#ff79c6">#define fs_initcall(fn)         __define_initcall(fn, 5)  
+</span><span style="color:#ff79c6">#define fs_initcall_sync(fn)        __define_initcall(fn, 5s)  
+</span><span style="color:#ff79c6">#define rootfs_initcall(fn)     __define_initcall(fn, rootfs)  
+</span><span style="color:#ff79c6">#define device_initcall(fn)     __define_initcall(fn, 6)  
+</span><span style="color:#ff79c6">#define device_initcall_sync(fn)    __define_initcall(fn, 6s)  
+</span><span style="color:#ff79c6">#define late_initcall(fn)       __define_initcall(fn, 7)  
+</span><span style="color:#ff79c6">#define late_initcall_sync(fn)      __define_initcall(fn, 7s)  
+</span><span style="color:#ff79c6"></span>  
+<span style="color:#ff79c6">#define __initcall(fn) device_initcall(fn) 
+</span></code></pre></div><p><strong>不同的宏定义，被赋予了不同的调用等级，最后将不同的驱动初始化函数统一汇总到<code>__initcallx_start</code>字段统一管理，形成一个有序的列表。</strong></p>
+<p><strong>这样，我们在内核中，按照顺序遍历这个列表，最后执行对应的模块初始化函数<code>fn</code>即可实现驱动的初始化。</strong></p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+
+
+                
+                
+<div class="entry-shang text-center">
+    
+	    <p>「真诚赞赏，手留余香」</p>
+	
+	<button class="zs show-zs btn btn-bred">赞赏支持</button>
+</div>
+<div class="zs-modal-bg"></div>
+<div class="zs-modal-box">
+	<div class="zs-modal-head">
+		<button type="button" class="close">×</button>
+		<span class="author"><a href="https://uniondong.github.io/"><img src="/img/favicon.png" />Donge Blog</a></span>
+        
+	        <p class="tip"><i></i><span>真诚赞赏，手留余香</span></p>
+		
+ 
+	</div>
+	<div class="zs-modal-body">
+		<div class="zs-modal-btns">
+			<button class="btn btn-blink" data-num="2">2元</button>
+			<button class="btn btn-blink" data-num="5">5元</button>
+			<button class="btn btn-blink" data-num="10">10元</button>
+			<button class="btn btn-blink" data-num="50">50元</button>
+			<button class="btn btn-blink" data-num="100">100元</button>
+			<button class="btn btn-blink" data-num="1">任意金额</button>
+		</div>
+		<div class="zs-modal-pay">
+			<button class="btn btn-bred" id="pay-text">2元</button>
+			<p>使用<span id="pay-type">微信</span>扫描二维码完成支付</p>
+			<img src="/img/reward/wechat-2.png"  id="pay-image"/>
+		</div>
+	</div>
+	<div class="zs-modal-footer">
+		<label><input type="radio" name="zs-type" value="wechat" class="zs-type" checked="checked"><span ><span class="zs-wechat"><img src="/img/reward/wechat-btn.png"/></span></label>
+		<label><input type="radio" name="zs-type" value="alipay" class="zs-type" class="zs-alipay"><img src="/img/reward/alipay-btn.png"/></span></label>
+	</div>
+</div>
+<script type="text/javascript" src="/js/reward.js"></script>
+
+                
+
+                
+                <hr>
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" data-toggle="tooltip" data-placement="top" title="二、uboot启动流程分析">&larr;
+                            Previous Post</a>
+                    </li>
+                    
+                    
+                </ul>
+                
+
+                
+
+
+
+            </div>
+
+            
+            
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">目录</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+            
+
+            
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                
+                
+                <section>
+                    <hr class="hidden-sm hidden-xs">
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3" title="uboot开发详解">
+                            uboot开发详解
+                        </a>
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                    </div>
+                </section>
+                
+
+                
+                
+                <section>
+                    <hr>
+                    <h5>FRIENDS</h5>
+                    <ul class="list-inline">
+                        
+                        <li><a target="_blank" href="https://blog.csdn.net/dong__ge">一十二画</a></li>
+                        
+                    </ul>
+                </section>
+                
+            </div>
+        </div>
+    </div>
+</article>
+
+
+
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">                  
+                    
+                    <li>
+                        <a href="mailto:xihangdong@163.com">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-envelope fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		           
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/Embedded_Art">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+
+		            
+                    
+                    
+                    <li>
+                        <a target="_blank" href="https://github.com/uniondong">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+		            
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+            
+            
+            
+           
+                   <li>
+                       <a href='' rel="alternate" type="application/rss+xml" title="Donge Blog" >
+                           <span class="fa-stack fa-lg">
+                               <i class="fas fa-circle fa-stack-2x"></i>
+                               <i class="fas fa-rss fa-stack-1x fa-inverse"></i>
+                           </span>
+                       </a>
+                   </li>
+            
+             </ul>
+		<p class="copyright text-muted">
+                    Copyright &copy; Donge Blog 2023
+                    <br>
+                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=zhaohuabing&repo=hugo-theme-cleanwhite&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+
+<script>
+    function loadAsync(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+
+
+
+
+
+<script>
+    
+    if($('#tag_cloud').length !== 0){
+        loadAsync("/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+
+<script>
+    loadAsync("https://cdn.jsdelivr.net/npm/fastclick@1.0.6/lib/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+
+<script>
+    (function(){
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https'){
+       bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+      }
+      else{
+      bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+      }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+
+<script>
+    
+    var _baId = '73ec01d6658ee89cd64c8711bbdbcaa5';
+
+    
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?" + _baId;
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+
+
+
+<script type="text/javascript">
+    function generateCatalog(selector) {
+
+        
+        
+        
+        
+            _containerSelector = 'div.post-container'
+        
+
+        
+        var P = $(_containerSelector), a, n, t, l, i, c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        
+        $(selector).html('')
+
+        
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#" + $(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="' + i + '" rel="nofollow">' + t + '</a>');
+            l = $('<li class="' + n + '_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    
+    $(".catalog-toggle").click((function (e) {
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    
+
+
+    loadAsync("\/js\/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+
+</body>
+</html>
