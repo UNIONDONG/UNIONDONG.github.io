@@ -5,7 +5,6 @@ description: "U-Boot，全称 Universal Boot Loader，是遵循GPL条款的从FA
 author:      "Donge"
 image:       "img/post-bg-halting.jpg"
 published: true
-showtoc: false
 tags: 
     - Uboot开发详解
 categories:  ["Tech"]
