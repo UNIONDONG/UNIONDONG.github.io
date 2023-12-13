@@ -6,13 +6,13 @@
     <description>Recent content in tag2 on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Nov 2023 20:50:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/tag2/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 13 Dec 2023 21:56:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/tag2/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>一、uboot基础了解</title>
-      <link>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</link>
-      <pubDate>Fri, 17 Nov 2023 20:50:32 +0800</pubDate>
+      <title>【Linux API 揭秘】container_of函数详解</title>
+      <link>https://uniondong.github.io/post/linux-api-%E6%8F%AD%E7%A7%98/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
       
-      <guid>https://uniondong.github.io/post/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</guid>
+      <guid>https://uniondong.github.io/post/linux-api-%E6%8F%AD%E7%A7%98/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</guid>
       <description>我的圈子：高级工程师聚集地 我是董哥，高级嵌入式软件开发工程师，从事嵌入式Linux驱动开发和系统开发，曾就职于世界500强公司！ 创作理念：专</description>
     </item>
     

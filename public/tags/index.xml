@@ -6,7 +6,25 @@
     <description>Recent content in Tags on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 22 Nov 2023 22:52:44 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 13 Dec 2023 21:56:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>tag1</title>
+      <link>https://uniondong.github.io/tags/tag1/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/tag1/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>tag2</title>
+      <link>https://uniondong.github.io/tags/tag2/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/tag2/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>Linux API 揭秘</title>
       <link>https://uniondong.github.io/tags/linux-api-%E6%8F%AD%E7%A7%98/</link>
