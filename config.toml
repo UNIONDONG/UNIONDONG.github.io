@@ -1,0 +1,71 @@
+baseurl = "https://uniondong.github.io/"
+languageCode = 'en-us'
+title = 'Donge Blog'
+theme = 'hugo-book'
+
+[menu]
+	[[menu.before]]
+	name = "CSDN"
+	url = "https://blog.csdn.net/dong__ge"
+	weight = 1
+
+	[[menu.before]]
+	name = "知乎"
+	url = "https://www.zhihu.com/people/Embedded_Art"
+	weight = 2
+
+	[[menu.before]]
+	name = "Github"
+	url = "https://github.com/UNIONDONG"
+	weight = 3
+	# [[menu.after]]
+	# name = "Hugo Themes"
+	# url = "https://themes.gohugo.io/hugo-book/"
+	# weight = 20
+
+[params]
+	# (Optional, default light) Sets color theme: light, dark or auto.
+	# Theme 'auto' switches between dark and light modes based on browser/os preferences
+	BookTheme = 'light'
+
+	# (Optional, default true) Controls table of contents visibility on right side of pages.
+	# Start and end levels can be controlled with markup.tableOfContents setting.
+	# You can also specify this parameter per page in front matter.
+	BookToC = true
+
+	# (Optional, default none) Set the path to a logo for the book. If the logo is
+	# /static/logo.png then the path would be 'logo.png'
+	BookLogo = 'img/logo.png'
+
+	# (Optional, default docs) Specify section of content to render as menu
+	# You can also set value to "*" to render all sections to menu
+	BookSection = 'docs'
+
+	# Set source repository location.
+	# Used for 'Last Modified' and 'Edit this page' links.
+	BookRepo = 'https://github.com/UNIONDONG/UNIONDONG.github.io'
+
+	# (Optional, default January 2, 2006) Configure the date format used on the pages
+	# - In git information
+	# - In blog posts
+	BookDateFormat = 'Jan 2, 2006'
+
+	# (Optional, default true) Enables search function with flexsearch,
+	# Index is built on fly, therefore it might slowdown your website.
+	# Configuration for indexing can be adjusted in i18n folder per language.
+	BookSearch = true
+
+	# (Optional, default true) Enables comments template on pages
+	# By default partials/docs/comments.html includes Disqus template
+	# See https://gohugo.io/content-management/comments/#configure-disqus
+	# Can be overwritten by same param in page frontmatter
+	BookComments = true
+
+	SEOTitle = " 董哥的博客"
+	description = "高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】"
+	keyword = "董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式"
+	slogan = "专注分享高质量嵌入式文章，让大家读有所得！"
+
+	# Sidebar settings
+	sidebar_about_description = "君子慎独, 不欺暗室"
+	sidebar_avatar = "img/dxh.jpg"

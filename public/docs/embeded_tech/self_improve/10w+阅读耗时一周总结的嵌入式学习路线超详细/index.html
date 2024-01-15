@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="人们常说：“人生就是一场场游戏，我们要做的，就是打怪，升级，通关”，学习嵌入式的过程也是如此。
+1、前言 #  最近看到知乎上，给我推送了很多类似的回答，借此机会，也想着重新审视一下自己的学习历程，以及结合自身和大牛，分享一些学习经验，希望对大家有所启发和帮助。
+本文主要目的是为了：
+ 提供一张嵌入式学习路线地图 提供不同阶段的学习建议 推荐不同阶段的学习资料  3000余字，耗时1周，建议收藏；码字不易，如有帮助，慷慨三连
+ 本文将嵌入式学习路线分为几个方面：
+ 嵌入式基础必备知识 51单片机 STM32单片机 小而美的RTOS ARM&#43;LINUX   在这个快节奏的时代，能静下心，耐住性子看看文章，实属不易。
+  2、嵌入式基础必备知识 #  老子曰：“合抱之木，生于毫末：九层之台，起于垒土；千里之行，始于足下”，根基的重要性不言而喻。
+那么对于嵌入式这条路线而言，如何建立一个稳固的根基？
+ 2.1、学习内容 #   C语言基础  该部分，主要包括几个核心知识点：三大语法结构、常用的数据类型、函数、结构体、指针、文件操作等。
+ 硬件基础知识  该部分，核心知识点在于：电路基础知识、数电模电基础知识、常用的电子元器件等。
+ 数据结构  核心知识点：数组、队列、链表、堆栈、树、图、散列表等。
+ 操作系统  核心知识点：进程管理、内存管理、文件管理、输入输出管理等。
+ 计算机原理  核心知识点：数据表示和运算、存储系统、指令系统、总线系统、中央处理器、输入输出系统等。
+ 2.2、学习建议 #   对于C语言基础学习，一定要重点熟练掌握，根基的牢固直接决定了我们的代码质量。 对于硬件基础学习，要适当了解，要能够看懂一些简单的电路结构，认识常用的电子元器件。 对于数据结构学习，前五个是必备学习的，可能在刚开始学习的时候，可能会感觉不到作用在哪里，但是随着接触到嵌入式底层设计以及算法设计的时候，才会恍然大悟。 对于操作系统学习，重点学习其思想，对相关知识点有一个大概的了解，后续接触到继续重点学习，这些无论是RTOS，还是Linux，都有涉及到的。 对于计算机原理学习，可以将其看作是嵌入式系统的各个模块的详解，会让你对嵌入式有一个整体的了解，每一个部分都值得深究。   2.3、学习资料 #   C语言基础：推荐经典书籍**《C语言程序设计》（第2版）谭浩强版本**。 硬件基础：大学里面的《数电模电》书籍所涉及的知识即可。 数据结构：推荐经典书籍**《数据结构》——严蔚敏版**。 操作系统、计算机原理：我用的是**《王道》的系列丛书**，个人感觉不错。  计算机组成、数据结构、操作系统、数据库是嵌入式或者说计算机的入门必读书籍，并且也被列入高校教材内，是真正的基础知识。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细" />
+<meta property="og:description" content="人们常说：“人生就是一场场游戏，我们要做的，就是打怪，升级，通关”，学习嵌入式的过程也是如此。
+1、前言 #  最近看到知乎上，给我推送了很多类似的回答，借此机会，也想着重新审视一下自己的学习历程，以及结合自身和大牛，分享一些学习经验，希望对大家有所启发和帮助。
+本文主要目的是为了：
+ 提供一张嵌入式学习路线地图 提供不同阶段的学习建议 推荐不同阶段的学习资料  3000余字，耗时1周，建议收藏；码字不易，如有帮助，慷慨三连
+ 本文将嵌入式学习路线分为几个方面：
+ 嵌入式基础必备知识 51单片机 STM32单片机 小而美的RTOS ARM&#43;LINUX   在这个快节奏的时代，能静下心，耐住性子看看文章，实属不易。
+  2、嵌入式基础必备知识 #  老子曰：“合抱之木，生于毫末：九层之台，起于垒土；千里之行，始于足下”，根基的重要性不言而喻。
+那么对于嵌入式这条路线而言，如何建立一个稳固的根基？
+ 2.1、学习内容 #   C语言基础  该部分，主要包括几个核心知识点：三大语法结构、常用的数据类型、函数、结构体、指针、文件操作等。
+ 硬件基础知识  该部分，核心知识点在于：电路基础知识、数电模电基础知识、常用的电子元器件等。
+ 数据结构  核心知识点：数组、队列、链表、堆栈、树、图、散列表等。
+ 操作系统  核心知识点：进程管理、内存管理、文件管理、输入输出管理等。
+ 计算机原理  核心知识点：数据表示和运算、存储系统、指令系统、总线系统、中央处理器、输入输出系统等。
+ 2.2、学习建议 #   对于C语言基础学习，一定要重点熟练掌握，根基的牢固直接决定了我们的代码质量。 对于硬件基础学习，要适当了解，要能够看懂一些简单的电路结构，认识常用的电子元器件。 对于数据结构学习，前五个是必备学习的，可能在刚开始学习的时候，可能会感觉不到作用在哪里，但是随着接触到嵌入式底层设计以及算法设计的时候，才会恍然大悟。 对于操作系统学习，重点学习其思想，对相关知识点有一个大概的了解，后续接触到继续重点学习，这些无论是RTOS，还是Linux，都有涉及到的。 对于计算机原理学习，可以将其看作是嵌入式系统的各个模块的详解，会让你对嵌入式有一个整体的了解，每一个部分都值得深究。   2.3、学习资料 #   C语言基础：推荐经典书籍**《C语言程序设计》（第2版）谭浩强版本**。 硬件基础：大学里面的《数电模电》书籍所涉及的知识即可。 数据结构：推荐经典书籍**《数据结构》——严蔚敏版**。 操作系统、计算机原理：我用的是**《王道》的系列丛书**，个人感觉不错。  计算机组成、数据结构、操作系统、数据库是嵌入式或者说计算机的入门必读书籍，并且也被列入高校教材内，是真正的基础知识。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2023-11-04T16:30:00+00:00" />
+<meta property="article:modified_time" content="2023-11-04T16:30:00+00:00" />
+
+<title>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.a3d477b2641b9a7934f823e4087fb9371ca5ea07f560f818f94e0b2ad151a88b.js" integrity="sha256-o9R3smQbmnk0&#43;CPkCH&#43;5Nxyl6gf1YPgY&#43;U4LKtFRqIs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle" checked />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="active">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/"  >
+        Blog
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1前言">1、前言</a></li>
+    <li><a href="#2嵌入式基础必备知识">2、嵌入式基础必备知识</a>
+      <ul>
+        <li><a href="#21学习内容">2.1、学习内容</a></li>
+        <li><a href="#22学习建议">2.2、学习建议</a></li>
+        <li><a href="#23学习资料">2.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#3嵌入式入门篇51单片机">3、嵌入式入门篇——51单片机</a>
+      <ul>
+        <li><a href="#31学习内容">3.1、学习内容</a></li>
+        <li><a href="#32学习建议">3.2、学习建议</a></li>
+        <li><a href="#33学习资料">3.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#4stm32进阶篇">4、STM32进阶篇</a>
+      <ul>
+        <li><a href="#41学习内容">4.1、学习内容</a></li>
+        <li><a href="#42学习建议">4.2、学习建议</a></li>
+        <li><a href="#43学习资料">4.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#5小而美的rtos">5、小而美的RTOS</a>
+      <ul>
+        <li><a href="#51学习内容">5.1、学习内容</a></li>
+        <li><a href="#52学习建议">5.2、学习建议</a></li>
+        <li><a href="#53学习资料">5.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#6armlinux篇">6、ARM+Linux篇</a>
+      <ul>
+        <li><a href="#61学习内容">6.1、学习内容</a></li>
+        <li><a href="#62学习建议">6.2、学习建议</a></li>
+        <li><a href="#63学习资料">6.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#7总结">7、总结</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p><strong>人们常说：“人生就是一场场游戏，我们要做的，就是打怪，升级，通关”，学习嵌入式的过程也是如此。</strong></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/v2-75599ba24a4cf13c06ec719bddc7731c_720w.jpg" alt="查看源图像" /></p>
+<h2 id="1前言">
+  1、前言
+  <a class="anchor" href="#1%e5%89%8d%e8%a8%80">#</a>
+</h2>
+<p>最近看到知乎上，给我推送了很多类似的回答，借此机会，也想着重新审视一下自己的学习历程，以及结合自身和大牛，分享一些学习经验，希望对大家有所启发和帮助。</p>
+<p><strong><!-- raw HTML omitted -->本文主要目的是为了：<!-- raw HTML omitted --></strong></p>
+<ul>
+<li><strong>提供一张嵌入式学习路线地图</strong></li>
+<li><strong>提供不同阶段的学习建议</strong></li>
+<li><strong>推荐不同阶段的学习资料</strong></li>
+</ul>
+<p><strong>3000余字，耗时1周，建议收藏；码字不易，如有帮助，慷慨三连</strong></p>
+<p> </p>
+<p><strong><!-- raw HTML omitted -->本文将嵌入式学习路线分为几个方面：<!-- raw HTML omitted --></strong></p>
+<ul>
+<li><strong>嵌入式基础必备知识</strong></li>
+<li><strong>51单片机</strong></li>
+<li><strong>STM32单片机</strong></li>
+<li><strong>小而美的RTOS</strong></li>
+<li><strong>ARM+LINUX</strong></li>
+</ul>
+<blockquote>
+<p>在这个快节奏的时代，能静下心，耐住性子看看文章，实属不易。</p>
+</blockquote>
+<p> </p>
+<h2 id="2嵌入式基础必备知识">
+  2、嵌入式基础必备知识
+  <a class="anchor" href="#2%e5%b5%8c%e5%85%a5%e5%bc%8f%e5%9f%ba%e7%a1%80%e5%bf%85%e5%a4%87%e7%9f%a5%e8%af%86">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/R-C.7a41d73d6ddf3507857a84fdce729da0" alt="查看源图像" /></p>
+<p>老子曰：“合抱之木，生于毫末：九层之台，起于垒土；千里之行，始于足下”，根基的重要性不言而喻。</p>
+<p>那么对于嵌入式这条路线而言，如何建立一个稳固的根基？</p>
+<p> </p>
+<h3 id="21学习内容">
+  2.1、学习内容
+  <a class="anchor" href="#21%e5%ad%a6%e4%b9%a0%e5%86%85%e5%ae%b9">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093005641.png" alt="image-20220618093005641" /></p>
+<ul>
+<li><strong>C语言基础</strong></li>
+</ul>
+<p>该部分，主要包括几个核心知识点：<strong>三大语法结构</strong>、<strong>常用的数据类型</strong>、<strong>函数</strong>、<strong>结构体</strong>、<strong>指针</strong>、<strong>文件操作</strong>等。</p>
+<ul>
+<li><strong>硬件基础知识</strong></li>
+</ul>
+<p>该部分，核心知识点在于：<strong>电路基础知识</strong>、<strong>数电模电基础知识</strong>、<strong>常用的电子元器件</strong>等。</p>
+<ul>
+<li><strong>数据结构</strong></li>
+</ul>
+<p>核心知识点：<strong>数组</strong>、<strong>队列</strong>、<strong>链表</strong>、<strong>堆栈</strong>、<strong>树</strong>、<strong>图</strong>、<strong>散列表</strong>等。</p>
+<ul>
+<li><strong>操作系统</strong></li>
+</ul>
+<p>核心知识点：<strong>进程管理</strong>、<strong>内存管理</strong>、<strong>文件管理</strong>、<strong>输入输出管理</strong>等。</p>
+<ul>
+<li><strong>计算机原理</strong></li>
+</ul>
+<p>核心知识点：<strong>数据表示和运算</strong>、<strong>存储系统</strong>、<strong>指令系统</strong>、<strong>总线系统</strong>、<strong>中央处理器</strong>、<strong>输入输出系统</strong>等。</p>
+<p> </p>
+<h3 id="22学习建议">
+  2.2、学习建议
+  <a class="anchor" href="#22%e5%ad%a6%e4%b9%a0%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ul>
+<li>对于<strong>C语言基础学习</strong>，一定要重点熟练掌握，根基的牢固直接决定了我们的代码质量。</li>
+<li>对于<strong>硬件基础学习</strong>，要适当了解，要能够看懂一些简单的电路结构，认识常用的电子元器件。</li>
+<li>对于<strong>数据结构学习</strong>，前五个是必备学习的，可能在刚开始学习的时候，可能会感觉不到作用在哪里，但是随着接触到嵌入式底层设计以及算法设计的时候，才会恍然大悟。</li>
+<li>对于<strong>操作系统学习</strong>，重点学习其思想，对相关知识点有一个大概的了解，后续接触到继续重点学习，这些无论是RTOS，还是Linux，都有涉及到的。</li>
+<li>对于<strong>计算机原理学习</strong>，可以将其看作是嵌入式系统的各个模块的详解，会让你对嵌入式有一个整体的了解，每一个部分都值得深究。</li>
+</ul>
+<p> </p>
+<h3 id="23学习资料">
+  2.3、学习资料
+  <a class="anchor" href="#23%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%96%99">#</a>
+</h3>
+<ul>
+<li><strong>C语言基础</strong>：推荐经典书籍**《C语言程序设计》（第2版）谭浩强版本**。</li>
+<li><strong>硬件基础</strong>：大学里面的《数电模电》书籍所涉及的知识即可。</li>
+<li><strong>数据结构</strong>：推荐经典书籍**《数据结构》——严蔚敏版**。</li>
+<li><strong>操作系统、计算机原理</strong>：我用的是**《王道》的系列丛书**，个人感觉不错。</li>
+</ul>
+<p><strong>计算机组成、数据结构、操作系统、数据库</strong>是嵌入式或者说计算机的入门必读书籍，并且也被列入高校教材内，是真正的基础知识。</p>
+<p> </p>
+<p><!-- raw HTML omitted --><strong>以上，不一定是全部看完才能体验编程的乐趣，这个基础是一个循序渐进的过程，也不是一朝一夕就能完成的，可以先有一个大概，后续做项目时，哪里不懂补哪里！</strong><!-- raw HTML omitted --></p>
+<p>这里涉及到一个重要的学习方法：<!-- raw HTML omitted --><strong>项目导向的学习法</strong>。<!-- raw HTML omitted --></p>
+<p> </p>
+<h2 id="3嵌入式入门篇51单片机">
+  3、嵌入式入门篇——51单片机
+  <a class="anchor" href="#3%e5%b5%8c%e5%85%a5%e5%bc%8f%e5%85%a5%e9%97%a8%e7%af%8751%e5%8d%95%e7%89%87%e6%9c%ba">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618091321192.png" alt="image-20220618091321192" /></p>
+<p>在上面的基础知识进行熟悉之后（<strong>C语言基础、计算机组成、硬件基础必备</strong>），我们准备叩开嵌入式世界的大门。</p>
+<p>入门篇，依旧推荐<strong>51单片机</strong>，当然有人会说，直接上<strong>STM32</strong>岂不更好？</p>
+<p><strong>我的看法</strong>：建议新手还是以51单片机来入门，因为STM32体系架构比51大很多，对于新手刚开始可能会不太容易适应。</p>
+<p> </p>
+<h3 id="31学习内容">
+  3.1、学习内容
+  <a class="anchor" href="#31%e5%ad%a6%e4%b9%a0%e5%86%85%e5%ae%b9">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093041553.png" alt="image-20220618093041553" /></p>
+<p>该部分，主要在最小嵌入式系统中，实现各种有趣的实验。通过51单片机的学习，我们要做到：</p>
+<ul>
+<li><strong>软件类</strong>：</li>
+</ul>
+<p>主要知识点有：<strong>认识单片机</strong>、<strong>熟悉逻辑运算</strong>、<strong>点亮一颗LED灯</strong>、<strong>按键检测</strong>、<strong>串口通信</strong>、<strong>定时器</strong>、<strong>中断</strong>等。</p>
+<ul>
+<li><strong>硬件类</strong>：</li>
+</ul>
+<p>主要知识点有：<strong>电阻元器件了解</strong>，<strong>基本模块电路了解</strong>，<strong>时钟电路</strong>，<strong>尝试绘制51单片机原理图和PCB</strong></p>
+<p> </p>
+<h3 id="32学习建议">
+  3.2、学习建议
+  <a class="anchor" href="#32%e5%ad%a6%e4%b9%a0%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ul>
+<li>对于<strong>软件类</strong>，我们主要做到：认识单片机，熟悉单片机的GPIO的输入、输出操作，串口通信协议掌握等，<strong>这些部分都是任何一款嵌入式设备的必备技能</strong>。</li>
+<li>对于<strong>硬件类</strong>：我们主要做到：<strong>能看懂电路图</strong>，<strong>熟悉</strong>一些简单模块的<strong>设计电路</strong>，了解<code>Altium Designer</code>的使用方法。</li>
+</ul>
+<p> </p>
+<h3 id="33学习资料">
+  3.3、学习资料
+  <a class="anchor" href="#33%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%96%99">#</a>
+</h3>
+<p><strong>51单片机</strong>：<strong>郭天祥的51单片机教程</strong>，经典著作，经久不衰，强烈推荐。</p>
+<p> </p>
+<p>庄子说：“水之积也不厚，则其负大舟也无力。“</p>
+<p><!-- raw HTML omitted --><strong>该部分，是嵌入式领域的基石，只有将基础打牢，才能负得起Linux泰坦号。</strong><!-- raw HTML omitted --></p>
+<p> </p>
+<h2 id="4stm32进阶篇">
+  4、STM32进阶篇
+  <a class="anchor" href="#4stm32%e8%bf%9b%e9%98%b6%e7%af%87">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/R-C.82c650b05899fa6ba581ec216a500e7a" alt="查看源图像" /></p>
+<p>STM32是C51的进阶版，拥有C51的基础知识，开发STM32会得心应手。</p>
+<p><code>STM32</code>的系统架构以及硬件设计相比于<code>C51</code>来说，都是上升了一个维度的，这也是为什么我推荐入门学习<code>C51</code>的原因。</p>
+<p> </p>
+<p>以<code>STM32F407</code>平台为基础，去学习目前嵌入式主流的一些技术，探寻底层的原理，做到不同平台，都能够得心应手。</p>
+<p> </p>
+<h3 id="41学习内容">
+  4.1、学习内容
+  <a class="anchor" href="#41%e5%ad%a6%e4%b9%a0%e5%86%85%e5%ae%b9">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618093112817.png" alt="image-20220618093112817" /></p>
+<ul>
+<li><strong>基础练习</strong></li>
+</ul>
+<p>该部分，主要练习：<strong>点亮LED灯</strong>、<strong>GPIO的输入输出操作</strong>、<strong>中断操作</strong>、<strong>UART通信</strong>、<strong>IIC通信</strong>等</p>
+<ul>
+<li><strong>进阶练习</strong></li>
+</ul>
+<p>该部分，主要练习：<strong>DMA通信</strong>、<strong>SPI通信</strong>、<strong>CAN通信</strong>、<strong>LCD显示屏</strong>，<strong>ADC</strong>等</p>
+<ul>
+<li><strong>高阶练习</strong></li>
+</ul>
+<p>该部分，主要学习：<strong>STM32时钟架构</strong>、<strong>总线架构</strong>、<strong>电源管理</strong>、<strong>代码框架</strong>、<strong>SDIO通信</strong>、<strong>USB通信</strong>等。</p>
+<p> </p>
+<h3 id="42学习建议">
+  4.2、学习建议
+  <a class="anchor" href="#42%e5%ad%a6%e4%b9%a0%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ul>
+<li>对于<strong>基础练习</strong>，主要目的是为了方便让我们从<code>C51</code>到<code>STM32</code>环境的过渡。</li>
+<li>对于<strong>进阶练习</strong>，主要练习一些通信类相关的协议，可以结合一些传感器进行开发。</li>
+<li>对于<strong>高阶练习</strong>，主要目的是为了熟悉单片机的设计架构，编程的框架，以及一些更复杂的通信技术。</li>
+</ul>
+<p><!-- raw HTML omitted --><strong>另外，STM32会有寄存器和库函数两个版本，建议交叉学习，理解会更加深刻。</strong><!-- raw HTML omitted --></p>
+<p> </p>
+<h3 id="43学习资料">
+  4.3、学习资料
+  <a class="anchor" href="#43%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%96%99">#</a>
+</h3>
+<p><strong>STM32单片机</strong>：推荐<a href="http://47.111.11.73/docs/index.html">正点原子</a>、<a href="https://doc.embedfire.com/products/link/zh/latest/index.html">野火</a>的<code>STM32F103</code>或者<code>STM32F407</code>系列。</p>
+<p>两家的学习资料都非常丰富，既有详细的文档说明，也有完整的学习视频教程，非常适合新手入门学习。</p>
+<p> </p>
+<p><!-- raw HTML omitted --><strong>俗话说：“有道无术，术尚可求，有术无道，止于术”。要明白道和术的区别，不要本末倒置</strong>。<!-- raw HTML omitted --></p>
+<p> </p>
+<h2 id="5小而美的rtos">
+  5、小而美的RTOS
+  <a class="anchor" href="#5%e5%b0%8f%e8%80%8c%e7%be%8e%e7%9a%84rtos">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/OIP-C.M5oPSD9DUCqGLi0LKZDvEwAAAA" alt="查看源图像" /></p>
+<p><code>RTOS</code>，实时操作系统，可以理解为<code>STM32</code>与<code>Linux</code>之间的桥梁，由于其实现思想大都取之于<code>Linux</code>，所以也称之为<code>精简版的Linux</code>。</p>
+<p>我们常用的有实时操作系统有：<code>UCOS</code>，<code>VxWork</code>，<code>FreeRtos</code>，近些年<code>RT-Thread</code>也异军突起。</p>
+<p>学习这些简单的嵌入式系统，一来能够帮助我们为学习Linux操作系统打下基础，二来也能够扩宽我们的职业道路。</p>
+<p>前面也说过了，无论是<code>UCOS</code>、<code>FreeRtos</code>、<code>Rt-thread</code>，其内部的设计思想大同小异，下面主要以<code>Ucos</code>为例。</p>
+<h3 id="51学习内容">
+  5.1、学习内容
+  <a class="anchor" href="#51%e5%ad%a6%e4%b9%a0%e5%86%85%e5%ae%b9">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618092246693.png" alt="image-20220618092246693" /></p>
+<ul>
+<li><strong>实时系统学习</strong></li>
+</ul>
+<p>该部分，主要学习：<strong>移植Ucos系统</strong>、<strong>多任务管理</strong>、<strong>调度算法</strong>、<strong>消息队列</strong>、<strong>信号量互斥量</strong>、<strong>事件</strong>、<strong>内存管理</strong>等。</p>
+<p> </p>
+<h3 id="52学习建议">
+  5.2、学习建议
+  <a class="anchor" href="#52%e5%ad%a6%e4%b9%a0%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ul>
+<li>对于<strong>实时系统学习</strong>，除了上述的那些核心知识点外，还要结合<code>2.1 基础必备知识</code>的<strong>操作系统书籍</strong>加深理解。</li>
+</ul>
+<p> </p>
+<h3 id="53学习资料">
+  5.3、学习资料
+  <a class="anchor" href="#53%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%96%99">#</a>
+</h3>
+<p><strong>RTOS</strong>的学习：依旧推荐<a href="http://47.111.11.73/docs/book-videos/zdyzshipin/4free/ucosIII.html">正点原子</a>，<a href="https://doc.embedfire.com/products/link/zh/latest/tutorial/ebf_ucos_tutorial.html">野火</a>，因为这些实时操作系统开发，可以基于STM32开发板，同时也有非常详细的文档和视频教学。</p>
+<p> </p>
+<h2 id="6armlinux篇">
+  6、ARM+Linux篇
+  <a class="anchor" href="#6armlinux%e7%af%87">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/OIP-C.A1ogVu3PjQ0ujKxhTNOSXwHaEK" alt="查看源图像" /></p>
+<p>学习完<code>RTOS</code>后，基本嵌入式所涉及的技术已经掌握一半了，你也可以独立完成一些小的项目，也可以找到一个不错的工作，但是一定不要自我满足，有机会一定要接触Linux。</p>
+<p><!-- raw HTML omitted --><strong>还是那句话：<code>ARM+Linux</code>，也是最为复杂的东西，如果你不去接触<code>Linux</code>，你永远不知道嵌入式的魅力。</strong><!-- raw HTML omitted --></p>
+<p> </p>
+<p><strong>Linux开发</strong>又分为<strong>驱动开发</strong>，<strong>内核开发</strong>，<strong>应用开发</strong>，每一个方向都需要几年甚至几十年的积累。</p>
+<blockquote>
+<p>作为初学者，我们要做的就是宏观了解，扩大我们的知识面，然后去选择自己感兴趣的方面。</p>
+</blockquote>
+<h3 id="61学习内容">
+  6.1、学习内容
+  <a class="anchor" href="#61%e5%ad%a6%e4%b9%a0%e5%86%85%e5%ae%b9">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220618092751914.png" alt="image-20220618092751914" /></p>
+<ul>
+<li><strong>Linux基础篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>Linux常用命令</strong>、<strong>VIM学习</strong>、<strong>Linux的Shell编程</strong>、<strong>Gcc编译</strong>、<strong>Makefile</strong>等。</p>
+<ul>
+<li><strong>驱动篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>内核模块编译原理</strong>、<strong>字符设备驱动框架</strong>、<strong>平台设备驱动</strong>、<strong>设备树</strong>、<strong>Pinctrl子系统</strong>、<strong>I2C子系统</strong>、<strong>中断子系统</strong>、<strong>块设备驱动框架</strong>、<strong>Bootloader</strong>等</p>
+<ul>
+<li><strong>内核篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>系统调用</strong>、<strong>存储管理</strong>、<strong>进程管理</strong>、<strong>内存管理</strong>、<strong>文件管理</strong>等。</p>
+<ul>
+<li><strong>应用篇</strong></li>
+</ul>
+<p>该部分主要学习：<strong>QT编程</strong>、<strong>TCP/IP协议</strong>、<strong>HTTP协议</strong>等。</p>
+<p> </p>
+<h3 id="62学习建议">
+  6.2、学习建议
+  <a class="anchor" href="#62%e5%ad%a6%e4%b9%a0%e5%bb%ba%e8%ae%ae">#</a>
+</h3>
+<ul>
+<li>对于<strong>基础学习</strong>，刚接触到<code>Linux</code>，一般比较难上手，与之前的单片机完全不同，需要一个熟悉环境的过程。</li>
+<li>对于<strong>驱动学习</strong>，重要在于明白“<strong>如何在Linux环境下编写驱动程序</strong>”，驱动的底层原理还是那样，加了一层层的框架，需要我们去熟悉。</li>
+<li>对于<strong>内核学习</strong>，上述也是系统的几大核心特色，重点在于&quot;<strong>如何使Linux性能最优</strong>&quot;</li>
+<li>对于<strong>应用学习</strong>，上述的几个方面也是基础，重点还在于<strong>开发什么应用</strong>，去学习哪方面的知识，没有定论。</li>
+</ul>
+<p><!-- raw HTML omitted -->对于Linux，有句老话“学习Linux，3年才算入门，5年才勉强算Linux工程师，对于不太熟悉的领域，博主也不敢妄加断言。”<!-- raw HTML omitted --></p>
+<p> </p>
+<h3 id="63学习资料">
+  6.3、学习资料
+  <a class="anchor" href="#63%e5%ad%a6%e4%b9%a0%e8%b5%84%e6%96%99">#</a>
+</h3>
+<ul>
+<li>对于<strong>基础学习</strong>，推荐**《鸟哥的Linux私房菜》<strong>，</strong>《Unix环境高级编程》**等入门书籍。</li>
+<li>对于<strong>驱动开发</strong>，推荐**《Linux设备驱动开发详解》**，<strong>Linux内核源码详解</strong>等。</li>
+<li>对于<strong>内核学习</strong>，推荐**《Linux Shell脚本攻略》<strong>、</strong>《深入理解Linux内核》**等。</li>
+<li>对于<strong>应用开发</strong>，推荐**《嵌入式Linux应用开发完全手册》<strong>、</strong>《Unix网络编程》**等。</li>
+<li>另外，推荐<a href="http://47.111.11.73/docs/index.html">正点原子</a>，<a href="https://doc.embedfire.com/products/link/zh/latest/index.html">野火</a>，<a href="http://download.100ask.org/">韦东山</a>三个Linux开发教程，韦老师的课程好评居多，但还是看哪个更适合自己。</li>
+</ul>
+<p> </p>
+<h2 id="7总结">
+  7、总结
+  <a class="anchor" href="#7%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>全文整体的学习路线：<!-- raw HTML omitted --><strong>嵌入式基础学习</strong> -&gt; <strong>51单片机</strong> -&gt; <strong>STM32单片机</strong> -&gt; <strong>RTOS篇</strong> -&gt; <strong>ARM+Linux</strong><!-- raw HTML omitted --></p>
+<p>每一个部分，也都从<strong>学习内容</strong>，<strong>学习建议</strong>，<strong>学习资料</strong>三个方面来展开，层层深入，步步指引。</p>
+<p>文章既是我的学习历程，又结合了一些大佬的学习分享，不断调整总结出来的，如有异同，可以讨论。</p>
+<p>全文3000余字，耗时1周，如有帮助，望不吝点赞关注。</p>
+<p>最后，文章所涉及的学习资料以及整理的思维导图，全部会在我的星球【<strong>嵌入式艺术</strong>】分享！</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#1前言">1、前言</a></li>
+    <li><a href="#2嵌入式基础必备知识">2、嵌入式基础必备知识</a>
+      <ul>
+        <li><a href="#21学习内容">2.1、学习内容</a></li>
+        <li><a href="#22学习建议">2.2、学习建议</a></li>
+        <li><a href="#23学习资料">2.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#3嵌入式入门篇51单片机">3、嵌入式入门篇——51单片机</a>
+      <ul>
+        <li><a href="#31学习内容">3.1、学习内容</a></li>
+        <li><a href="#32学习建议">3.2、学习建议</a></li>
+        <li><a href="#33学习资料">3.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#4stm32进阶篇">4、STM32进阶篇</a>
+      <ul>
+        <li><a href="#41学习内容">4.1、学习内容</a></li>
+        <li><a href="#42学习建议">4.2、学习建议</a></li>
+        <li><a href="#43学习资料">4.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#5小而美的rtos">5、小而美的RTOS</a>
+      <ul>
+        <li><a href="#51学习内容">5.1、学习内容</a></li>
+        <li><a href="#52学习建议">5.2、学习建议</a></li>
+        <li><a href="#53学习资料">5.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#6armlinux篇">6、ARM+Linux篇</a>
+      <ul>
+        <li><a href="#61学习内容">6.1、学习内容</a></li>
+        <li><a href="#62学习建议">6.2、学习建议</a></li>
+        <li><a href="#63学习资料">6.3、学习资料</a></li>
+      </ul>
+    </li>
+    <li><a href="#7总结">7、总结</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

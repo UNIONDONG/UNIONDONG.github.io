@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/</link>
+    <description>Recent content in Tags on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Dec 2023 21:56:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux API 揭秘</title>
+      <link>https://uniondong.github.io/tags/linux-api-%E6%8F%AD%E7%A7%98/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/linux-api-%E6%8F%AD%E7%A7%98/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Uboot开发详解</title>
+      <link>https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Fri, 17 Nov 2023 22:11:57 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式Linux</title>
+      <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式基础必备知识</title>
+      <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式面经</title>
+      <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E9%9D%A2%E7%BB%8F/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E9%9D%A2%E7%BB%8F/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Embeded Technology</title>
+      <link>https://uniondong.github.io/tags/embeded-technology/</link>
+      <pubDate>Sat, 04 Nov 2023 16:30:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/embeded-technology/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式学习路线</title>
+      <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/</link>
+      <pubDate>Sat, 04 Nov 2023 16:30:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>嵌入式工程师养成记</title>
+      <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/</link>
+      <pubDate>Sat, 04 Nov 2023 16:30:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

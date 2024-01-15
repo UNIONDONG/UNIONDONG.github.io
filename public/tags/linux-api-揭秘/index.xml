@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux API 揭秘 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/linux-api-%E6%8F%AD%E7%A7%98/</link>
+    <description>Recent content in Linux API 揭秘 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Dec 2023 21:56:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/linux-api-%E6%8F%AD%E7%A7%98/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【Linux API 揭秘】module_init与module_exit</title>
+      <link>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</link>
+      <pubDate>Wed, 22 Nov 2023 22:52:44 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</guid>
+      <description>Linux Version：6.6
+Author：Donge
+Github：linux-api-insides
+  1、函数作用 #  module_init和module_exit是驱动中最常用的两个接口，主要用来注册、注销设备驱动程序。
+并且这两个接口的实现机制是一样的，我们先以module_init为切入点分析。
+ 2、module_init函数解析 #  2.1 module_init #  #ifndef MODULE /** * module_init() - driver initialization entry point * @x: function to be run at kernel boot time or module insertion * * module_init() will either be called during do_initcalls() (if * builtin) or at module insertion time (if a module). There can only * be one per module.</description>
+    </item>
+    
+    <item>
+      <title>【Linux API 揭秘】container_of函数详解</title>
+      <link>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</guid>
+      <description>Linux Version：6.6
+Author：Donge
+Github：linux-api-insides
+  1、container_of函数介绍 #  container_of可以说是内核中使用最为频繁的一个函数了，简单来说，它的主要作用就是根据我们结构体中的已知的成员变量的地址，来寻求该结构体的首地址，直接看图，更容易理解。
+ 下面我们看看linux是如何实现的吧
+ 2、container_of函数实现 #  /** * container_of - cast a member of a structure out to the containing structure * @ptr:	the pointer to the member. * @type:	the type of the container struct this is embedded in. * @member:	the name of the member within the struct. * * WARNING: any const qualifier of @ptr is lost.</description>
+    </item>
+    
+  </channel>
+</rss>

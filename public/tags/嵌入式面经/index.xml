@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>嵌入式面经 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E9%9D%A2%E7%BB%8F/</link>
+    <description>Recent content in 嵌入式面经 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 12 Nov 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://uniondong.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E9%9D%A2%E7%BB%8F/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Soc的Bring Up流程</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</guid>
+      <description>1、Bring Up流程 #  SOC (System on a Chip) bring-up是一个复杂的过程，涉及到硬件、固件和软件的集成和验证，以下是一个基于BROM，SPL，UBOOT和Linux的启动流程的概述：
+ BROM (Boot Read-Only Memory)启动：启动的最初阶段，在这个阶段，系统会执行芯片ROM里面的代码，这部分代码主要用来检查启动模式，包括NOR、Nand、Emmc等，然后从对应的存储介质中加载SPL(Secondary Program Loader)代码。 SPL (Secondary Program Loader)启动：SPL属于Uboot的一部分，它的主要作用就是：初始化硬件并加载完整的U-boot，主要体现在初始化时钟、看门狗、DDR、GPIO以及存储外设，最后将U-boot代码加载到DDR中执行。 U-Boot启动：U-boot的主要作用是：引导加载Kernel和DTS。U-boot在启动之后，同样初始化Soc硬件资源，然后会计时等待，并执行默认的启动命令，将Kernel和DTS信息从存储介质中读取出来并加载到内存中执行。 Kernel启动：在U-Boot加载了内核映像和设备树之后，系统会启动Linux。在这个阶段，系统会初始化各种硬件设备，加载驱动程序并启动用户空间应用程序。   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  2、常见问题 #  Q：为什么上一个阶段已经初始化了硬件资源，下一个阶段为何重复初始化？
+A：
+  每个阶段的硬件初始化，其目标和需求都不同，硬件配置也会不一样，因此在不同阶段进行不同的初始化。
+  硬件状态可能会改变，在SOC启动过程中，硬件状态可能会因为电源管理、时钟管理等原因而改变，这可能需要在每个阶段都重新初始化以确保其正确工作
+  为了保证硬件资源的可靠性，最好每个阶段都重新初始化一次
+   Q：U-boot加载内核时，会进行重定位的操作，这一操作有何意义？
+A：
+ U-boot的重定位，主要作用是为了 给内核提供一个连续的、大的内存空间，供内核和其他应用程序使用 U-boot的加载过程分两个阶段，即：SPL和U-boot，   在SPL阶段，主要将U-boot代码从Flash中加载到RAM指定位置 在U-boot阶段，U-boot会将自身从RAM的开始部分移动到RAM的末尾，占用高地址空间，从而让低地址空间可以作为一个连续的，大的内存空间供内核和其他应用程序使用。   Q：在Bring Up中，为了保证启动时间，如何裁剪？
+A：
+ 启动时间的裁剪是一个重要的步骤，其主要目标是缩短从电源打开到操作系统完全启动的时间。
+  优化Bootloader：减小Bootloader的代码大小，减少硬件初始化（只初始化必要硬件设备）等 优化Kernel：减少启动服务数量，优化服务的启动顺序，使用预加载技术等方法来实现。 使用快速启动模式：一些SOC支持快速启动模式，这种模式下，SOC会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。 使用休眠和唤醒技术：一些SOC还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。   </description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Uboot开发 on Donge Blog</title>
+    <link>https://uniondong.github.io/docs/uboot/</link>
+    <description>Recent content in Uboot开发 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 17 Nov 2023 22:11:57 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/uboot/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>一、uboot基础了解</title>
+      <link>https://uniondong.github.io/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</link>
+      <pubDate>Fri, 17 Nov 2023 20:50:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</guid>
+      <description>一、uboot基础了解 #  1. U-boot是什么 #  U-Boot，全称 Universal Boot Loader，是遵循GPL条款的从FADSROM、8xxROM、PPCBOOT逐步发展演化而来的 开放源码项目。
+U-boot，是一个主要用于嵌入式系统的引导加载程序，可以支持多种不同的计算机系统结构，其主要作用为：==引导系统的启动！==目前，U-Boot不仅支持Linux系统的引导，还支持NetBSD, VxWorks, QNX, RTEMS, ARTOS, LynxOS, android等多种嵌入式操作系统。
+2. U-boot主要特性及功能 #   开放：开放的源代码 多平台：支持多种嵌入式操作系统，如Linux、NetBSD、android等 生态：有丰富的设备驱动源码，如以太网、SDRAM、LCD等，同时也具有丰富的开发文档。  3. U-boot下载地址 #  Uboot开发源码：
+  https://source.denx.de/u-boot/u-boot
+  https://ftp.denx.de/pub/u-boot/
+  其他厂商定制的uboot源码：
+ 野火  4. U-boot目录结构 #     目录 含义     arch 各个厂商的硬件信息，目录下包括支持的处理器类型   arch/arm/cpu/xxx **每一个子文件夹，包含一种cpu系列。**每个子文件夹下包含cpu.c（CPU初始化），interrupts.c（设置中断和异常），start.S（U-boot的启动文件，早期的初始化）。   board 与开发板有关，每一个子文件夹代表一个芯片厂家，芯片厂家下，每一个子文件夹，表示一个开发板   common 存放与处理器体系无关的通用代码，可以说为通用核心代码！   cmd 存放uboot的相关命令实现部分   drivers 存放外围芯片驱动，网卡，USB等   disk 存放驱动磁盘的分区处理代码   fs 本目录下存放文件系统相关代码，每一个子文件夹表示文件系统   net 网络协议相关代码   doc uboot说明文档   include 各种头文件   post 上电自检代码   api 外部扩展程序的API和示例   tools 编译S-Record或者U-boot镜像的相关工具    5.</description>
+    </item>
+    
+    <item>
+      <title>二、uboot启动流程分析</title>
+      <link>https://uniondong.github.io/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</link>
+      <pubDate>Fri, 17 Nov 2023 22:11:57 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</guid>
+      <description>二、uboot启动流程分析 #   上一篇文章：（一）uboot基础了解 下一篇文章：（三）Uboot驱动模型
+ 同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着SPL和Uboot。
+SPL（BL1阶段）：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现
+Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。
+ 我们这篇文章，主要介绍Uboot（BL2阶段）的启动流程，BL1阶段启动流程的详细分析，可以见我的后续文章。想要深入了解的，可以好好研究下！
+ 2.1、程序执行流程图 #  我们先总体来看一下Uboot的执行步骤，这里以EMMC作为启动介质，进行分析！
+无论是哪种启动介质，基本流程都相似，我们这就往下看！
+==打开图片，结合文档、图片、代码进行理解！==
+ 2.2、u-boot.lds——Uboot的入口函数 #  u-boot.lds：是uboot工程的链接脚本文件，对于工程的编译和链接有非常重要的作用，决定了uboot的组装，并且u-boot.lds链接文件中的ENTRY(_start)指定了uboot程序的入口地址。
+ 如果不知道u-boot.lds放到在哪里，可以通过find -name u-boot.lds查找，根目录要进入到uboot的源码的位置哦！
+如果查找结果有很多，结合自己的板子信息，确定自己使用的u-boot.lds。
+当然，准确的方法是查看Makefile文件，分析出来u-boot.lds所生成的位置。
+ 在u-boot.lds的文件中，可以看到.text段，存放的就是执行的文本段。截取部分代码段如下：
+OUTPUT_FORMAT(&amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;) OUTPUT_ARCH(arm) ENTRY(_start) SECTIONS { . = 0x00000000;	@起始地址  . = ALIGN(4);	@四字节对齐  .text :	{	*(.__image_copy_start)	@映像文件复制起始地址 *(.vectors)	@异常向量表 arch/arm/cpu/armv7/start.o (.text*)	@启动函数 } ...... }   ENTRY(_start)：程序的入口函数，_start在arch/arm/lib/vectors.S中定义.globl _start
+  SECTIONS定义了段，包括text文本段、data数据段、bss段等。
+  __image_copy_start在System.</description>
+    </item>
+    
+  </channel>
+</rss>

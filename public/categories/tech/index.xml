@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tech on Donge Blog</title>
+    <link>https://uniondong.github.io/categories/tech/</link>
+    <description>Recent content in Tech on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Dec 2023 21:56:32 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/categories/tech/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【Linux API 揭秘】module_init与module_exit</title>
+      <link>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</link>
+      <pubDate>Wed, 22 Nov 2023 22:52:44 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</guid>
+      <description>Linux Version：6.6
+Author：Donge
+Github：linux-api-insides
+  1、函数作用 #  module_init和module_exit是驱动中最常用的两个接口，主要用来注册、注销设备驱动程序。
+并且这两个接口的实现机制是一样的，我们先以module_init为切入点分析。
+ 2、module_init函数解析 #  2.1 module_init #  #ifndef MODULE /** * module_init() - driver initialization entry point * @x: function to be run at kernel boot time or module insertion * * module_init() will either be called during do_initcalls() (if * builtin) or at module insertion time (if a module). There can only * be one per module.</description>
+    </item>
+    
+    <item>
+      <title>一、uboot基础了解</title>
+      <link>https://uniondong.github.io/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</link>
+      <pubDate>Fri, 17 Nov 2023 20:50:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</guid>
+      <description>一、uboot基础了解 #  1. U-boot是什么 #  U-Boot，全称 Universal Boot Loader，是遵循GPL条款的从FADSROM、8xxROM、PPCBOOT逐步发展演化而来的 开放源码项目。
+U-boot，是一个主要用于嵌入式系统的引导加载程序，可以支持多种不同的计算机系统结构，其主要作用为：==引导系统的启动！==目前，U-Boot不仅支持Linux系统的引导，还支持NetBSD, VxWorks, QNX, RTEMS, ARTOS, LynxOS, android等多种嵌入式操作系统。
+2. U-boot主要特性及功能 #   开放：开放的源代码 多平台：支持多种嵌入式操作系统，如Linux、NetBSD、android等 生态：有丰富的设备驱动源码，如以太网、SDRAM、LCD等，同时也具有丰富的开发文档。  3. U-boot下载地址 #  Uboot开发源码：
+  https://source.denx.de/u-boot/u-boot
+  https://ftp.denx.de/pub/u-boot/
+  其他厂商定制的uboot源码：
+ 野火  4. U-boot目录结构 #     目录 含义     arch 各个厂商的硬件信息，目录下包括支持的处理器类型   arch/arm/cpu/xxx **每一个子文件夹，包含一种cpu系列。**每个子文件夹下包含cpu.c（CPU初始化），interrupts.c（设置中断和异常），start.S（U-boot的启动文件，早期的初始化）。   board 与开发板有关，每一个子文件夹代表一个芯片厂家，芯片厂家下，每一个子文件夹，表示一个开发板   common 存放与处理器体系无关的通用代码，可以说为通用核心代码！   cmd 存放uboot的相关命令实现部分   drivers 存放外围芯片驱动，网卡，USB等   disk 存放驱动磁盘的分区处理代码   fs 本目录下存放文件系统相关代码，每一个子文件夹表示文件系统   net 网络协议相关代码   doc uboot说明文档   include 各种头文件   post 上电自检代码   api 外部扩展程序的API和示例   tools 编译S-Record或者U-boot镜像的相关工具    5.</description>
+    </item>
+    
+    <item>
+      <title>Soc的Bring Up流程</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</guid>
+      <description>1、Bring Up流程 #  SOC (System on a Chip) bring-up是一个复杂的过程，涉及到硬件、固件和软件的集成和验证，以下是一个基于BROM，SPL，UBOOT和Linux的启动流程的概述：
+ BROM (Boot Read-Only Memory)启动：启动的最初阶段，在这个阶段，系统会执行芯片ROM里面的代码，这部分代码主要用来检查启动模式，包括NOR、Nand、Emmc等，然后从对应的存储介质中加载SPL(Secondary Program Loader)代码。 SPL (Secondary Program Loader)启动：SPL属于Uboot的一部分，它的主要作用就是：初始化硬件并加载完整的U-boot，主要体现在初始化时钟、看门狗、DDR、GPIO以及存储外设，最后将U-boot代码加载到DDR中执行。 U-Boot启动：U-boot的主要作用是：引导加载Kernel和DTS。U-boot在启动之后，同样初始化Soc硬件资源，然后会计时等待，并执行默认的启动命令，将Kernel和DTS信息从存储介质中读取出来并加载到内存中执行。 Kernel启动：在U-Boot加载了内核映像和设备树之后，系统会启动Linux。在这个阶段，系统会初始化各种硬件设备，加载驱动程序并启动用户空间应用程序。   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  2、常见问题 #  Q：为什么上一个阶段已经初始化了硬件资源，下一个阶段为何重复初始化？
+A：
+  每个阶段的硬件初始化，其目标和需求都不同，硬件配置也会不一样，因此在不同阶段进行不同的初始化。
+  硬件状态可能会改变，在SOC启动过程中，硬件状态可能会因为电源管理、时钟管理等原因而改变，这可能需要在每个阶段都重新初始化以确保其正确工作
+  为了保证硬件资源的可靠性，最好每个阶段都重新初始化一次
+   Q：U-boot加载内核时，会进行重定位的操作，这一操作有何意义？
+A：
+ U-boot的重定位，主要作用是为了 给内核提供一个连续的、大的内存空间，供内核和其他应用程序使用 U-boot的加载过程分两个阶段，即：SPL和U-boot，   在SPL阶段，主要将U-boot代码从Flash中加载到RAM指定位置 在U-boot阶段，U-boot会将自身从RAM的开始部分移动到RAM的末尾，占用高地址空间，从而让低地址空间可以作为一个连续的，大的内存空间供内核和其他应用程序使用。   Q：在Bring Up中，为了保证启动时间，如何裁剪？
+A：
+ 启动时间的裁剪是一个重要的步骤，其主要目标是缩短从电源打开到操作系统完全启动的时间。
+  优化Bootloader：减小Bootloader的代码大小，减少硬件初始化（只初始化必要硬件设备）等 优化Kernel：减少启动服务数量，优化服务的启动顺序，使用预加载技术等方法来实现。 使用快速启动模式：一些SOC支持快速启动模式，这种模式下，SOC会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。 使用休眠和唤醒技术：一些SOC还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。   </description>
+    </item>
+    
+    <item>
+      <title>【Linux API 揭秘】container_of函数详解</title>
+      <link>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</guid>
+      <description>Linux Version：6.6
+Author：Donge
+Github：linux-api-insides
+  1、container_of函数介绍 #  container_of可以说是内核中使用最为频繁的一个函数了，简单来说，它的主要作用就是根据我们结构体中的已知的成员变量的地址，来寻求该结构体的首地址，直接看图，更容易理解。
+ 下面我们看看linux是如何实现的吧
+ 2、container_of函数实现 #  /** * container_of - cast a member of a structure out to the containing structure * @ptr:	the pointer to the member. * @type:	the type of the container struct this is embedded in. * @member:	the name of the member within the struct. * * WARNING: any const qualifier of @ptr is lost.</description>
+    </item>
+    
+    <item>
+      <title>二、uboot启动流程分析</title>
+      <link>https://uniondong.github.io/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</link>
+      <pubDate>Fri, 17 Nov 2023 22:11:57 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/</guid>
+      <description>二、uboot启动流程分析 #   上一篇文章：（一）uboot基础了解 下一篇文章：（三）Uboot驱动模型
+ 同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着SPL和Uboot。
+SPL（BL1阶段）：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现
+Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。
+ 我们这篇文章，主要介绍Uboot（BL2阶段）的启动流程，BL1阶段启动流程的详细分析，可以见我的后续文章。想要深入了解的，可以好好研究下！
+ 2.1、程序执行流程图 #  我们先总体来看一下Uboot的执行步骤，这里以EMMC作为启动介质，进行分析！
+无论是哪种启动介质，基本流程都相似，我们这就往下看！
+==打开图片，结合文档、图片、代码进行理解！==
+ 2.2、u-boot.lds——Uboot的入口函数 #  u-boot.lds：是uboot工程的链接脚本文件，对于工程的编译和链接有非常重要的作用，决定了uboot的组装，并且u-boot.lds链接文件中的ENTRY(_start)指定了uboot程序的入口地址。
+ 如果不知道u-boot.lds放到在哪里，可以通过find -name u-boot.lds查找，根目录要进入到uboot的源码的位置哦！
+如果查找结果有很多，结合自己的板子信息，确定自己使用的u-boot.lds。
+当然，准确的方法是查看Makefile文件，分析出来u-boot.lds所生成的位置。
+ 在u-boot.lds的文件中，可以看到.text段，存放的就是执行的文本段。截取部分代码段如下：
+OUTPUT_FORMAT(&amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;) OUTPUT_ARCH(arm) ENTRY(_start) SECTIONS { . = 0x00000000;	@起始地址  . = ALIGN(4);	@四字节对齐  .text :	{	*(.__image_copy_start)	@映像文件复制起始地址 *(.vectors)	@异常向量表 arch/arm/cpu/armv7/start.o (.text*)	@启动函数 } ...... }   ENTRY(_start)：程序的入口函数，_start在arch/arm/lib/vectors.S中定义.globl _start
+  SECTIONS定义了段，包括text文本段、data数据段、bss段等。
+  __image_copy_start在System.</description>
+    </item>
+    
+    <item>
+      <title>【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/</link>
+      <pubDate>Sat, 04 Nov 2023 16:30:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/</guid>
+      <description>人们常说：“人生就是一场场游戏，我们要做的，就是打怪，升级，通关”，学习嵌入式的过程也是如此。
+1、前言 #  最近看到知乎上，给我推送了很多类似的回答，借此机会，也想着重新审视一下自己的学习历程，以及结合自身和大牛，分享一些学习经验，希望对大家有所启发和帮助。
+本文主要目的是为了：
+ 提供一张嵌入式学习路线地图 提供不同阶段的学习建议 推荐不同阶段的学习资料  3000余字，耗时1周，建议收藏；码字不易，如有帮助，慷慨三连
+ 本文将嵌入式学习路线分为几个方面：
+ 嵌入式基础必备知识 51单片机 STM32单片机 小而美的RTOS ARM+LINUX   在这个快节奏的时代，能静下心，耐住性子看看文章，实属不易。
+  2、嵌入式基础必备知识 #  老子曰：“合抱之木，生于毫末：九层之台，起于垒土；千里之行，始于足下”，根基的重要性不言而喻。
+那么对于嵌入式这条路线而言，如何建立一个稳固的根基？
+ 2.1、学习内容 #   C语言基础  该部分，主要包括几个核心知识点：三大语法结构、常用的数据类型、函数、结构体、指针、文件操作等。
+ 硬件基础知识  该部分，核心知识点在于：电路基础知识、数电模电基础知识、常用的电子元器件等。
+ 数据结构  核心知识点：数组、队列、链表、堆栈、树、图、散列表等。
+ 操作系统  核心知识点：进程管理、内存管理、文件管理、输入输出管理等。
+ 计算机原理  核心知识点：数据表示和运算、存储系统、指令系统、总线系统、中央处理器、输入输出系统等。
+ 2.2、学习建议 #   对于C语言基础学习，一定要重点熟练掌握，根基的牢固直接决定了我们的代码质量。 对于硬件基础学习，要适当了解，要能够看懂一些简单的电路结构，认识常用的电子元器件。 对于数据结构学习，前五个是必备学习的，可能在刚开始学习的时候，可能会感觉不到作用在哪里，但是随着接触到嵌入式底层设计以及算法设计的时候，才会恍然大悟。 对于操作系统学习，重点学习其思想，对相关知识点有一个大概的了解，后续接触到继续重点学习，这些无论是RTOS，还是Linux，都有涉及到的。 对于计算机原理学习，可以将其看作是嵌入式系统的各个模块的详解，会让你对嵌入式有一个整体的了解，每一个部分都值得深究。   2.3、学习资料 #   C语言基础：推荐经典书籍**《C语言程序设计》（第2版）谭浩强版本**。 硬件基础：大学里面的《数电模电》书籍所涉及的知识即可。 数据结构：推荐经典书籍**《数据结构》——严蔚敏版**。 操作系统、计算机原理：我用的是**《王道》的系列丛书**，个人感觉不错。  计算机组成、数据结构、操作系统、数据库是嵌入式或者说计算机的入门必读书籍，并且也被列入高校教材内，是真正的基础知识。</description>
+    </item>
+    
+  </channel>
+</rss>

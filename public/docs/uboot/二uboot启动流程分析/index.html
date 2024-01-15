@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着SPL和Uboot。SPL（BL1阶段）：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现.Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="二、uboot启动流程分析" />
+<meta property="og:description" content="同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着SPL和Uboot。SPL（BL1阶段）：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现.Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2023-11-17T22:11:57+08:00" />
+<meta property="article:modified_time" content="2023-11-17T22:11:57+08:00" />
+
+<title>二、uboot启动流程分析 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.a3d477b2641b9a7934f823e4087fb9371ca5ea07f560f818f94e0b2ad151a88b.js" integrity="sha256-o9R3smQbmnk0&#43;CPkCH&#43;5Nxyl6gf1YPgY&#43;U4LKtFRqIs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="active">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/"  >
+        Blog
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>二、uboot启动流程分析</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#21程序执行流程图">2.1、程序执行流程图</a></li>
+    <li><a href="#22u-bootldsuboot的入口函数">2.2、u-boot.lds——Uboot的入口函数</a></li>
+    <li><a href="#23board_init_f板级前置初始化">2.3、board_init_f——板级前置初始化</a></li>
+    <li><a href="#24relocate_code重定向">2.4、relocate_code重定向</a>
+      <ul>
+        <li><a href="#241-为什么需要重定向呢">2.4.1 为什么需要重定向呢？</a></li>
+        <li><a href="#242-uboot是如何重定向的">2.4.2 Uboot是如何重定向的？</a></li>
+        <li><a href="#243-uboot重定向作用">2.4.3 Uboot重定向作用</a></li>
+      </ul>
+    </li>
+    <li><a href="#25board_init_r板级后置初始化">2.5、board_init_r——板级后置初始化</a></li>
+    <li><a href="#26main_loopuboot主循环">2.6、main_loop——Uboot主循环</a>
+      <ul>
+        <li><a href="#261-bootdelay_process">2.6.1 bootdelay_process</a></li>
+        <li><a href="#262-autoboot_command">2.6.2 autoboot_command</a></li>
+        <li><a href="#263-cli_loop">2.6.3 cli_loop</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h1 id="二uboot启动流程分析">
+  二、uboot启动流程分析
+  <a class="anchor" href="#%e4%ba%8cuboot%e5%90%af%e5%8a%a8%e6%b5%81%e7%a8%8b%e5%88%86%e6%9e%90">#</a>
+</h1>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202203071811279.png" alt="Uboot启动流程" /></p>
+<blockquote>
+<p>上一篇文章：<a href="https://blog.csdn.net/dong__ge/article/details/122199992">（一）uboot基础了解</a> 下一篇文章：<a href="https://blog.csdn.net/dong__ge/article/details/122637220">（三）Uboot驱动模型</a></p>
+</blockquote>
+<p>同大多数的Bootloader一样，uboot的启动过程也分为BL1、BL2两个阶段，分别对应着<code>SPL</code>和<code>Uboot</code>。</p>
+<p><strong>SPL（BL1阶段）</strong>：负责开发板的基础配置和设备初始化，并且搬运Uboot到内存中，由汇编代码和少量的C语言实现</p>
+<p><strong>Uboot（BL2阶段）</strong>：主要负责初始化外部设备，引导Kernel启动，由纯C语言实现。</p>
+<blockquote>
+<p>我们这篇文章，主要介绍Uboot（BL2阶段）的启动流程，BL1阶段启动流程的详细分析，可以见我的后续文章。想要深入了解的，可以好好研究下！</p>
+</blockquote>
+<p><img src="https://i.loli.net/2021/12/02/dXOn3fe91FZQWzq.jpg" alt="img" /></p>
+<h2 id="21程序执行流程图">
+  2.1、程序执行流程图
+  <a class="anchor" href="#21%e7%a8%8b%e5%ba%8f%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b%e5%9b%be">#</a>
+</h2>
+<p>我们先总体来看一下Uboot的执行步骤，这里以EMMC作为启动介质，进行分析！</p>
+<p>无论是哪种启动介质，基本流程都相似，我们这就往下看！</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202202101913627.png" alt="image-20220210191302537" /></p>
+<p><strong>==打开图片，结合文档、图片、代码进行理解！==</strong></p>
+<hr>
+<h2 id="22u-bootldsuboot的入口函数">
+  2.2、u-boot.lds——Uboot的入口函数
+  <a class="anchor" href="#22u-bootldsuboot%e7%9a%84%e5%85%a5%e5%8f%a3%e5%87%bd%e6%95%b0">#</a>
+</h2>
+<p><code>u-boot.lds</code>：是uboot工程的链接脚本文件，对于工程的编译和链接有非常重要的作用，决定了uboot的组装，并且<code>u-boot.lds</code>链接文件中的<code>ENTRY(_start)</code>指定了uboot程序的入口地址。</p>
+<blockquote>
+<p>如果不知道<code>u-boot.lds</code>放到在哪里，可以通过<code>find -name u-boot.lds</code>查找，根目录要进入到uboot的源码的位置哦！</p>
+<p>如果查找结果有很多，结合自己的板子信息，确定自己使用的<code>u-boot.lds</code>。</p>
+<p>当然，准确的方法是查看Makefile文件，分析出来<code>u-boot.lds</code>所生成的位置。</p>
+</blockquote>
+<p>在<code>u-boot.lds</code>的文件中，可以看到<code>.text</code>段，存放的就是执行的文本段。截取部分代码段如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">OUTPUT_FORMAT</span>(<span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">elf32-littlearm</span><span style="color:#960050;background-color:#1e0010">&#34;</span>, <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">elf32-littlearm</span><span style="color:#960050;background-color:#1e0010">&#34;</span>, <span style="color:#960050;background-color:#1e0010">&#34;</span><span style="color:#66d9ef">elf32-littlearm</span><span style="color:#960050;background-color:#1e0010">&#34;</span>)
+<span style="color:#a6e22e">OUTPUT_ARCH</span>(<span style="color:#66d9ef">arm</span>)
+<span style="color:#a6e22e">ENTRY</span>(<span style="color:#66d9ef">_start</span>)
+<span style="color:#a6e22e">SECTIONS</span>
+<span style="color:#960050;background-color:#1e0010">{</span>
+ <span style="color:#960050;background-color:#1e0010">.</span> <span style="color:#960050;background-color:#1e0010">=</span> <span style="color:#960050;background-color:#1e0010">0</span><span style="color:#a6e22e">x00000000</span><span style="color:#75715e">;				@起始地址
+</span><span style="color:#75715e"></span> . <span style="color:#960050;background-color:#1e0010">=</span> <span style="color:#66d9ef">ALIGN</span>(<span style="color:#ae81ff">4</span>)<span style="color:#75715e">;					@四字节对齐
+</span><span style="color:#75715e"></span> <span style="color:#66d9ef">.text</span> :			
+ <span style="color:#960050;background-color:#1e0010">{</span>	
+  *(.<span style="color:#66d9ef">__image_copy_start</span>)		<span style="color:#960050;background-color:#1e0010">@映像文件复制起始地址</span>
+  <span style="color:#960050;background-color:#1e0010">*(</span><span style="color:#a6e22e">.vectors</span>)					<span style="color:#960050;background-color:#1e0010">@异常向量表</span>
+  <span style="color:#a6e22e">arch</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">arm</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">cpu</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">armv7</span><span style="color:#960050;background-color:#1e0010">/</span><span style="color:#66d9ef">start.o</span> (.<span style="color:#66d9ef">text</span>*)	<span style="color:#960050;background-color:#1e0010">@启动函数</span>
+ <span style="color:#960050;background-color:#1e0010">}</span>
+ <span style="color:#a6e22e">......</span>
+<span style="color:#960050;background-color:#1e0010">}</span>
+</code></pre></div><ul>
+<li>
+<p><code>ENTRY(_start)</code>：程序的入口函数，<code>_start</code>在<code>arch/arm/lib/vectors.S</code>中定义<code>.globl _start</code></p>
+</li>
+<li>
+<p><code>SECTIONS</code>定义了段，包括<code>text</code>文本段、<code>data</code>数据段、<code>bss</code>段等。</p>
+</li>
+<li>
+<p><code>__image_copy_start</code>在System.map和u-boot.map中均有定义</p>
+</li>
+<li>
+<p><code>arch/arm/cpu/armv7/start.o</code>对应文件<code>arch/arm/cpu/armv7/start.S</code>，该文件中定义了<code>main</code>函数的入口。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Tip</strong>：上面只进行大概分析，有汇编经验的朋友，可以详细进行分析！</p>
+</blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202202271147055.png" alt="img" /></p>
+<h2 id="23board_init_f板级前置初始化">
+  2.3、board_init_f——板级前置初始化
+  <a class="anchor" href="#23board_init_f%e6%9d%bf%e7%ba%a7%e5%89%8d%e7%bd%ae%e5%88%9d%e5%a7%8b%e5%8c%96">#</a>
+</h2>
+<p>跟随上文的程序执行流程图，我们看<code>board_init_f</code>这个函数。其位于<code>common/board_f.c</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">board_init_f</span>(ulong boot_flags)
+{
+    gd<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">=</span> boot_flags;
+    gd<span style="color:#f92672">-&gt;</span>have_console <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+
+    <span style="color:#66d9ef">if</span> (initcall_run_list(init_sequence_f))
+        hang();
+}
+
+<span style="color:#66d9ef">static</span> <span style="color:#66d9ef">const</span> init_fnc_t init_sequence_f[] <span style="color:#f92672">=</span> {
+    setup_mon_len,
+    ...
+    log_init,
+    arch_cpu_init,		<span style="color:#75715e">/* basic arch cpu dependent setup */</span>
+    env_init,		<span style="color:#75715e">/* initialize environment */</span>
+    ...       
+    reloc_fdt,
+    reloc_bootstage,
+    reloc_bloblist,
+    setup_reloc,
+    ...
+}
+</code></pre></div><p><code>board_init_f()</code>，其最核心的内容就是调用了<code>init_sequence_f</code>初始化序列，进行了一系列初始化的工作。</p>
+<p>主要包括：串口、定时器、设备树、DM驱动模型等，另外还包括<code>global_data</code>结构体相关对象的变量。</p>
+<blockquote>
+<p>详细分析，可以看文末的参考文章[1]</p>
+</blockquote>
+<p>我们需要注意的一点就是，在初始化队列末尾，执行了几个<code>reloc_xxx</code>的函数，这几个函数实现了Uboot的重定向功能。</p>
+<h2 id="24relocate_code重定向">
+  2.4、relocate_code重定向
+  <a class="anchor" href="#24relocate_code%e9%87%8d%e5%ae%9a%e5%90%91">#</a>
+</h2>
+<blockquote>
+<p>重定向技术，可以说也算是<code>Uboot</code>的一个重点了，也就是将<code>uboot</code>自身镜像拷贝到<code>ddr</code>上的另外一个位置的动作。</p>
+</blockquote>
+<h3 id="241-为什么需要重定向呢">
+  2.4.1 为什么需要重定向呢？
+  <a class="anchor" href="#241-%e4%b8%ba%e4%bb%80%e4%b9%88%e9%9c%80%e8%a6%81%e9%87%8d%e5%ae%9a%e5%90%91%e5%91%a2">#</a>
+</h3>
+<blockquote>
+<p>一般需要重定向的条件如下：</p>
+</blockquote>
+<ul>
+<li><code>uboot</code>存储在只读存储器上，比如<code>ROM</code>、<code>Nor flash</code>，需要将代码拷贝到<code>DDR</code>上，才能完整运行<code>Uboot</code>。</li>
+<li>为<code>Kernel</code>腾空间，<code>Kernel</code>一般会放在<code>DDR</code>的地段地址上，所以要把<code>Uboot</code>重定向到顶端地址，避免冲突。</li>
+</ul>
+<h3 id="242-uboot是如何重定向的">
+  2.4.2 Uboot是如何重定向的？
+  <a class="anchor" href="#242-uboot%e6%98%af%e5%a6%82%e4%bd%95%e9%87%8d%e5%ae%9a%e5%90%91%e7%9a%84">#</a>
+</h3>
+<p>Uboot的重定向有如下几个步骤：</p>
+<ul>
+<li>对<code>relocate</code>进行空间划分</li>
+<li>计算uboot代码空间到<code>relocate</code>的位置的偏移</li>
+<li><code>relocate</code>旧的<code>global_data</code>到新的<code>global_data</code>空间上</li>
+<li><code>relocate</code> Uboot</li>
+<li>修改<code>relocate</code>后的全局变量的<code>label</code></li>
+<li><code>relocate</code>中断向量表</li>
+</ul>
+<p><strong>运行大致流程：</strong></p>
+<p><code>arch/arm/lib/crt0.S</code>文件内，主要实现了：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm"><span style="color:#a6e22e">ENTRY</span>(<span style="color:#66d9ef">_main</span>)
+    <span style="color:#a6e22e">bl</span>  <span style="color:#66d9ef">board_init_f</span>
+<span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">在</span><span style="color:#a6e22e">board_init_f里面实现了</span>
+<span style="color:#960050;background-color:#1e0010">@@</span>                             <span style="color:#960050;background-color:#1e0010">（1）对</span><span style="color:#a6e22e">relocate进行空间规划</span>
+<span style="color:#960050;background-color:#1e0010">@@</span>                             <span style="color:#960050;background-color:#1e0010">（2）计算</span><span style="color:#a6e22e">uboot代码空间到relocation的位置的偏移</span>
+<span style="color:#960050;background-color:#1e0010">@@</span>                             <span style="color:#960050;background-color:#1e0010">（3）</span><span style="color:#a6e22e">relocate旧的global_data到新的global_data的空间上</span>
+
+    <span style="color:#a6e22e">ldr</span> <span style="color:#66d9ef">sp</span>, [<span style="color:#66d9ef">r9</span>, <span style="color:#75715e">#GD_START_ADDR_SP] /* sp = gd-&gt;start_addr_sp */
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">bic</span> <span style="color:#66d9ef">sp</span>, <span style="color:#66d9ef">sp</span>, <span style="color:#75715e">#7  /* 8-byte alignment for ABI compliance */
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">ldr</span> <span style="color:#66d9ef">r9</span>, [<span style="color:#66d9ef">r9</span>, <span style="color:#75715e">#GD_BD]        /* r9 = gd-&gt;bd */
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">sub</span> <span style="color:#66d9ef">r9</span>, <span style="color:#66d9ef">r9</span>, <span style="color:#75715e">#GD_SIZE        /* new GD is below bd */
+</span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">把新的</span><span style="color:#66d9ef">global_data地址放在r9寄存器中</span>
+
+    <span style="color:#a6e22e">adr</span> <span style="color:#66d9ef">lr</span>, <span style="color:#66d9ef">here</span>
+    <span style="color:#a6e22e">ldr</span> <span style="color:#66d9ef">r0</span>, [<span style="color:#66d9ef">r9</span>, <span style="color:#75715e">#GD_RELOC_OFF]     /* r0 = gd-&gt;reloc_off */
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">add</span> <span style="color:#66d9ef">lr</span>, <span style="color:#66d9ef">lr</span>, <span style="color:#66d9ef">r0</span>
+<span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">计算返回地址在新的</span><span style="color:#a6e22e">uboot空间中的地址</span><span style="color:#960050;background-color:#1e0010">。</span><span style="color:#66d9ef">b调用函数返回之后</span><span style="color:#960050;background-color:#1e0010">，就跳到了新的</span><span style="color:#66d9ef">uboot代码空间中</span><span style="color:#960050;background-color:#1e0010">。</span>
+
+    <span style="color:#a6e22e">ldr</span> <span style="color:#66d9ef">r0</span>, [<span style="color:#66d9ef">r9</span>, <span style="color:#75715e">#GD_RELOCADDR]     /* r0 = gd-&gt;relocaddr */
+</span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">把</span><span style="color:#66d9ef">uboot的新的地址空间放到r0寄存器中</span><span style="color:#960050;background-color:#1e0010">，作为</span><span style="color:#66d9ef">relocate_code的参数</span>
+    <span style="color:#a6e22e">b</span>   <span style="color:#66d9ef">relocate_code</span>
+<span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">跳转到</span><span style="color:#a6e22e">relocate_code中</span><span style="color:#960050;background-color:#1e0010">，在这里面实现了</span>
+<span style="color:#960050;background-color:#1e0010">@@</span>                                       <span style="color:#960050;background-color:#1e0010">（1）</span><span style="color:#a6e22e">relocate旧的uboot代码空间到新的空间上去</span>
+<span style="color:#960050;background-color:#1e0010">@@</span>                                       <span style="color:#960050;background-color:#1e0010">（2）修改</span><span style="color:#a6e22e">relocate之后全局变量的label</span>
+<span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#960050;background-color:#1e0010">注意，由于上述已经把</span><span style="color:#a6e22e">lr寄存器重定义到uboot新的代码空间中了</span><span style="color:#960050;background-color:#1e0010">，所以返回之后，就已经跳到了新的代码空间了！！！！！！</span>
+
+    <span style="color:#a6e22e">bl</span>  <span style="color:#66d9ef">relocate_vectors</span>
+<span style="color:#960050;background-color:#1e0010">@@</span> <span style="color:#a6e22e">relocate中断向量表</span>
+</code></pre></div><ul>
+<li><strong>setup_reloc——重定向地址查看（仿真有关）</strong></li>
+</ul>
+<p>在这里我们说明一下<code>board_init_f</code>里面的<code>setup_reloc</code>初始化函数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">setup_reloc</span>(<span style="color:#66d9ef">void</span>)
+{
+    <span style="color:#66d9ef">if</span> (gd<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">&amp;</span> GD_FLG_SKIP_RELOC) {
+        debug(<span style="color:#e6db74">&#34;Skipping relocation due to flag</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+    }
+
+<span style="color:#75715e">#ifdef CONFIG_SYS_TEXT_BASE
+</span><span style="color:#75715e">#ifdef ARM
+</span><span style="color:#75715e"></span>    gd<span style="color:#f92672">-&gt;</span>reloc_off <span style="color:#f92672">=</span> gd<span style="color:#f92672">-&gt;</span>relocaddr <span style="color:#f92672">-</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)__image_copy_start;
+<span style="color:#75715e">#elif defined(CONFIG_M68K)
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">/*
+</span><span style="color:#75715e">     * On all ColdFire arch cpu, monitor code starts always
+</span><span style="color:#75715e">     * just after the default vector table location, so at 0x400
+</span><span style="color:#75715e">     */</span>
+    gd<span style="color:#f92672">-&gt;</span>reloc_off <span style="color:#f92672">=</span> gd<span style="color:#f92672">-&gt;</span>relocaddr <span style="color:#f92672">-</span> (CONFIG_SYS_TEXT_BASE <span style="color:#f92672">+</span> <span style="color:#ae81ff">0x400</span>);
+<span style="color:#75715e">#elif !defined(CONFIG_SANDBOX)
+</span><span style="color:#75715e"></span>    gd<span style="color:#f92672">-&gt;</span>reloc_off <span style="color:#f92672">=</span> gd<span style="color:#f92672">-&gt;</span>relocaddr <span style="color:#f92672">-</span> CONFIG_SYS_TEXT_BASE;
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>    memcpy(gd<span style="color:#f92672">-&gt;</span>new_gd, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)gd, <span style="color:#66d9ef">sizeof</span>(gd_t));
+
+    debug(<span style="color:#e6db74">&#34;Relocation Offset is: %08lx</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, gd<span style="color:#f92672">-&gt;</span>reloc_off);
+    <span style="color:#66d9ef">if</span> (is_debug_open()) {
+        printf(<span style="color:#e6db74">&#34;Relocating to %08lx, new gd at %08lx, sp at %08lx</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,
+              gd<span style="color:#f92672">-&gt;</span>relocaddr, (ulong)map_to_sysmem(gd<span style="color:#f92672">-&gt;</span>new_gd),
+              gd<span style="color:#f92672">-&gt;</span>start_addr_sp);
+    }
+
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>由于，<code>Uboot</code>进行了重定向，所以按照常规的地址仿真的话，我们可能访问到错误的内存空间，通过<code>setup_reloc</code>的<code>Relocating to %08lx</code>打印，我们可以得到重定向后的地址，方便我们仿真。</p>
+<p><code>Uboot</code>的重定向也有相当大的一部分知识点，上面也仅仅是简单介绍了<code>relocate</code>的基本步骤和流程，后续看大家需要，如果大家想了解，我再补上这一部分。</p>
+<h3 id="243-uboot重定向作用">
+  2.4.3 Uboot重定向作用
+  <a class="anchor" href="#243-uboot%e9%87%8d%e5%ae%9a%e5%90%91%e4%bd%9c%e7%94%a8">#</a>
+</h3>
+<p><strong>总之</strong>，<code>Uboot</code>重定向之后，把<code>Uboot</code>整体搬运到了高端内存区，为<code>Kernel</code>的加载提供空间，避免内存践踏。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202202271147055.png" alt="img" /></p>
+<h2 id="25board_init_r板级后置初始化">
+  2.5、board_init_r——板级后置初始化
+  <a class="anchor" href="#25board_init_r%e6%9d%bf%e7%ba%a7%e5%90%8e%e7%bd%ae%e5%88%9d%e5%a7%8b%e5%8c%96">#</a>
+</h2>
+<blockquote>
+<p>我们接着跟着流程图往下看，重定向之后，Uboot运行于新的地址空间，接着我们执行<code>board_init_r</code>，主要作为<code>Uboot</code>运行的最后初始化步骤。</p>
+</blockquote>
+<p><code>board_init_r</code>这个函数，同样位于<code>common/board_f.c</code>，主要用于初始化各类外设信息</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">board_init_r</span>(gd_t <span style="color:#f92672">*</span>new_gd, ulong dest_addr)
+{	
+    <span style="color:#66d9ef">if</span> (initcall_run_list(init_sequence_r))
+        hang();
+
+    <span style="color:#75715e">/* NOTREACHED - run_main_loop() does not return */</span>
+    hang();
+}
+<span style="color:#66d9ef">static</span> init_fnc_t init_sequence_r[] <span style="color:#f92672">=</span> {
+    initr_reloc,
+    initr_reloc_global_data,
+    board_init,	<span style="color:#75715e">/* Setup chipselects */</span>
+    initr_dm,
+    initr_mmc,
+    ...
+    run_main_loop
+}
+</code></pre></div><p>与<code>board_init_f</code>相同，同样有一个<code>init_sequence_r</code>初始化列表，包括：<code>initr_dm</code>DM模型初始化，<code>initr_mmc</code>MMC驱动初始化，等等。</p>
+<p>最终，uboot就运行到了<code>run_main_loop</code>，进而执行<code>main_loop</code>这个函数。</p>
+<h2 id="26main_loopuboot主循环">
+  2.6、main_loop——Uboot主循环
+  <a class="anchor" href="#26main_loopuboot%e4%b8%bb%e5%be%aa%e7%8e%af">#</a>
+</h2>
+<blockquote>
+<p>该函数为Uboot的最终执行函数，无论是加载kernel还是uboot的命令行体系，均由此实现。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main_loop</span>(<span style="color:#66d9ef">void</span>)
+{
+    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>s;
+
+    bootstage_mark_name(BOOTSTAGE_ID_MAIN_LOOP, <span style="color:#e6db74">&#34;main_loop&#34;</span>);
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_VERSION_VARIABLE))
+        env_set(<span style="color:#e6db74">&#34;ver&#34;</span>, version_string);  <span style="color:#75715e">/* set version variable */</span>
+
+    cli_init();
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_USE_PREBOOT))
+        run_preboot_environment_command();
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_UPDATE_TFTP))
+        update_tftp(<span style="color:#ae81ff">0UL</span>, NULL, NULL);
+
+    s <span style="color:#f92672">=</span> bootdelay_process();
+    <span style="color:#66d9ef">if</span> (cli_process_fdt(<span style="color:#f92672">&amp;</span>s))
+        cli_secure_boot_cmd(s);
+
+    autoboot_command(s);
+
+    cli_loop();
+    panic(<span style="color:#e6db74">&#34;No CLI available&#34;</span>);
+}
+
+</code></pre></div><p><code>env_set</code>：设置环境变量，两个参数分别为<code>name</code>和<code>value</code></p>
+<p><code>cli_init</code>：用于初始化hash shell的一些变量</p>
+<p><code>run_preboot_environment_command</code>：执行预定义的环境变量的命令</p>
+<p><code>bootdelay_process</code>：加载延时处理，一般用于<code>Uboot</code>启动后，有几秒的倒计时，用于进入命令行模式。</p>
+<p><code>cli_loop</code>：命令行模式，主要作用于<code>Uboot</code>的命令行交互。</p>
+<h3 id="261-bootdelay_process">
+  2.6.1 bootdelay_process
+  <a class="anchor" href="#261-bootdelay_process">#</a>
+</h3>
+<blockquote>
+<p><strong>记得对照文章开始的执行流程图哦！</strong></p>
+</blockquote>
+<p>详细解释标注于代码中&hellip;&hellip;</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">bootdelay_process</span>(<span style="color:#66d9ef">void</span>)
+{
+    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>s;
+    <span style="color:#66d9ef">int</span> bootdelay;
+
+    bootcount_inc();
+
+    s <span style="color:#f92672">=</span> env_get(<span style="color:#e6db74">&#34;bootdelay&#34;</span>);								<span style="color:#75715e">//先判断是否有bootdelay环境变量，如果没有，就使用menuconfig中配置的CONFIG_BOOTDELAY时间
+</span><span style="color:#75715e"></span>    bootdelay <span style="color:#f92672">=</span> s <span style="color:#f92672">?</span> (<span style="color:#66d9ef">int</span>)simple_strtol(s, NULL, <span style="color:#ae81ff">10</span>) <span style="color:#f92672">:</span> CONFIG_BOOTDELAY;
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_OF_CONTROL))						<span style="color:#75715e">//是否使用设备树进行配置
+</span><span style="color:#75715e"></span>        bootdelay <span style="color:#f92672">=</span> fdtdec_get_config_int(gd<span style="color:#f92672">-&gt;</span>fdt_blob, <span style="color:#e6db74">&#34;bootdelay&#34;</span>,
+                          bootdelay);
+
+    debug(<span style="color:#e6db74">&#34;### main_loop entered: bootdelay=%d</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>, bootdelay);
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_AUTOBOOT_MENU_SHOW))
+        bootdelay <span style="color:#f92672">=</span> menu_show(bootdelay);
+    bootretry_init_cmd_timeout();
+
+<span style="color:#75715e">#ifdef CONFIG_POST
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (gd<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">&amp;</span> GD_FLG_POSTFAIL) {
+        s <span style="color:#f92672">=</span> env_get(<span style="color:#e6db74">&#34;failbootcmd&#34;</span>);
+    } <span style="color:#66d9ef">else</span>
+<span style="color:#75715e">#endif </span><span style="color:#75715e">/* CONFIG_POST */</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (bootcount_error())
+        s <span style="color:#f92672">=</span> env_get(<span style="color:#e6db74">&#34;altbootcmd&#34;</span>);
+    <span style="color:#66d9ef">else</span>
+        s <span style="color:#f92672">=</span> env_get(<span style="color:#e6db74">&#34;bootcmd&#34;</span>);								<span style="color:#75715e">//获取bootcmd环境变量，用于后续的命令执行
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_OF_CONTROL))
+        process_fdt_options(gd<span style="color:#f92672">-&gt;</span>fdt_blob);
+    stored_bootdelay <span style="color:#f92672">=</span> bootdelay;
+
+    <span style="color:#66d9ef">return</span> s;
+}
+</code></pre></div><h3 id="262-autoboot_command">
+  2.6.2 autoboot_command
+  <a class="anchor" href="#262-autoboot_command">#</a>
+</h3>
+<p>详细解释标注于代码中&hellip;&hellip;</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">autoboot_command</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>s)
+{
+    debug(<span style="color:#e6db74">&#34;### main_loop: bootcmd=</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">%s</span><span style="color:#ae81ff">\&#34;\n</span><span style="color:#e6db74">&#34;</span>, s <span style="color:#f92672">?</span> s : <span style="color:#e6db74">&#34;&lt;UNDEFINED&gt;&#34;</span>);
+
+    <span style="color:#66d9ef">if</span> (stored_bootdelay <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">&amp;&amp;</span> s <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>abortboot(stored_bootdelay)) {
+        <span style="color:#66d9ef">bool</span> lock;
+        <span style="color:#66d9ef">int</span> prev;
+
+        lock <span style="color:#f92672">=</span> IS_ENABLED(CONFIG_AUTOBOOT_KEYED) <span style="color:#f92672">&amp;&amp;</span>
+            <span style="color:#f92672">!</span>IS_ENABLED(CONFIG_AUTOBOOT_KEYED_CTRLC);
+        <span style="color:#66d9ef">if</span> (lock)
+            prev <span style="color:#f92672">=</span> disable_ctrlc(<span style="color:#ae81ff">1</span>); <span style="color:#75715e">/* disable Ctrl-C checking */</span>
+
+        run_command_list(s, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>);
+
+        <span style="color:#66d9ef">if</span> (lock)
+            disable_ctrlc(prev);	<span style="color:#75715e">/* restore Ctrl-C checking */</span>
+    }
+
+    <span style="color:#66d9ef">if</span> (IS_ENABLED(CONFIG_USE_AUTOBOOT_MENUKEY) <span style="color:#f92672">&amp;&amp;</span>
+        menukey <span style="color:#f92672">==</span> AUTOBOOT_MENUKEY) {
+        s <span style="color:#f92672">=</span> env_get(<span style="color:#e6db74">&#34;menucmd&#34;</span>);
+        <span style="color:#66d9ef">if</span> (s)
+            run_command_list(s, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>);
+    }
+}
+
+</code></pre></div><p>我们看一下判断条件<code>stored_bootdelay != -1 &amp;&amp; s &amp;&amp; !abortboot(stored_bootdelay</code></p>
+<ul>
+<li><code>stored_bootdelay</code>：为环境变量的值，或者<code>menuconfig</code>设置的值</li>
+<li><code>s</code>：为环境变量<code>bootcmd</code>的值，为后续运行的指令</li>
+<li><code>abortboot(stored_bootdelay)</code>：主要用于判断是否有按键按下。如果按下，则不执行<code>bootcmd</code>命令，进入<code>cli_loop</code> 命令行模式；如果不按下，则执行<code>bootcmd</code>命令，跳转到加载Linux启动。</li>
+</ul>
+<h3 id="263-cli_loop">
+  2.6.3 cli_loop
+  <a class="anchor" href="#263-cli_loop">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">cli_loop</span>(<span style="color:#66d9ef">void</span>)
+{
+    bootstage_mark(BOOTSTAGE_ID_ENTER_CLI_LOOP);
+<span style="color:#75715e">#ifdef CONFIG_HUSH_PARSER
+</span><span style="color:#75715e"></span>    parse_file_outer();
+    <span style="color:#75715e">/* This point is never reached */</span>
+    <span style="color:#66d9ef">for</span> (;;);					<span style="color:#75715e">//死循环
+</span><span style="color:#75715e"></span><span style="color:#75715e">#elif defined(CONFIG_CMDLINE)
+</span><span style="color:#75715e"></span>    cli_simple_loop();
+<span style="color:#75715e">#else
+</span><span style="color:#75715e"></span>    printf(<span style="color:#e6db74">&#34;## U-Boot command line is disabled. Please enable CONFIG_CMDLINE</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+<span style="color:#75715e">#endif </span><span style="color:#75715e">/*CONFIG_HUSH_PARSER*/</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>如上代码，程序只执行<code>parse_file_outer</code>来处理用户的输入、输出信息。</p>
+<blockquote>
+<p>好啦，基本到这里，我们已经对Uboot的启动流程了然于胸了吧！</p>
+<p>当然，更深层次的不建议去深入了解，有时间可以慢慢去研究。</p>
+</blockquote>
+<p>大家有疑问，可以评论区交流&hellip;&hellip;</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202202271147055.png" alt="img" /></p>
+<p><strong>参考文章</strong>：</p>
+<p>[1]：<a href="https://blog.csdn.net/qq_34591581/article/details/104101598">boadr_init_f介绍</a></p>
+<p>[2]：<a href="https://blog.csdn.net/ooonebook/article/details/53070065">启动流程参考</a></p>
+<p>[3]：<a href="https://blog.csdn.net/monkea123/article/details/103148946">main_loop相关</a></p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#21程序执行流程图">2.1、程序执行流程图</a></li>
+    <li><a href="#22u-bootldsuboot的入口函数">2.2、u-boot.lds——Uboot的入口函数</a></li>
+    <li><a href="#23board_init_f板级前置初始化">2.3、board_init_f——板级前置初始化</a></li>
+    <li><a href="#24relocate_code重定向">2.4、relocate_code重定向</a>
+      <ul>
+        <li><a href="#241-为什么需要重定向呢">2.4.1 为什么需要重定向呢？</a></li>
+        <li><a href="#242-uboot是如何重定向的">2.4.2 Uboot是如何重定向的？</a></li>
+        <li><a href="#243-uboot重定向作用">2.4.3 Uboot重定向作用</a></li>
+      </ul>
+    </li>
+    <li><a href="#25board_init_r板级后置初始化">2.5、board_init_r——板级后置初始化</a></li>
+    <li><a href="#26main_loopuboot主循环">2.6、main_loop——Uboot主循环</a>
+      <ul>
+        <li><a href="#261-bootdelay_process">2.6.1 bootdelay_process</a></li>
+        <li><a href="#262-autoboot_command">2.6.2 autoboot_command</a></li>
+        <li><a href="#263-cli_loop">2.6.3 cli_loop</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
