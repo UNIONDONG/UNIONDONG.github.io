@@ -64,6 +64,16 @@ home = ["HTML", "RSS"]
 	# Can be overwritten by same param in page frontmatter
 	BookComments = true
 
+[markup]
+  [markup.tableOfContents]
+    endLevel = 3
+    startLevel = 1
+  [markup.highlight]
+    style = "dracula"
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
 	SEOTitle = " 董哥的博客"
 	description = "高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】"
 	keyword = "董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式"

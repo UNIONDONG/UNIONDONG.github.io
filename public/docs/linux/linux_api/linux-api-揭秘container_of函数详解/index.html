@@ -28,7 +28,7 @@ Github：linux-api-insides
 <link rel="icon" href="/favicon.png" >
 <link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
   <script defer src="/flexsearch.min.js"></script>
-  <script defer src="/en.search.min.f5a26457213703b695f733b4c2ac180191f785a586a60801c7a27cf4799442e4.js" integrity="sha256-9aJkVyE3A7aV9zO0wqwYAZH3haWGpggBx6J89HmUQuQ=" crossorigin="anonymous"></script>
+  <script defer src="/en.search.min.8fd1e3430de291b0f194486a1d24967d2657db0f00e41b15618fe3a66c6853b9.js" integrity="sha256-j9HjQw3ikbDxlEhqHSSWfSZX2w8A5BsVYY/jpmxoU7k=" crossorigin="anonymous"></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -390,17 +390,21 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#1container_of函数介绍">1、container_of函数介绍</a></li>
-    <li><a href="#2container_of函数实现">2、container_of函数实现</a>
+    <li>
       <ul>
-        <li><a href="#21-static_assert">2.1 static_assert</a></li>
-        <li><a href="#22-__same_type">2.2 __same_type</a></li>
-        <li><a href="#23-type-0">2.3 (type *)0</a></li>
-        <li><a href="#24-offsetof">2.4 offsetof</a></li>
-        <li><a href="#25-container_of">2.5 container_of</a></li>
+        <li><a href="#1container_of函数介绍">1、container_of函数介绍</a></li>
+        <li><a href="#2container_of函数实现">2、container_of函数实现</a>
+          <ul>
+            <li><a href="#21-static_assert">2.1 static_assert</a></li>
+            <li><a href="#22-__same_type">2.2 __same_type</a></li>
+            <li><a href="#23-type-0">2.3 (type *)0</a></li>
+            <li><a href="#24-offsetof">2.4 offsetof</a></li>
+            <li><a href="#25-container_of">2.5 container_of</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总结">3、总结</a></li>
       </ul>
     </li>
-    <li><a href="#3总结">3、总结</a></li>
   </ul>
 </nav>
 
@@ -413,13 +417,7 @@ https://github.com/alex-shpak/hugo-book
 
       
       
-  <article class="markdown book-article"><!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<blockquote>
+  <article class="markdown book-article"><blockquote>
 <p><strong>Linux Version：6.6</strong></p>
 <p><strong>Author：Donge</strong></p>
 <p><strong>Github：<a href="https://github.com/UNIONDONG/linux-api-insides">linux-api-insides</a></strong></p>
@@ -438,21 +436,21 @@ https://github.com/alex-shpak/hugo-book
   2、container_of函数实现
   <a class="anchor" href="#2container_of%e5%87%bd%e6%95%b0%e5%ae%9e%e7%8e%b0">#</a>
 </h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * container_of - cast a member of a structure out to the containing structure
-</span><span style="color:#75715e"> * @ptr:	the pointer to the member.
-</span><span style="color:#75715e"> * @type:	the type of the container struct this is embedded in.
-</span><span style="color:#75715e"> * @member:	the name of the member within the struct.
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * WARNING: any const qualifier of @ptr is lost.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">#define container_of(ptr, type, member) ({				\
-</span><span style="color:#75715e">	void *__mptr = (void *)(ptr);					\
-</span><span style="color:#75715e">	static_assert(__same_type(*(ptr), ((type *)0)-&gt;member) ||	\
-</span><span style="color:#75715e">		      __same_type(*(ptr), void),			\
-</span><span style="color:#75715e">		      &#34;pointer type mismatch in container_of()&#34;);	\
-</span><span style="color:#75715e">	((type *)(__mptr - offsetof(type, member))); })
-</span><span style="color:#75715e"></span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * container_of - cast a member of a structure out to the containing structure
+</span><span style="color:#6272a4"> * @ptr:	the pointer to the member.
+</span><span style="color:#6272a4"> * @type:	the type of the container struct this is embedded in.
+</span><span style="color:#6272a4"> * @member:	the name of the member within the struct.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * WARNING: any const qualifier of @ptr is lost.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define container_of(ptr, type, member) ({				\
+</span><span style="color:#ff79c6">	void *__mptr = (void *)(ptr);					\
+</span><span style="color:#ff79c6">	static_assert(__same_type(*(ptr), ((type *)0)-&gt;member) ||	\
+</span><span style="color:#ff79c6">		      __same_type(*(ptr), void),			\
+</span><span style="color:#ff79c6">		      &#34;pointer type mismatch in container_of()&#34;);	\
+</span><span style="color:#ff79c6">	((type *)(__mptr - offsetof(type, member))); })
+</span><span style="color:#ff79c6"></span>
 </code></pre></div><p><strong>函数名称</strong>：<code>container_of</code></p>
 <p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/container_of.h">include/linux/container_of.h</a></p>
 <p>该函数里面包括了一些封装好的宏定义以及函数，比如：<code>static_assert</code>、<code>__same_type</code>、<code>offsetof</code>，以及一些指针的特殊用法，比如：<code>(type *)0)</code>，下面我们一一拆解来看。</p>
@@ -461,49 +459,49 @@ https://github.com/alex-shpak/hugo-book
   2.1 static_assert
   <a class="anchor" href="#21-static_assert">#</a>
 </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * static_assert - check integer constant expression at build time
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * static_assert() is a wrapper for the C11 _Static_assert, with a
-</span><span style="color:#75715e"> * little macro magic to make the message optional (defaulting to the
-</span><span style="color:#75715e"> * stringification of the tested expression).
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * Contrary to BUILD_BUG_ON(), static_assert() can be used at global
-</span><span style="color:#75715e"> * scope, but requires the expression to be an integer constant
-</span><span style="color:#75715e"> * expression (i.e., it is not enough that __builtin_constant_p() is
-</span><span style="color:#75715e"> * true for expr).
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> * Also note that BUILD_BUG_ON() fails the build if the condition is
-</span><span style="color:#75715e"> * true, while static_assert() fails the build if the expression is
-</span><span style="color:#75715e"> * false.
-</span><span style="color:#75715e"> */</span>
-<span style="color:#75715e">#define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
-</span><span style="color:#75715e">#define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * static_assert - check integer constant expression at build time
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * static_assert() is a wrapper for the C11 _Static_assert, with a
+</span><span style="color:#6272a4"> * little macro magic to make the message optional (defaulting to the
+</span><span style="color:#6272a4"> * stringification of the tested expression).
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * Contrary to BUILD_BUG_ON(), static_assert() can be used at global
+</span><span style="color:#6272a4"> * scope, but requires the expression to be an integer constant
+</span><span style="color:#6272a4"> * expression (i.e., it is not enough that __builtin_constant_p() is
+</span><span style="color:#6272a4"> * true for expr).
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * Also note that BUILD_BUG_ON() fails the build if the condition is
+</span><span style="color:#6272a4"> * true, while static_assert() fails the build if the expression is
+</span><span style="color:#6272a4"> * false.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
+</span><span style="color:#ff79c6">#define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
 </span></code></pre></div><p><strong>函数名称</strong>：<code>static_assert</code></p>
 <p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/build_bug.h">include/linux/build_bug.h</a></p>
-<p><strong>函数解析</strong>：该宏定义主要用来 <!-- raw HTML omitted --><strong>在编译时检查常量表达式，如果表达式为假，编译将失败，并打印传入的报错信息</strong><!-- raw HTML omitted --></p>
+<p><strong>函数解析</strong>：该宏定义主要用来 <font color = "red"><strong>在编译时检查常量表达式，如果表达式为假，编译将失败，并打印传入的报错信息</strong></font></p>
 <ul>
 <li><code>expr</code>：该参数表示传入进来的常量表达式</li>
 <li><code>...</code>：表示编译失败后，要打印的错误信息</li>
 <li><code>_Static_assert</code>：<code>C11</code>中引入的关键字，用于判断表达式<code>expr</code>并打印错误信息<code>msg</code>。</li>
 </ul>
 <p>在<code>container_of</code>函数中，主要用来断言判断</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">	static_assert(
-        __same_type(<span style="color:#f92672">*</span>(ptr), ((type <span style="color:#f92672">*</span>)<span style="color:#ae81ff">0</span>)<span style="color:#f92672">-&gt;</span>member)  <span style="color:#f92672">||</span>   __same_type(<span style="color:#f92672">*</span>(ptr), <span style="color:#66d9ef">void</span>) ,
-        <span style="color:#e6db74">&#34;pointer type mismatch in container_of()&#34;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">	static_assert(
+        __same_type(<span style="color:#ff79c6">*</span>(ptr), ((type <span style="color:#ff79c6">*</span>)<span style="color:#bd93f9">0</span>)<span style="color:#ff79c6">-&gt;</span>member)  <span style="color:#ff79c6">||</span>   __same_type(<span style="color:#ff79c6">*</span>(ptr), <span style="color:#8be9fd">void</span>) ,
+        <span style="color:#f1fa8c">&#34;pointer type mismatch in container_of()&#34;</span>
 	);
 </code></pre></div><p> </p>
 <h3 id="22-__same_type">
   2.2 __same_type
   <a class="anchor" href="#22-__same_type">#</a>
 </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">/* Are two types/vars the same type (ignoring qualifiers)? */</span>
-<span style="color:#75715e">#ifndef __same_type
-</span><span style="color:#75715e"># define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
-</span><span style="color:#75715e">#endif
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/* Are two types/vars the same type (ignoring qualifiers)? */</span>
+<span style="color:#ff79c6">#ifndef __same_type
+</span><span style="color:#ff79c6"># define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
+</span><span style="color:#ff79c6">#endif
 </span></code></pre></div><p><strong>函数名称</strong>：<code>__same_type</code></p>
 <p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/compiler.h">include/linux/compiler.h</a></p>
-<p><strong>函数解析</strong>：<!-- raw HTML omitted --><strong>该宏定义用于检查两个变量是否是同种类型</strong><!-- raw HTML omitted --></p>
+<p><strong>函数解析</strong>：<font color = "red"><strong>该宏定义用于检查两个变量是否是同种类型</strong></font></p>
 <ul>
 <li><code>__builtin_types_compatible_p</code>：<code>gcc</code>的内建函数，判断两个参数的类型是否一致，如果是则返回1</li>
 <li><code>typeof</code>：<code>gcc</code>的关键字，用于获取变量的类型信息</li>
@@ -520,7 +518,7 @@ https://github.com/alex-shpak/hugo-book
 </h3>
 <p><code>(type *)0</code>，该如何理解这个表达式呢？</p>
 <ul>
-<li>首先，<code>type</code>是我们传入进来的结构体类型，比如上面讲到的<code>struct test</code>，而这里所做的<!-- raw HTML omitted --><strong>可以理解为强制类型转换</strong><!-- raw HTML omitted -->：<code>(struct test *)addr</code>。</li>
+<li>首先，<code>type</code>是我们传入进来的结构体类型，比如上面讲到的<code>struct test</code>，而这里所做的<font color = "red"><strong>可以理解为强制类型转换</strong></font>：<code>(struct test *)addr</code>。</li>
 <li><code>addr</code>可以表示内存空间的任意的地址，我们在强制转换后，默认后面一片的内存空间存储的是该数据结构。</li>
 </ul>
 <p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231213144714508.png" alt="image-20231213144714508" /></p>
@@ -530,19 +528,19 @@ https://github.com/alex-shpak/hugo-book
 <p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231213144912371.png" alt="image-20231213144912371" /></p>
 <ul>
 <li>我们就把<code>0</code>，当作我们正常的<code>addr</code>地址变量来操作，<code>((type *)0)-&gt;member</code>，就是获取我们结构体的成员对象。</li>
-<li><code>((type *)0)-&gt;member</code>：是一种常见的技巧，<!-- raw HTML omitted --><strong>用于直接获取结构体<code>type</code>的成员<code>member</code>的类型，而不需要定义一个<code>type</code>类型的对象</strong><!-- raw HTML omitted -->。</li>
+<li><code>((type *)0)-&gt;member</code>：是一种常见的技巧，<font color="red" ><strong>用于直接获取结构体<code>type</code>的成员<code>member</code>的类型，而不需要定义一个<code>type</code>类型的对象</strong></font>。</li>
 </ul>
 <p> </p>
 <h3 id="24-offsetof">
   2.4 offsetof
   <a class="anchor" href="#24-offsetof">#</a>
 </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#ifndef offsetof
-</span><span style="color:#75715e">#define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)
-</span><span style="color:#75715e">#endif
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#ifndef offsetof
+</span><span style="color:#ff79c6">#define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)
+</span><span style="color:#ff79c6">#endif
 </span></code></pre></div><p><strong>函数名称</strong>：<code>offsetof</code></p>
 <p><strong>文件位置</strong>：<a href="https://github.com/UNIONDONG/linux-api-insides/blob/main/include/linux/stddef.h">include/linux/stddef.h</a></p>
-<p><strong>函数解析</strong>：<!-- raw HTML omitted --><strong>该宏定义用于获取结构体中指定的成员，距离该结构体偏移量。</strong><!-- raw HTML omitted --></p>
+<p><strong>函数解析</strong>：<font color = "red"><strong>该宏定义用于获取结构体中指定的成员，距离该结构体偏移量。</strong></font></p>
 <p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231213152249395.png" alt="image-20231213152249395" /></p>
 <ul>
 <li><code>TYPE</code>：表示结构体的类型</li>
@@ -551,7 +549,7 @@ https://github.com/alex-shpak/hugo-book
 </ul>
 <p> </p>
 <p>在新的<code>linux</code>源码中，直接引用了<code>gcc</code>内置的函数，而在老的内核源码中，该偏移量的实现方式如下：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define offsetof(TYPE, MEMBER) ((size_t) &amp;((TYPE *)0)-&gt;MEMBER)
 </span></code></pre></div><p>同样用到了<code>((TYPE *)addr)</code>，上面我们知道</p>
 <ul>
 <li><code>((TYPE *)addr)-&gt;MEMBER</code>：表示获取该结构体的成员</li>
@@ -569,12 +567,12 @@ https://github.com/alex-shpak/hugo-book
   2.5 container_of
   <a class="anchor" href="#25-container_of">#</a>
 </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#define container_of(ptr, type, member) ({				\
-</span><span style="color:#75715e">	void *__mptr = (void *)(ptr);					\
-</span><span style="color:#75715e">	static_assert(__same_type(*(ptr), ((type *)0)-&gt;member) ||	\
-</span><span style="color:#75715e">		      __same_type(*(ptr), void),			\
-</span><span style="color:#75715e">		      &#34;pointer type mismatch in container_of()&#34;);	\
-</span><span style="color:#75715e">	((type *)(__mptr - offsetof(type, member))); })
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define container_of(ptr, type, member) ({				\
+</span><span style="color:#ff79c6">	void *__mptr = (void *)(ptr);					\
+</span><span style="color:#ff79c6">	static_assert(__same_type(*(ptr), ((type *)0)-&gt;member) ||	\
+</span><span style="color:#ff79c6">		      __same_type(*(ptr), void),			\
+</span><span style="color:#ff79c6">		      &#34;pointer type mismatch in container_of()&#34;);	\
+</span><span style="color:#ff79c6">	((type *)(__mptr - offsetof(type, member))); })
 </span></code></pre></div><ul>
 <li><code>static_assert</code>：断言信息，避免我们传入的参数类型不对，而做的编译检查处理，直接忽略。</li>
 </ul>
@@ -604,8 +602,9 @@ https://github.com/alex-shpak/hugo-book
 <p>了解完内部完整的实现手法之后，我们也可以手码一个<code>container_of</code>了 :)</p>
 <p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231119211155587.png" alt="image-20231119211155587" /></p>
 <p> </p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
 </article>
  
       
@@ -647,17 +646,21 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#1container_of函数介绍">1、container_of函数介绍</a></li>
-    <li><a href="#2container_of函数实现">2、container_of函数实现</a>
+    <li>
       <ul>
-        <li><a href="#21-static_assert">2.1 static_assert</a></li>
-        <li><a href="#22-__same_type">2.2 __same_type</a></li>
-        <li><a href="#23-type-0">2.3 (type *)0</a></li>
-        <li><a href="#24-offsetof">2.4 offsetof</a></li>
-        <li><a href="#25-container_of">2.5 container_of</a></li>
+        <li><a href="#1container_of函数介绍">1、container_of函数介绍</a></li>
+        <li><a href="#2container_of函数实现">2、container_of函数实现</a>
+          <ul>
+            <li><a href="#21-static_assert">2.1 static_assert</a></li>
+            <li><a href="#22-__same_type">2.2 __same_type</a></li>
+            <li><a href="#23-type-0">2.3 (type *)0</a></li>
+            <li><a href="#24-offsetof">2.4 offsetof</a></li>
+            <li><a href="#25-container_of">2.5 container_of</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总结">3、总结</a></li>
       </ul>
     </li>
-    <li><a href="#3总结">3、总结</a></li>
   </ul>
 </nav>
 

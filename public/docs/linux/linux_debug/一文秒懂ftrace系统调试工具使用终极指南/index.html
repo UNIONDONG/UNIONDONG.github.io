@@ -48,7 +48,7 @@ Ftrace是一个系统内部提供的追踪工具，旨在帮助内核设计和�
 <link rel="icon" href="/favicon.png" >
 <link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
   <script defer src="/flexsearch.min.js"></script>
-  <script defer src="/en.search.min.f5a26457213703b695f733b4c2ac180191f785a586a60801c7a27cf4799442e4.js" integrity="sha256-9aJkVyE3A7aV9zO0wqwYAZH3haWGpggBx6J89HmUQuQ=" crossorigin="anonymous"></script>
+  <script defer src="/en.search.min.8fd1e3430de291b0f194486a1d24967d2657db0f00e41b15618fe3a66c6853b9.js" integrity="sha256-j9HjQw3ikbDxlEhqHSSWfSZX2w8A5BsVYY/jpmxoU7k=" crossorigin="anonymous"></script>
 <!--
 Made with Book Theme
 https://github.com/alex-shpak/hugo-book
@@ -410,30 +410,34 @@ https://github.com/alex-shpak/hugo-book
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#1ftrace是什么">1、Ftrace是什么</a></li>
-    <li><a href="#2ftrace的实现原理">2、Ftrace的实现原理</a>
+    <li><a href="#一文秒懂ftrace系统调试工具使用终极指南">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
       <ul>
-        <li><a href="#21-ftrace框架图">2.1 Ftrace框架图</a></li>
-        <li><a href="#22-ftrace是如何记录信息的">2.2 Ftrace是如何记录信息的</a></li>
+        <li><a href="#1ftrace是什么">1、Ftrace是什么</a></li>
+        <li><a href="#2ftrace的实现原理">2、Ftrace的实现原理</a>
+          <ul>
+            <li><a href="#21-ftrace框架图">2.1 Ftrace框架图</a></li>
+            <li><a href="#22-ftrace是如何记录信息的">2.2 Ftrace是如何记录信息的</a></li>
+          </ul>
+        </li>
+        <li><a href="#3如何使用ftrace">3、如何使用Ftrace</a>
+          <ul>
+            <li><a href="#31-配置详解">3.1 配置详解</a></li>
+            <li><a href="#32-挂载debugfs文件系统">3.2 挂载debugfs文件系统</a></li>
+            <li><a href="#33-traceing目录介绍">3.3 traceing目录介绍</a></li>
+            <li><a href="#34-简单使用示例">3.4 简单使用示例</a></li>
+          </ul>
+        </li>
+        <li><a href="#4进阶用法">4、进阶用法</a>
+          <ul>
+            <li><a href="#41-追踪任意命令">4.1 追踪任意命令</a></li>
+            <li><a href="#42-追踪指定函数的调用流程">4.2 追踪指定函数的调用流程</a></li>
+            <li><a href="#43-追踪指定模块的所有函数">4.3 追踪指定模块的所有函数</a></li>
+          </ul>
+        </li>
+        <li><a href="#5自动化管理">5、自动化管理</a></li>
+        <li><a href="#6总结">6、总结</a></li>
       </ul>
     </li>
-    <li><a href="#3如何使用ftrace">3、如何使用Ftrace</a>
-      <ul>
-        <li><a href="#31-配置详解">3.1 配置详解</a></li>
-        <li><a href="#32-挂载debugfs文件系统">3.2 挂载debugfs文件系统</a></li>
-        <li><a href="#33-traceing目录介绍">3.3 traceing目录介绍</a></li>
-        <li><a href="#34-简单使用示例">3.4 简单使用示例</a></li>
-      </ul>
-    </li>
-    <li><a href="#4进阶用法">4、进阶用法</a>
-      <ul>
-        <li><a href="#41-追踪任意命令">4.1 追踪任意命令</a></li>
-        <li><a href="#42-追踪指定函数的调用流程">4.2 追踪指定函数的调用流程</a></li>
-        <li><a href="#43-追踪指定模块的所有函数">4.3 追踪指定模块的所有函数</a></li>
-      </ul>
-    </li>
-    <li><a href="#5自动化管理">5、自动化管理</a></li>
-    <li><a href="#6总结">6、总结</a></li>
   </ul>
 </nav>
 
@@ -513,20 +517,20 @@ https://github.com/alex-shpak/hugo-book
   3.1 配置详解
   <a class="anchor" href="#31-%e9%85%8d%e7%bd%ae%e8%af%a6%e8%a7%a3">#</a>
 </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile">CONFIG_FTRACE<span style="color:#f92672">=</span>y 							<span style="color:#75715e"># 启用了 Ftrace</span>
-CONFIG_FUNCTION_TRACER<span style="color:#f92672">=</span>y					<span style="color:#75715e"># 启用函数级别的追踪器</span>
-CONFIG_HAVE_FUNCTION_GRAPH_TRACER<span style="color:#f92672">=</span>y			<span style="color:#75715e"># 表示内核支持图形显示</span>
-CONFIG_FUNCTION_GRAPH_TRACER<span style="color:#f92672">=</span>y				<span style="color:#75715e"># 以图形的方式显示函数追踪过程</span>
-CONFIG_STACK_TRACER<span style="color:#f92672">=</span>y						<span style="color:#75715e"># 启用堆栈追踪器，用于跟踪内核函数调用的堆栈信息。</span>
-CONFIG_DYNAMIC_FTRACE<span style="color:#f92672">=</span>y						<span style="color:#75715e"># 启用动态 Ftrace，允许在运行时启用和禁用 Ftrace 功能。</span>
-CONFIG_HAVE_FTRACE_NMI_ENTER<span style="color:#f92672">=</span>y				<span style="color:#75715e"># 表示内核支持非屏蔽中断（NMI）时进入 Ftrace 的功能</span>
-CONFIG_HAVE_FTRACE_MCOUNT_RECORD<span style="color:#f92672">=</span>y			<span style="color:#75715e"># 表示内核支持通过 mcount 记录函数调用关系。</span>
-CONFIG_FTRACE_NMI_ENTER<span style="color:#f92672">=</span>y                   <span style="color:#75715e"># 表示内核支持通过 mcount 记录函数调用关系。   </span>
-CONFIG_FTRACE_SYSCALLS<span style="color:#f92672">=</span>y					<span style="color:#75715e"># 系统调用的追踪</span>
-CONFIG_FTRACE_MCOUNT_RECORD<span style="color:#f92672">=</span>y				<span style="color:#75715e"># 启用 mcount 记录函数调用关系。</span>
-CONFIG_SCHED_TRACER<span style="color:#f92672">=</span>y						<span style="color:#75715e"># 支持调度追踪</span>
-CONFIG_FUNCTION_PROFILER<span style="color:#f92672">=</span>y					<span style="color:#75715e"># 启用函数分析器，主要用于记录函数的执行时间和调用次数</span>
-CONFIG_DEBUG_FS<span style="color:#f92672">=</span>y							<span style="color:#75715e"># 启用 Debug 文件系统支持</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-makefile" data-lang="makefile"><span style="color:#8be9fd;font-style:italic">CONFIG_FTRACE</span><span style="color:#ff79c6">=</span>y 							<span style="color:#6272a4"># 启用了 Ftrace</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FUNCTION_TRACER</span><span style="color:#ff79c6">=</span>y					<span style="color:#6272a4"># 启用函数级别的追踪器</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_HAVE_FUNCTION_GRAPH_TRACER</span><span style="color:#ff79c6">=</span>y			<span style="color:#6272a4"># 表示内核支持图形显示</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FUNCTION_GRAPH_TRACER</span><span style="color:#ff79c6">=</span>y				<span style="color:#6272a4"># 以图形的方式显示函数追踪过程</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_STACK_TRACER</span><span style="color:#ff79c6">=</span>y						<span style="color:#6272a4"># 启用堆栈追踪器，用于跟踪内核函数调用的堆栈信息。</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_DYNAMIC_FTRACE</span><span style="color:#ff79c6">=</span>y						<span style="color:#6272a4"># 启用动态 Ftrace，允许在运行时启用和禁用 Ftrace 功能。</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_HAVE_FTRACE_NMI_ENTER</span><span style="color:#ff79c6">=</span>y				<span style="color:#6272a4"># 表示内核支持非屏蔽中断（NMI）时进入 Ftrace 的功能</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_HAVE_FTRACE_MCOUNT_RECORD</span><span style="color:#ff79c6">=</span>y			<span style="color:#6272a4"># 表示内核支持通过 mcount 记录函数调用关系。</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FTRACE_NMI_ENTER</span><span style="color:#ff79c6">=</span>y                   <span style="color:#6272a4"># 表示内核支持通过 mcount 记录函数调用关系。   </span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FTRACE_SYSCALLS</span><span style="color:#ff79c6">=</span>y					<span style="color:#6272a4"># 系统调用的追踪</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FTRACE_MCOUNT_RECORD</span><span style="color:#ff79c6">=</span>y				<span style="color:#6272a4"># 启用 mcount 记录函数调用关系。</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_SCHED_TRACER</span><span style="color:#ff79c6">=</span>y						<span style="color:#6272a4"># 支持调度追踪</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_FUNCTION_PROFILER</span><span style="color:#ff79c6">=</span>y					<span style="color:#6272a4"># 启用函数分析器，主要用于记录函数的执行时间和调用次数</span>
+<span style="color:#8be9fd;font-style:italic">CONFIG_DEBUG_FS</span><span style="color:#ff79c6">=</span>y							<span style="color:#6272a4"># 启用 Debug 文件系统支持</span>
 </code></pre></div><blockquote>
 <p>上面只是介绍了部分配置，更多详细配置可自行了解。</p>
 <p>并且上述配置不一定全部打开，勾选自己需要的即可，通常我们选择<code>CONFIG_FUNCTION_TRACER</code>和<code>CONFIG_HAVE_FUNCTION_GRAPH_TRACER</code>即可，然后编译烧录到开发板。</p>
@@ -537,10 +541,10 @@ CONFIG_DEBUG_FS<span style="color:#f92672">=</span>y							<span style="color:#7
   <a class="anchor" href="#32-%e6%8c%82%e8%bd%bddebugfs%e6%96%87%e4%bb%b6%e7%b3%bb%e7%bb%9f">#</a>
 </h3>
 <p><code>Ftrace</code>是基于<code>debugfs</code>调试文件系统的，所以我们的第一步就是先挂载<code>debugfs</code>。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
 </code></pre></div><p>此时我们能够在<code>/sys/kernel/debug</code>下看到内核支持的所有的调试信息了。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cd /sys/kernel/debug/</span>
-<span style="color:#75715e"># ls</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># cd /sys/kernel/debug/</span>
+<span style="color:#6272a4"># ls</span>
 asoc                gpio                regmap
 bdi                 ieee80211           sched_debug
 block               memblock            sched_features
@@ -593,7 +597,7 @@ fault_around_bytes  pm_qos              wakeup_sources
   <a class="anchor" href="#334-current_tracer">#</a>
 </h4>
 <p><code>current_tracer</code> 表示当前启用的 tracer ，默认为 <code>nop</code> ，即不做任何追踪工作：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat current_tracer</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># cat current_tracer</span>
 nop
 </code></pre></div><p> </p>
 <h4 id="335-available_filter_functions">
@@ -608,8 +612,8 @@ nop
 </h4>
 <p><code>available_tracers</code> 文件中包含的是当前编译到内核的 tracer 列表，也表示当前内核支持的<code>tracer</code>列表。</p>
 <p>该列表的内容，就是可以写到 <code>current_tracer</code> 的 <code>tracer</code> 名。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat available_tracers</span>
-function_graph <span style="color:#66d9ef">function</span> nop
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># cat available_tracers</span>
+function_graph <span style="color:#ff79c6">function</span> nop
 </code></pre></div><ul>
 <li><code>nop</code>：表示为空，不追踪</li>
 <li><code>function</code>：追踪函数调用</li>
@@ -643,8 +647,8 @@ function_graph <span style="color:#66d9ef">function</span> nop
 <blockquote>
 <p>官方给的示例：</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Format: :mod:&lt;module-name&gt;
-example: echo :mod:ext3 &gt; set_ftrace_filter		<span style="color:#75715e"># 该模块必须是已经加载进去的模块</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Format: :mod:&lt;module-name&gt;
+example: <span style="color:#8be9fd;font-style:italic">echo</span> :mod:ext3 &gt; set_ftrace_filter		<span style="color:#6272a4"># 该模块必须是已经加载进去的模块</span>
 </code></pre></div><p> </p>
 <h4 id="3310-set_ftrace_notrace">
   3.3.10 set_ftrace_notrace
@@ -701,12 +705,12 @@ example: echo :mod:ext3 &gt; set_ftrace_filter		<span style="color:#75715e"># �
   3.4.4 重置追踪
   <a class="anchor" href="#344-%e9%87%8d%e7%bd%ae%e8%bf%bd%e8%b8%aa">#</a>
 </h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo <span style="color:#ae81ff">0</span> &gt; tracing_on			<span style="color:#75715e"># 关闭trace</span>
-echo &gt; trace				<span style="color:#75715e"># 清空当前trace记录</span>
-cat available_tracers 		<span style="color:#75715e"># 查看当前支持的追踪类型</span>
-echo function_graph &gt; current_tracer 	<span style="color:#75715e"># 设置当前的追踪类型</span>
-echo <span style="color:#ae81ff">1</span> &gt; tracing_on			<span style="color:#75715e"># 开启追踪</span>
-cat trace					<span style="color:#75715e"># 查看追踪结果</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">0</span> &gt; tracing_on			<span style="color:#6272a4"># 关闭trace</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> &gt; trace				<span style="color:#6272a4"># 清空当前trace记录</span>
+cat available_tracers 		<span style="color:#6272a4"># 查看当前支持的追踪类型</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> function_graph &gt; current_tracer 	<span style="color:#6272a4"># 设置当前的追踪类型</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">1</span> &gt; tracing_on			<span style="color:#6272a4"># 开启追踪</span>
+cat trace					<span style="color:#6272a4"># 查看追踪结果</span>
 </code></pre></div><p> </p>
 <h2 id="4进阶用法">
   4、进阶用法
@@ -722,49 +726,49 @@ cat trace					<span style="color:#75715e"># 查看追踪结果</span>
 </blockquote>
 <p><code>Ftrace</code>支持追踪特定进程，通过<code>set_ftrace_pid</code>属性来设置指定进程。然后在该进程中，执行特定的命令。</p>
 <p>首先我们需要设置好我们的追踪器</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
-cd /sys/kernel/debug/tracing
-echo <span style="color:#ae81ff">0</span> &gt; tracing_on									<span style="color:#75715e"># 关闭追踪器</span>
-echo <span style="color:#66d9ef">function</span> &gt; current_tracer						<span style="color:#75715e"># 设置当前追踪类别</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
+<span style="color:#8be9fd;font-style:italic">cd</span> /sys/kernel/debug/tracing
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">0</span> &gt; tracing_on									<span style="color:#6272a4"># 关闭追踪器</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#ff79c6">function</span> &gt; current_tracer						<span style="color:#6272a4"># 设置当前追踪类别</span>
 
 </code></pre></div><p>在我们设置好追踪器后，使用如下命令，即可追踪我们执行的命令<code>your_command</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo &gt; trace; echo $$ &gt; set_ftrace_pid; echo <span style="color:#ae81ff">1</span> &gt; tracing_on; your_command; echo <span style="color:#ae81ff">0</span> &gt; tracing_on
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#8be9fd;font-style:italic">echo</span> &gt; trace; <span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#8be9fd;font-style:italic">$$</span> &gt; set_ftrace_pid; <span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">1</span> &gt; tracing_on; your_command; <span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">0</span> &gt; tracing_on
 </code></pre></div><p> </p>
 <h3 id="42-追踪指定函数的调用流程">
   4.2 追踪指定函数的调用流程
   <a class="anchor" href="#42-%e8%bf%bd%e8%b8%aa%e6%8c%87%e5%ae%9a%e5%87%bd%e6%95%b0%e7%9a%84%e8%b0%83%e7%94%a8%e6%b5%81%e7%a8%8b">#</a>
 </h3>
 <p>跟踪函数的时候，设置 <code>echo 1 &gt; options/func_stack_trace</code> 即可在 <code>trace</code> 结果中获取追踪函数的调用栈。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
-cd /sys/kernel/debug/tracing
-echo <span style="color:#ae81ff">0</span> &gt; tracing_on									<span style="color:#75715e"># 关闭追踪器</span>
-cat available_filter_functions | grep <span style="color:#e6db74">&#34;xxxxxx&#34;</span>		<span style="color:#75715e"># 搜索函数是否存在</span>
-echo xxxxxx &gt; set_ftrace_filter						<span style="color:#75715e"># 设定追踪的函数</span>
-echo <span style="color:#66d9ef">function</span> &gt; current_tracer						<span style="color:#75715e"># 设置当前追踪类别</span>
-echo <span style="color:#ae81ff">1</span> &gt; options/func_stack_trace					<span style="color:#75715e"># 记录堆栈信息</span>
-echo &gt; trace										<span style="color:#75715e"># 清空缓存</span>
-echo <span style="color:#ae81ff">1</span> &gt; tracing_on									<span style="color:#75715e"># 开始追踪</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mount -t debugfs none /sys/kernel/debug
+<span style="color:#8be9fd;font-style:italic">cd</span> /sys/kernel/debug/tracing
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">0</span> &gt; tracing_on									<span style="color:#6272a4"># 关闭追踪器</span>
+cat available_filter_functions | grep <span style="color:#f1fa8c">&#34;xxxxxx&#34;</span>		<span style="color:#6272a4"># 搜索函数是否存在</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> xxxxxx &gt; set_ftrace_filter						<span style="color:#6272a4"># 设定追踪的函数</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#ff79c6">function</span> &gt; current_tracer						<span style="color:#6272a4"># 设置当前追踪类别</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">1</span> &gt; options/func_stack_trace					<span style="color:#6272a4"># 记录堆栈信息</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> &gt; trace										<span style="color:#6272a4"># 清空缓存</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#bd93f9">1</span> &gt; tracing_on									<span style="color:#6272a4"># 开始追踪</span>
 </code></pre></div><p><strong>效果如下</strong>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># cat trace</span>
-<span style="color:#75715e"># tracer: function</span>
-<span style="color:#75715e">#</span>
-<span style="color:#75715e"># entries-in-buffer/entries-written: 2/2   #P:3</span>
-<span style="color:#75715e">#</span>
-<span style="color:#75715e">#                              _-----=&gt; irqs-off</span>
-<span style="color:#75715e">#                             / _----=&gt; need-resched</span>
-<span style="color:#75715e">#                            | / _---=&gt; hardirq/softirq</span>
-<span style="color:#75715e">#                            || / _--=&gt; preempt-depth</span>
-<span style="color:#75715e">#                            ||| /     delay</span>
-<span style="color:#75715e">#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION</span>
-<span style="color:#75715e">#              | |       |   ||||       |         |</span>
-     kworker/1:1-59    <span style="color:#f92672">[</span>001<span style="color:#f92672">]</span> ....   168.954199: mmc_rescan &lt;-process_one_work
-     kworker/1:1-59    <span style="color:#f92672">[</span>001<span style="color:#f92672">]</span> ....   168.954248: &lt;stack trace&gt;
- <span style="color:#f92672">=</span>&gt; mmc_rescan
- <span style="color:#f92672">=</span>&gt; process_one_work
- <span style="color:#f92672">=</span>&gt; worker_thread
- <span style="color:#f92672">=</span>&gt; kthread
- <span style="color:#f92672">=</span>&gt; ret_from_fork
- <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">0</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># cat trace</span>
+<span style="color:#6272a4"># tracer: function</span>
+<span style="color:#6272a4">#</span>
+<span style="color:#6272a4"># entries-in-buffer/entries-written: 2/2   #P:3</span>
+<span style="color:#6272a4">#</span>
+<span style="color:#6272a4">#                              _-----=&gt; irqs-off</span>
+<span style="color:#6272a4">#                             / _----=&gt; need-resched</span>
+<span style="color:#6272a4">#                            | / _---=&gt; hardirq/softirq</span>
+<span style="color:#6272a4">#                            || / _--=&gt; preempt-depth</span>
+<span style="color:#6272a4">#                            ||| /     delay</span>
+<span style="color:#6272a4">#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION</span>
+<span style="color:#6272a4">#              | |       |   ||||       |         |</span>
+     kworker/1:1-59    <span style="color:#ff79c6">[</span>001<span style="color:#ff79c6">]</span> ....   168.954199: mmc_rescan &lt;-process_one_work
+     kworker/1:1-59    <span style="color:#ff79c6">[</span>001<span style="color:#ff79c6">]</span> ....   168.954248: &lt;stack trace&gt;
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#8be9fd;font-style:italic">mmc_rescan</span>
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#8be9fd;font-style:italic">process_one_work</span>
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#8be9fd;font-style:italic">worker_thread</span>
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#8be9fd;font-style:italic">kthread</span>
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#8be9fd;font-style:italic">ret_from_fork</span>
+ <span style="color:#ff79c6">=</span>&gt; <span style="color:#bd93f9">0</span>
 </code></pre></div><p> </p>
 <h3 id="43-追踪指定模块的所有函数">
   4.3 追踪指定模块的所有函数
@@ -775,9 +779,9 @@ echo <span style="color:#ae81ff">1</span> &gt; tracing_on									<span style="c
 <ul>
 <li><strong>按模块直接过滤</strong>：</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 示例</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># 示例</span>
 Format: :mod:&lt;module-name&gt;
-example: echo :mod:ext3 &gt; set_ftrace_filter
+example: <span style="color:#8be9fd;font-style:italic">echo</span> :mod:ext3 &gt; set_ftrace_filter
 </code></pre></div><blockquote>
 <p>追踪<code>ext3</code>模块内的所有函数</p>
 </blockquote>
@@ -788,8 +792,8 @@ example: echo :mod:ext3 &gt; set_ftrace_filter
 <blockquote>
 <p>如果该模块内的函数，命名都有一定的规则，可以按照正则表达式来过滤</p>
 </blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 示例</span>
-echo <span style="color:#e6db74">&#34;mmc*&#34;</span> &gt; set_ftrace_filter
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># 示例</span>
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#f1fa8c">&#34;mmc*&#34;</span> &gt; set_ftrace_filter
 </code></pre></div><blockquote>
 <p>过滤包含<code>mmc</code>字符的所有函数</p>
 </blockquote>
@@ -799,10 +803,10 @@ echo <span style="color:#e6db74">&#34;mmc*&#34;</span> &gt; set_ftrace_filter
 </ul>
 <p>如果函数命名没有规律，又想过滤该模块所有函数，该怎么办？</p>
 <p>按照加载模块前后的函数差异，写入到文件中来过滤</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat available_filter_functions &gt; /tmp/1.txt
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat available_filter_functions &gt; /tmp/1.txt
 cat available_filter_functions &gt; /tmp/2.txt
 diff /tmp/1.txt /tmp/2.txt &gt; /tmp/3.txt
-cat /tmp/3.txt | sed <span style="color:#e6db74">&#39;s/^+//&#39;</span> | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span>	<span style="color:#75715e"># 如果diff出来格式前带有+-号，需要手动去掉</span>
+cat /tmp/3.txt | sed <span style="color:#f1fa8c">&#39;s/^+//&#39;</span> | awk <span style="color:#f1fa8c">&#39;{print $1}&#39;</span>	<span style="color:#6272a4"># 如果diff出来格式前带有+-号，需要手动去掉</span>
 cat /tmp/3.txt &gt; set_ftrace_filter
 </code></pre></div><p> </p>
 <h2 id="5自动化管理">
@@ -811,12 +815,12 @@ cat /tmp/3.txt &gt; set_ftrace_filter
 </h2>
 <p><code>Ftrace</code>功能很强大，在内核层面我们通过<code>echo</code>和<code>cat</code>即可获取我们想要的所有信息，但是通过一次一次敲命令显得有些繁琐，自己也对常用的功能整合了一个自动化脚本，能够通过命令行，直接追踪特定模块、函数、命令，极大提高了调试效率。</p>
 <p>自动化脚本获取路径：<a href="https://t.zsxq.com/16255aqlY">common_trace.sh</a></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># /root/common_trace.sh </span>
-Usage: /root/common_trace.sh <span style="color:#f92672">{</span>module|funcs|funcs_stack|command|clear<span style="color:#f92672">}</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#6272a4"># /root/common_trace.sh </span>
+Usage: /root/common_trace.sh <span style="color:#ff79c6">{</span>module|funcs|funcs_stack|command|clear<span style="color:#ff79c6">}</span>
        /root/common_trace.sh module ext4 
        /root/common_trace.sh funcs sysfs 
        /root/common_trace.sh funcs_stack sysfs 
-       /root/common_trace.sh command sysfs <span style="color:#f92672">[</span>functions<span style="color:#f92672">]</span> 
+       /root/common_trace.sh <span style="color:#8be9fd;font-style:italic">command</span> sysfs <span style="color:#ff79c6">[</span>functions<span style="color:#ff79c6">]</span> 
        /root/common_trace.sh clear
 </code></pre></div><p>脚本主要实现的功能有：</p>
 <ul>
@@ -834,9 +838,9 @@ Usage: /root/common_trace.sh <span style="color:#f92672">{</span>module|funcs|fu
   <a class="anchor" href="#6%e6%80%bb%e7%bb%93">#</a>
 </h2>
 <p>以上，介绍了<code>Ftrace</code>的由来，实现原理，以及如何使用<code>Ftrace</code>，并最终提供了自动化测试脚本，希望对大家有所帮助。</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-</article>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>&nbsp;</article>
  
       
 
@@ -877,30 +881,34 @@ Usage: /root/common_trace.sh <span style="color:#f92672">{</span>module|funcs|fu
   
 <nav id="TableOfContents">
   <ul>
-    <li><a href="#1ftrace是什么">1、Ftrace是什么</a></li>
-    <li><a href="#2ftrace的实现原理">2、Ftrace的实现原理</a>
+    <li><a href="#一文秒懂ftrace系统调试工具使用终极指南">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
       <ul>
-        <li><a href="#21-ftrace框架图">2.1 Ftrace框架图</a></li>
-        <li><a href="#22-ftrace是如何记录信息的">2.2 Ftrace是如何记录信息的</a></li>
+        <li><a href="#1ftrace是什么">1、Ftrace是什么</a></li>
+        <li><a href="#2ftrace的实现原理">2、Ftrace的实现原理</a>
+          <ul>
+            <li><a href="#21-ftrace框架图">2.1 Ftrace框架图</a></li>
+            <li><a href="#22-ftrace是如何记录信息的">2.2 Ftrace是如何记录信息的</a></li>
+          </ul>
+        </li>
+        <li><a href="#3如何使用ftrace">3、如何使用Ftrace</a>
+          <ul>
+            <li><a href="#31-配置详解">3.1 配置详解</a></li>
+            <li><a href="#32-挂载debugfs文件系统">3.2 挂载debugfs文件系统</a></li>
+            <li><a href="#33-traceing目录介绍">3.3 traceing目录介绍</a></li>
+            <li><a href="#34-简单使用示例">3.4 简单使用示例</a></li>
+          </ul>
+        </li>
+        <li><a href="#4进阶用法">4、进阶用法</a>
+          <ul>
+            <li><a href="#41-追踪任意命令">4.1 追踪任意命令</a></li>
+            <li><a href="#42-追踪指定函数的调用流程">4.2 追踪指定函数的调用流程</a></li>
+            <li><a href="#43-追踪指定模块的所有函数">4.3 追踪指定模块的所有函数</a></li>
+          </ul>
+        </li>
+        <li><a href="#5自动化管理">5、自动化管理</a></li>
+        <li><a href="#6总结">6、总结</a></li>
       </ul>
     </li>
-    <li><a href="#3如何使用ftrace">3、如何使用Ftrace</a>
-      <ul>
-        <li><a href="#31-配置详解">3.1 配置详解</a></li>
-        <li><a href="#32-挂载debugfs文件系统">3.2 挂载debugfs文件系统</a></li>
-        <li><a href="#33-traceing目录介绍">3.3 traceing目录介绍</a></li>
-        <li><a href="#34-简单使用示例">3.4 简单使用示例</a></li>
-      </ul>
-    </li>
-    <li><a href="#4进阶用法">4、进阶用法</a>
-      <ul>
-        <li><a href="#41-追踪任意命令">4.1 追踪任意命令</a></li>
-        <li><a href="#42-追踪指定函数的调用流程">4.2 追踪指定函数的调用流程</a></li>
-        <li><a href="#43-追踪指定模块的所有函数">4.3 追踪指定模块的所有函数</a></li>
-      </ul>
-    </li>
-    <li><a href="#5自动化管理">5、自动化管理</a></li>
-    <li><a href="#6总结">6、总结</a></li>
   </ul>
 </nav>
 

@@ -1,6 +1,21 @@
++++
+headless = true
++++
+
+- [Book Example]({{< relref "/docs/Embeded_Tech" >}})
+  - [Page One]({{< relref "/docs/Embeded_Tech/" >}})
+  - [Page Two]({{< relref "/docs/page-two" >}})
+- [Blog]({{< relref "/posts" >}})
+
+
 ---
 headless: true
 ---
+
+- [Book Example]({{< relref "/docs/" >}})
+  - [Page One]({{< relref "/docs/page-one" >}})
+  - [Page Two]({{< relref "/docs/page-two" >}})
+- [Blog]({{< relref "/posts" >}})
 
 - [**Example Site**]({{< relref "/docs/example" >}})
 - [Table of Contents]({{< relref "/docs/example/table-of-contents" >}})
