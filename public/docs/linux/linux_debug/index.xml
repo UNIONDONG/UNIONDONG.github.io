@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux 调试 on Donge Blog</title>
+    <link>https://uniondong.github.io/docs/linux/linux_debug/</link>
+    <description>Recent content in Linux 调试 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://uniondong.github.io/docs/linux/linux_debug/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title></title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/</guid>
+      <description>【一文秒懂】Ftrace系统调试工具使用终极指南 #  1、Ftrace是什么 #  Ftrace是Function Trace的简写，由 Steven Rostedt 开发的，从 2008 年发布的内核 2.6.27 中开始就内置了。
+Ftrace是一个系统内部提供的追踪工具，旨在帮助内核设计和开发人员去追踪系统内部的函数调用流程。
+随着Ftrace的不断完善，除了追踪函数调用流程外，还可以用来调试和分析系统的延迟和性能问题，并发展成为一个追踪类调试工具的框架。
+除了Ftrace外，追踪类调试工具还包括：
+2、Ftrace的实现原理 #  为了帮助我们更好的使用Ftrace，我们有必要简单了解Ftrace的实现原理。
+2.1 Ftrace框架图 #  Ftrace的框架图如下：
+由框架图我们可以知道：
+ ftrace包括多种类型的tracers，每个tracer完成不同的功能 将这些不同类型的tracers注册进入ftrace framework 各类tracers收集不同的信息，并放入到Ring buffer缓冲区以供调用。   2.2 Ftrace是如何记录信息的 #  Ftrace采用了静态插桩和动态插桩两种方式来实现。
+静态插桩：
+我们在Kernel中打开了CONFIG_FUNCTION_TRACER功能后，会增加一个-pg的一个编译选项，这个编译选项的作用就是为每个函数入口处，都会插入bl mcount跳转指令，使得每个函数运行时都会进入mcount函数。
+ Ftrace一旦使能，对kernel中所有的函数插桩，这带来的性能开销是惊人的，有可能导致人们弃用Ftrace功能。
+ 为了解决这个问题，开发者推出了Dynamic ftrace，以此来优化整体的性能。
+动态插桩：
+ 这里的动态，是指的动态修改函数指令。
+  编译时，记录所有被添加跳转指令的函数，这里表示所有支持追踪的函数。 内核将所有跳转指令替换为nop指令，以实现非调试状态性能零损失。 根据 function tracer 设置，动态将被调试函数的nop指令，替换为跳转指令，以实现追踪。   总而言之，Ftrace记录数据可以总结为以下几个步骤：
+ 打开编译选项-pg，为每个函数都增加跳转指令 记录这些可追踪的函数，并为了减少性能消耗，将跳转函数替换为nop指令 通过flag标志位来动态管理，将需要追踪的函数预留的nop指令替换回追踪指令，记录调试信息。   3、如何使用Ftrace #  3.</description>
+    </item>
+    
+  </channel>
+</rss>
