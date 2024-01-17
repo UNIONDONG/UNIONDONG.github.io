@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Abouts on Donge Blog</title>
+    <link>https://uniondong.github.io/about/</link>
+    <description>Recent content in Abouts on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://uniondong.github.io/about/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About</title>
+      <link>https://uniondong.github.io/about/index-zh/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/about/index-zh/</guid>
+      <description>1、个人介绍 #  🙍🏻‍♂️ 大家好，我是董哥，一名工作多年的嵌入式Linux开发工程师。以下是我的基本信息介绍：
+ 参加全国机器人大赛（Robocon），两次获得全国一等奖 毕业后斩获科沃斯，石头，格力等多家头部机器人公司的offer，后入职世界五百强格力电器担任嵌入式开发工程师 现今就职于独角兽芯片企业，担任嵌入式Linux驱动开发工程师 熟练使用C/C++语言开发，熟悉各类MCU开发，如STM32，ARM，SOC等，熟悉Ucos，RT-thread实时操作系统等 目前主要负责Linux驱动，系统开发，WiFi&amp;amp;BT开发等相关工作，同时跟进并参与多款百万级量产项目的研发。 荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。  2、技术与分享 #  记录Blog是一项值得挑战的事情，一方面是对自我技术的沉淀，另一方面也是四万万嵌入式开发者前行路上的加速剂；并且网上大多数文章七零八落，每个人对技术的理解程度不同，因此好的文章，永不过时！
+我的一些自媒体平台：
+ CSDN：卍一十二画卍 知乎：嵌入式艺术 公众号：嵌入式艺术 知识星球：嵌入式艺术  3、我的星球 #  🚩 【嵌入式艺术】星球，目前是处于起步阶段，我们的目标是：携手共创高质量的嵌入式基地，兼收并蓄，群英荟萃，实现升职加薪创业梦！
+🛎️ 我们提供的服务有：
+ 提供一个高级嵌入式工程师聚集地，聚焦嵌入式工程师成长与发展。 高质量嵌入式项目、技术的拆解与分析 高效率的嵌入式开发工具分享 AIGC + 嵌入式 应用，跟上时代的脚步 嵌入式的行业趋势与热点分析  🛎️ 我们后续要做的事情：
+ 引入更多嵌入式领域大咖加入我们的星球，为大家提供更好的服务！ 引入更多优质公司的内推岗位，以便大家走内部推荐通道，加入头部企业！ 拆解更多嵌入式项目，为大家提供实战经验，以目标为导向，实现更好的学习效果！ 星球不定期举办激励活动，有实物激励以及现金激励两种，希望大家踊跃参加！  </description>
+    </item>
+    
+  </channel>
+</rss>

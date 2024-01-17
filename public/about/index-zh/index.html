@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="1、个人介绍 #  🙍🏻‍♂️ 大家好，我是董哥，一名工作多年的嵌入式Linux开发工程师。以下是我的基本信息介绍：
+ 参加全国机器人大赛（Robocon），两次获得全国一等奖 毕业后斩获科沃斯，石头，格力等多家头部机器人公司的offer，后入职世界五百强格力电器担任嵌入式开发工程师 现今就职于独角兽芯片企业，担任嵌入式Linux驱动开发工程师 熟练使用C/C&#43;&#43;语言开发，熟悉各类MCU开发，如STM32，ARM，SOC等，熟悉Ucos，RT-thread实时操作系统等 目前主要负责Linux驱动，系统开发，WiFi&amp;BT开发等相关工作，同时跟进并参与多款百万级量产项目的研发。 荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。  2、技术与分享 #  记录Blog是一项值得挑战的事情，一方面是对自我技术的沉淀，另一方面也是四万万嵌入式开发者前行路上的加速剂；并且网上大多数文章七零八落，每个人对技术的理解程度不同，因此好的文章，永不过时！
+我的一些自媒体平台：
+ CSDN：卍一十二画卍 知乎：嵌入式艺术 公众号：嵌入式艺术 知识星球：嵌入式艺术  3、我的星球 #  🚩 【嵌入式艺术】星球，目前是处于起步阶段，我们的目标是：携手共创高质量的嵌入式基地，兼收并蓄，群英荟萃，实现升职加薪创业梦！
+🛎️ 我们提供的服务有：
+ 提供一个高级嵌入式工程师聚集地，聚焦嵌入式工程师成长与发展。 高质量嵌入式项目、技术的拆解与分析 高效率的嵌入式开发工具分享 AIGC &#43; 嵌入式 应用，跟上时代的脚步 嵌入式的行业趋势与热点分析  🛎️ 我们后续要做的事情：
+ 引入更多嵌入式领域大咖加入我们的星球，为大家提供更好的服务！ 引入更多优质公司的内推岗位，以便大家走内部推荐通道，加入头部企业！ 拆解更多嵌入式项目，为大家提供实战经验，以目标为导向，实现更好的学习效果！ 星球不定期举办激励活动，有实物激励以及现金激励两种，希望大家踊跃参加！  ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="About" />
+<meta property="og:description" content="1、个人介绍 #  🙍🏻‍♂️ 大家好，我是董哥，一名工作多年的嵌入式Linux开发工程师。以下是我的基本信息介绍：
+ 参加全国机器人大赛（Robocon），两次获得全国一等奖 毕业后斩获科沃斯，石头，格力等多家头部机器人公司的offer，后入职世界五百强格力电器担任嵌入式开发工程师 现今就职于独角兽芯片企业，担任嵌入式Linux驱动开发工程师 熟练使用C/C&#43;&#43;语言开发，熟悉各类MCU开发，如STM32，ARM，SOC等，熟悉Ucos，RT-thread实时操作系统等 目前主要负责Linux驱动，系统开发，WiFi&amp;BT开发等相关工作，同时跟进并参与多款百万级量产项目的研发。 荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。  2、技术与分享 #  记录Blog是一项值得挑战的事情，一方面是对自我技术的沉淀，另一方面也是四万万嵌入式开发者前行路上的加速剂；并且网上大多数文章七零八落，每个人对技术的理解程度不同，因此好的文章，永不过时！
+我的一些自媒体平台：
+ CSDN：卍一十二画卍 知乎：嵌入式艺术 公众号：嵌入式艺术 知识星球：嵌入式艺术  3、我的星球 #  🚩 【嵌入式艺术】星球，目前是处于起步阶段，我们的目标是：携手共创高质量的嵌入式基地，兼收并蓄，群英荟萃，实现升职加薪创业梦！
+🛎️ 我们提供的服务有：
+ 提供一个高级嵌入式工程师聚集地，聚焦嵌入式工程师成长与发展。 高质量嵌入式项目、技术的拆解与分析 高效率的嵌入式开发工具分享 AIGC &#43; 嵌入式 应用，跟上时代的脚步 嵌入式的行业趋势与热点分析  🛎️ 我们后续要做的事情：
+ 引入更多嵌入式领域大咖加入我们的星球，为大家提供更好的服务！ 引入更多优质公司的内推岗位，以便大家走内部推荐通道，加入头部企业！ 拆解更多嵌入式项目，为大家提供实战经验，以目标为导向，实现更好的学习效果！ 星球不定期举办激励活动，有实物激励以及现金激励两种，希望大家踊跃参加！  " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/about/index-zh/" /><meta property="article:section" content="about" />
+
+
+
+<title>About | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.d7b2a5e5194f8e0323ac09dee4da551169baea67b45f2ea08d45cc9f2a267cb3.js" integrity="sha256-17Kl5RlPjgMjrAne5NpVEWm66me0Xy6gjUXMnyomfLM=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index-zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a href="/docs/linux/linux_debug/" class="">Linux 调试</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】 Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/"  >
+        Blog
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>About</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1个人介绍">1、个人介绍</a></li>
+        <li><a href="#2技术与分享">2、技术与分享</a></li>
+        <li><a href="#3我的星球">3、我的星球</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h2 id="1个人介绍">
+  1、个人介绍
+  <a class="anchor" href="#1%e4%b8%aa%e4%ba%ba%e4%bb%8b%e7%bb%8d">#</a>
+</h2>
+<p>🙍🏻‍♂️  大家好，我是董哥，一名工作多年的嵌入式<code>Linux</code>开发工程师。以下是我的基本信息介绍：</p>
+<ul>
+<li>参加全国机器人大赛<code>（Robocon）</code>，两次获得全国一等奖</li>
+<li>毕业后斩获科沃斯，石头，格力等多家头部机器人公司的<code>offer</code>，后入职世界五百强格力电器担任嵌入式开发工程师</li>
+<li>现今就职于独角兽芯片企业，担任嵌入式<code>Linux</code>驱动开发工程师</li>
+<li>熟练使用<code>C/C++</code>语言开发，熟悉各类<code>MCU</code>开发，如<code>STM32</code>，<code>ARM</code>，<code>SOC</code>等，熟悉<code>Ucos</code>，<code>RT-thread</code>实时操作系统等</li>
+<li>目前主要负责<code>Linux</code>驱动，系统开发，<code>WiFi&amp;BT</code>开发等相关工作，同时跟进并参与多款百万级量产项目的研发。</li>
+<li>荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。</li>
+</ul>
+<h2 id="2技术与分享">
+  2、技术与分享
+  <a class="anchor" href="#2%e6%8a%80%e6%9c%af%e4%b8%8e%e5%88%86%e4%ba%ab">#</a>
+</h2>
+<p>记录<code>Blog</code>是一项值得挑战的事情，一方面是对自我技术的沉淀，另一方面也是四万万嵌入式开发者前行路上的加速剂；并且网上大多数文章七零八落，每个人对技术的理解程度不同，因此好的文章，永不过时！</p>
+<p>我的一些自媒体平台：</p>
+<ul>
+<li><code>CSDN</code>：<a href="https://blog.csdn.net/dong__ge">卍一十二画卍</a></li>
+<li>知乎：<a href="https://www.zhihu.com/people/Embedded_Art">嵌入式艺术</a></li>
+<li>公众号：嵌入式艺术</li>
+<li>知识星球：<a href="https://t.zsxq.com/0eUcTOhdO">嵌入式艺术</a></li>
+</ul>
+<h2 id="3我的星球">
+  3、我的星球
+  <a class="anchor" href="#3%e6%88%91%e7%9a%84%e6%98%9f%e7%90%83">#</a>
+</h2>
+<p>🚩  【嵌入式艺术】星球，目前是处于起步阶段，我们的目标是：携手共创高质量的嵌入式基地，兼收并蓄，群英荟萃，实现升职加薪创业梦！</p>
+<p>🛎️  <strong>我们提供的服务有</strong>：</p>
+<ol>
+<li>提供一个高级嵌入式工程师聚集地，聚焦嵌入式工程师成长与发展。</li>
+<li>高质量嵌入式项目、技术的拆解与分析</li>
+<li>高效率的嵌入式开发工具分享</li>
+<li>AIGC + 嵌入式 应用，跟上时代的脚步</li>
+<li>嵌入式的行业趋势与热点分析</li>
+</ol>
+<p>🛎️  <strong>我们后续要做的事情</strong>：</p>
+<ol>
+<li>引入更多嵌入式领域大咖加入我们的星球，为大家提供更好的服务！</li>
+<li>引入更多优质公司的内推岗位，以便大家走内部推荐通道，加入头部企业！</li>
+<li>拆解更多嵌入式项目，为大家提供实战经验，以目标为导向，实现更好的学习效果！</li>
+<li>星球不定期举办激励活动，有实物激励以及现金激励两种，希望大家踊跃参加！</li>
+</ol>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art_New.gif" alt="Embeded_Art_New" /></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#1个人介绍">1、个人介绍</a></li>
+        <li><a href="#2技术与分享">2、技术与分享</a></li>
+        <li><a href="#3我的星球">3、我的星球</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
