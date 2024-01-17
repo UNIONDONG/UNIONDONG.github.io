@@ -2,8 +2,21 @@ baseurl = "https://uniondong.github.io/"
 languageCode = 'en-us'
 title = 'Donge Blog'
 theme = 'hugo-book'
+enableEmoji = true
 
 [menu]
+[[menus.main]]
+    name = 'Home'
+    pageRef = '/'
+    weight = 10
+[[menus.main]]
+    name = 'Products'
+    pageRef = '/products'
+    weight = 20
+[[menus.main]]
+    name = 'Services'
+    pageRef = '/services'
+    weight = 30
 	[[menu.before]]
 	name = "CSDN"
 	url = "https://blog.csdn.net/dong__ge"
@@ -82,3 +95,6 @@ home = ["HTML", "RSS"]
 	# Sidebar settings
 	sidebar_about_description = "君子慎独, 不欺暗室"
 	sidebar_avatar = "img/dxh.jpg"
+
+
+

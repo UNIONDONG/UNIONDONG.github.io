@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Linux内存管理 | 五、物理内存空间布局及管理 #  上章，我们介绍了物理内存的访问内存模型和组织内存模型，我们再来回顾一下：
+物理内存的访问内存模型分为：
+ UMA：一致内存访问 NUMA：非一致内存访问  物理内存的组织模型：
+ FLATMEM：平坦内存模型 DISCONTIGMEM：不连续内存模型 SMARSEMEM：稀疏内存模型  Linux内核为了用统一的代码获取最大程度的兼容性，对物理内存的定义方面，引入了：内存结点（node）、内存区域（zone），内存页（page）的概念，下面我们来一一探究。
+ 更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  1、内存节点node #  内存节点的引入，是Linux为了最大程度的提高兼容性，将UMA和NUMA系统统一起来，对于UMA而言是只有一个节点的系统。
+ 下面的代码部分，我们尽可能的只保留暂时用的到的部分，不涉及太多的体系架相关的细节。
+ 在Linux内核中，我们使用 typedef struct pglist_data pg_data_t表示一个节点
+/* * On NUMA machines, each NUMA node would have a pg_data_t to describe * it&#39;s memory layout. On UMA machines there is a single pglist_data which * describes the whole memory. * * Memory statistics and page replacement data structures are maintained on a * per-zone basis.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="五、物理内存空间布局及管理" />
+<meta property="og:description" content="Linux内存管理 | 五、物理内存空间布局及管理 #  上章，我们介绍了物理内存的访问内存模型和组织内存模型，我们再来回顾一下：
+物理内存的访问内存模型分为：
+ UMA：一致内存访问 NUMA：非一致内存访问  物理内存的组织模型：
+ FLATMEM：平坦内存模型 DISCONTIGMEM：不连续内存模型 SMARSEMEM：稀疏内存模型  Linux内核为了用统一的代码获取最大程度的兼容性，对物理内存的定义方面，引入了：内存结点（node）、内存区域（zone），内存页（page）的概念，下面我们来一一探究。
+ 更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  1、内存节点node #  内存节点的引入，是Linux为了最大程度的提高兼容性，将UMA和NUMA系统统一起来，对于UMA而言是只有一个节点的系统。
+ 下面的代码部分，我们尽可能的只保留暂时用的到的部分，不涉及太多的体系架相关的细节。
+ 在Linux内核中，我们使用 typedef struct pglist_data pg_data_t表示一个节点
+/* * On NUMA machines, each NUMA node would have a pg_data_t to describe * it&#39;s memory layout. On UMA machines there is a single pglist_data which * describes the whole memory. * * Memory statistics and page replacement data structures are maintained on a * per-zone basis." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:16:00+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:16:00+08:00" />
+
+<title>五、物理内存空间布局及管理 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle" checked />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="active">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>五、物理内存空间布局及管理</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--五物理内存空间布局及管理">Linux内存管理 | 五、物理内存空间布局及管理</a>
+      <ul>
+        <li><a href="#1内存节点node">1、内存节点node</a></li>
+        <li><a href="#2内存区域zone">2、内存区域zone</a>
+          <ul>
+            <li><a href="#21-各区域的布局">2.1 各区域的布局</a></li>
+            <li><a href="#22-各区域的管理">2.2 各区域的管理</a></li>
+          </ul>
+        </li>
+        <li><a href="#3内存页page">3、内存页page</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="linux内存管理--五物理内存空间布局及管理">
+  Linux内存管理 | 五、物理内存空间布局及管理
+  <a class="anchor" href="#linux%e5%86%85%e5%ad%98%e7%ae%a1%e7%90%86--%e4%ba%94%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98%e7%a9%ba%e9%97%b4%e5%b8%83%e5%b1%80%e5%8f%8a%e7%ae%a1%e7%90%86">#</a>
+</h1>
+<p>上章，我们介绍了物理内存的访问内存模型和组织内存模型，我们再来回顾一下：</p>
+<p><strong>物理内存的访问内存模型分为</strong>：</p>
+<ul>
+<li><code>UMA</code>：一致内存访问</li>
+<li><code>NUMA</code>：非一致内存访问</li>
+</ul>
+<p><strong>物理内存的组织模型</strong>：</p>
+<ul>
+<li><code>FLATMEM</code>：平坦内存模型</li>
+<li><code>DISCONTIGMEM</code>：不连续内存模型</li>
+<li><code>SMARSEMEM</code>：稀疏内存模型</li>
+</ul>
+<p><code>Linux</code>内核为了用统一的代码获取最大程度的兼容性，对物理内存的定义方面，引入了：内存结点<code>（node）</code>、内存区域<code>（zone）</code>，内存页<code>（page）</code>的概念，下面我们来一一探究。</p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h2 id="1内存节点node">
+  1、内存节点node
+  <a class="anchor" href="#1%e5%86%85%e5%ad%98%e8%8a%82%e7%82%b9node">#</a>
+</h2>
+<p><span style="color: red;"><strong>内存节点的引入，是<code>Linux</code>为了最大程度的提高兼容性，将<code>UMA</code>和<code>NUMA</code>系统统一起来，对于<code>UMA</code>而言是只有一个节点的系统</strong>。</span></p>
+<blockquote>
+<p>下面的代码部分，我们尽可能的只保留暂时用的到的部分，不涉及太多的体系架相关的细节。</p>
+</blockquote>
+<p>在<code>Linux</code>内核中，我们使用 <code>typedef struct pglist_data pg_data_t</code>表示一个节点</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * On NUMA machines, each NUMA node would have a pg_data_t to describe
+</span><span style="color:#6272a4"> * it&#39;s memory layout. On UMA machines there is a single pglist_data which
+</span><span style="color:#6272a4"> * describes the whole memory.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * Memory statistics and page replacement data structures are maintained on a
+</span><span style="color:#6272a4"> * per-zone basis.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> pglist_data {
+    ...
+    <span style="color:#8be9fd">int</span> node_id;
+    <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>node_mem_map;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> node_start_pfn;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> node_present_pages; <span style="color:#6272a4">/* total number of physical pages */</span>
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> node_spanned_pages; <span style="color:#6272a4">/* total size of physical page
+</span><span style="color:#6272a4">                         range, including holes */</span>
+        
+    ...    
+} pg_data_t;
+</code></pre></div><ul>
+<li>
+<p><code>node_id</code>：每个节点都有自己的<code>ID</code></p>
+</li>
+<li>
+<p><code>node_mem_map</code>：当前节点的<code>struct page</code>数组，用来管理这个节点的所有的页</p>
+</li>
+<li>
+<p><code>node_start_pfn</code>：这个节点的起始页号</p>
+</li>
+<li>
+<p><code>node_present_pages</code>：这个节点的真正可用的物理内存的页面数</p>
+</li>
+<li>
+<p><code>node_spanned_pages</code>：这个节点所包含的物理内存的页面数，包括不连续的内存空洞</p>
+</li>
+</ul>
+<blockquote>
+<p>例如，64M 物理内存隔着一个 4M 的空洞，然后是另外的 64M 物理内存。</p>
+<p>这样换算成页面数目就是，16K 个页面隔着 1K 个页面，然后是另外 16K 个页面。</p>
+<p>这种情况下，<code>node_spanned_pages</code> 就是 33K 个页面，<code>node_present_pages</code> 就是 32K 个页面。</p>
+</blockquote>
+<p> </p>
+<p>内核使用了一个大小为 <code>MAX_NUMNODES</code> ，类型为 <code>struct pglist_data</code> 的全局数组 <code>node_data[]</code> 来管理所有的 <code>NUMA</code> 节点。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231018065244586.png" alt="image-20231018065244586" /></p>
+<h2 id="2内存区域zone">
+  2、内存区域zone
+  <a class="anchor" href="#2%e5%86%85%e5%ad%98%e5%8c%ba%e5%9f%9fzone">#</a>
+</h2>
+<h3 id="21-各区域的布局">
+  2.1 各区域的布局
+  <a class="anchor" href="#21-%e5%90%84%e5%8c%ba%e5%9f%9f%e7%9a%84%e5%b8%83%e5%b1%80">#</a>
+</h3>
+<p>每一个节点，都被分成了一个个区域<code>zone</code>，我们看一下<code>zone</code>的定义：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">enum</span> zone_type {
+<span style="color:#ff79c6">#ifdef CONFIG_ZONE_DMA
+</span><span style="color:#ff79c6"></span>    ZONE_DMA,
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6">#ifdef CONFIG_ZONE_DMA32
+</span><span style="color:#ff79c6"></span>    ZONE_DMA32,
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    ZONE_NORMAL,
+<span style="color:#ff79c6">#ifdef CONFIG_HIGHMEM
+</span><span style="color:#ff79c6"></span>    ZONE_HIGHMEM,
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    ZONE_MOVABLE,
+<span style="color:#ff79c6">#ifdef CONFIG_ZONE_DEVICE
+</span><span style="color:#ff79c6"></span>    ZONE_DEVICE,
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    __MAX_NR_ZONES
+};
+</code></pre></div><p><code>ZONE_DMA</code>：用作<code>DMA</code>的内存。</p>
+<blockquote>
+<p><code>DMA</code> 是这样一种机制：要把外设的数据读入内存或把内存的数据传送到外设，原来都要通过 <code>CPU</code> 控制完成，但是这会占用 <code>CPU</code>，影响 <code>CPU</code> 处理其他事情，所以有了 <code>DMA</code> 模式。</p>
+<p><code>CPU</code> 只需向 <code>DMA</code> 控制器下达指令，让 <code>DMA</code> 控制器来处理数据的传送，数据传送完毕再把信息反馈给 <code>CPU</code>，这样就可以解放 <code>CPU</code>。</p>
+</blockquote>
+<p><code>ZONE_DMA32</code>：对于 <code>64</code> 位系统，有两个 <code>DMA</code> 区域。除了上面说的 <code>ZONE_DMA</code>，还有 <code>ZONE_DMA32</code>。</p>
+<p><code>ZONE_NORMAL</code>：直接映射区，也就i是之前讲的从物理内存到虚拟内存的内核区域，通过加上一个常量直接映射。</p>
+<p><code>ZONE_HIGHMEM</code>：高端内存区</p>
+<p><code>ZONE_MOVABLE</code>：可移动区域，通过将物理内存划分为可移动分配区域和不可移动分配区域来避免内存碎片。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231017072500328.png" alt="image-20231017072500328" /></p>
+<h3 id="22-各区域的管理">
+  2.2 各区域的管理
+  <a class="anchor" href="#22-%e5%90%84%e5%8c%ba%e5%9f%9f%e7%9a%84%e7%ae%a1%e7%90%86">#</a>
+</h3>
+<p>上面我们大致了解了，每个<code>zone</code>的布局情况，下面我们来看看内核是如何对其进行管理的。</p>
+<blockquote>
+<p>接着上面介绍的<code>pglist_data</code>结构体</p>
+</blockquote>
+<pre tabindex="0"><code>/*
+ * On NUMA machines, each NUMA node would have a pg_data_t to describe
+ * it's memory layout. On UMA machines there is a single pglist_data which
+ * describes the whole memory.
+ *
+ * Memory statistics and page replacement data structures are maintained on a
+ * per-zone basis.
+ */
+typedef struct pglist_data {
+    ...
+    int node_id;
+    struct page *node_mem_map;
+    unsigned long node_start_pfn;
+    unsigned long node_present_pages; /* total number of physical pages */
+    unsigned long node_spanned_pages; /* total size of physical page
+                         range, including holes */
+    ...
+    
+    struct zone node_zones[MAX_NR_ZONES];
+    struct zonelist node_zonelists[MAX_ZONELISTS];
+    int nr_zones;
+    
+    ...    
+} pg_data_t;
+</code></pre><ul>
+<li><code>nr_zones</code>：用于统计 <code>NUMA</code> 节点内包含的物理内存区域个数，<span style="color: red;"><strong>不是每个 <code>NUMA</code> 节点都会包含以上介绍的所有物理内存区域，<code>NUMA</code> 节点之间所包含的物理内存区域个数是不一样的</strong>。</span></li>
+</ul>
+<blockquote>
+<p>事实上只有第一个 <code>NUMA</code> 节点可以包含所有的物理内存区域，其它的节点并不能包含所有的区域类型，因为有些内存区域比如：<code>ZONE_DMA</code>，<code>ZONE_DMA32</code> 必须从物理内存的起点开始。这些在物理内存开始的区域可能已经被划分到第一个 <code>NUMA</code> 节点了，后面的物理内存才会被依次划分给接下来的 <code>NUMA</code> 节点。因此后面的 <code>NUMA</code> 节点并不会包含 <code>ZONE_DMA</code>，<code>ZONE_DMA32</code> 区域。</p>
+<p><code>ZONE_NORMAL</code>、<code>ZONE_HIGHMEM</code> 和 <code>ZONE_MOVABLE</code> 是可以出现在所有 <code>NUMA</code> 节点上的。</p>
+</blockquote>
+<ul>
+<li><code>node_zones[MAX_NR_ZONES]</code>：<code>node_zones</code>该数组包括了所有的<code>zone</code>物理内存区域</li>
+<li><code>node_zonelists[MAX_ZONELISTS]</code>：是 <code>struct zonelist</code> 类型的数组，它包含了备用 <code>NUMA</code> 节点和这些备用节点中的物理内存区域。</li>
+</ul>
+<p> </p>
+<blockquote>
+<p>下面我们看一下<code>struct zone</code>结构体</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> zone {
+......
+    <span style="color:#ff79c6">struct</span> pglist_data	<span style="color:#ff79c6">*</span>zone_pgdat;
+    <span style="color:#ff79c6">struct</span> per_cpu_pageset __percpu <span style="color:#ff79c6">*</span>pageset;
+ 
+ 
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		zone_start_pfn;
+ 
+ 
+    <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">     * spanned_pages is the total pages spanned by the zone, including
+</span><span style="color:#6272a4">     * holes, which is calculated as:
+</span><span style="color:#6272a4">     * 	spanned_pages = zone_end_pfn - zone_start_pfn;
+</span><span style="color:#6272a4">     *
+</span><span style="color:#6272a4">     * present_pages is physical pages existing within the zone, which
+</span><span style="color:#6272a4">     * is calculated as:
+</span><span style="color:#6272a4">     *	present_pages = spanned_pages - absent_pages(pages in holes);
+</span><span style="color:#6272a4">     *
+</span><span style="color:#6272a4">     * managed_pages is present pages managed by the buddy system, which
+</span><span style="color:#6272a4">     * is calculated as (reserved_pages includes pages allocated by the
+</span><span style="color:#6272a4">     * bootmem allocator):
+</span><span style="color:#6272a4">     *	managed_pages = present_pages - reserved_pages;
+</span><span style="color:#6272a4">     *
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		managed_pages;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		spanned_pages;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		present_pages;
+ 
+ 
+    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span>		<span style="color:#ff79c6">*</span>name;
+......
+    <span style="color:#6272a4">/* free areas of different sizes */</span>
+    <span style="color:#ff79c6">struct</span> free_area	free_area[MAX_ORDER];
+ 
+ 
+    <span style="color:#6272a4">/* zone flags, see below */</span>
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		flags;
+ 
+ 
+    <span style="color:#6272a4">/* Primarily protects free_area */</span>
+    spinlock_t		lock;
+......
+} ____cacheline_internodealigned_in_
+</code></pre></div><ul>
+<li><code>zone_start_pfn</code>：表示属于这个<code>zone</code>的第一个页</li>
+<li><code>spanned_pages</code>：看注释我们可以知道，<code>spanned_pages = zone_end_pfn - zone_start_pfn</code>，表示该区域的所有物理内存的页面数，包括内存空洞</li>
+<li><code>present_pages</code>：看注释我们可以知道，<code>present_pages = spanned_pages - absent_pages(pages in holes)</code>，表示该区域真实存在的物理内存页面数，不包括空洞</li>
+<li><code>managed_pages</code>：看注释我们可以知道，<code>managed_pages = present_pages - reserved_pages</code>，被伙伴系统管理的所有页面数。</li>
+<li><code>per_cpu_pageset</code>：用于区分冷热页，</li>
+</ul>
+<blockquote>
+<p>什么叫冷热页呢？咱们讲 x86 体系结构的时候讲过，为了让 CPU 快速访问段描述符，在 CPU 里面有段描述符缓存。CPU 访问这个缓存的速度比内存快得多。同样对于页面来讲，也是这样的。如果一个页被加载到 CPU 高速缓存里面，这就是一个热页（Hot Page），CPU 读起来速度会快很多，如果没有就是冷页（Cold Page）。由于每个 CPU 都有自己的高速缓存，因而 per_cpu_pageset 也是每个 CPU 一个。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/b1ec8d6f4a2f6955654f791052c1a006.png" alt="image.png" /></p>
+<p> </p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h2 id="3内存页page">
+  3、内存页page
+  <a class="anchor" href="#3%e5%86%85%e5%ad%98%e9%a1%b5page">#</a>
+</h2>
+<p>内存页是物理内存最小单位，有时也叫页帧<code>（page frame）</code>，<code>Linux</code>会为系统的物理内存的每一个页都创建了<code>struct page</code>对象，并用全局变量<code>struct page *mem_map</code>来存放所有物理页<code>page</code>对象的指针，页的大小取决于<code>MMU（Memory Management Unit）</code>，后者主要用来将虚拟地址空间转换为物理地址空间。</p>
+<blockquote>
+<p>看一下<code>page</code>的结构体</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> page {
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> flags;		<span style="color:#6272a4">/* Atomic flags, some possibly
+</span><span style="color:#6272a4">                     * updated asynchronously */</span>
+<span style="color:#ff79c6">union</span> {
+        <span style="color:#ff79c6">struct</span> {	<span style="color:#6272a4">/* Page cache and anonymous pages */</span>
+            <span style="color:#6272a4">/**
+</span><span style="color:#6272a4">             * @lru: Pageout list, eg. active_list protected by
+</span><span style="color:#6272a4">             * zone_lru_lock.  Sometimes used as a generic list
+</span><span style="color:#6272a4">             * by the page owner.
+</span><span style="color:#6272a4">             */</span>
+            <span style="color:#ff79c6">struct</span> list_head lru;
+            <span style="color:#6272a4">/* See page-flags.h for PAGE_MAPPING_FLAGS */</span>
+            <span style="color:#ff79c6">struct</span> address_space <span style="color:#ff79c6">*</span>mapping;
+            pgoff_t index;		<span style="color:#6272a4">/* Our offset within mapping. */</span>
+            <span style="color:#6272a4">/**
+</span><span style="color:#6272a4">             * @private: Mapping-private opaque data.
+</span><span style="color:#6272a4">             * Usually used for buffer_heads if PagePrivate.
+</span><span style="color:#6272a4">             * Used for swp_entry_t if PageSwapCache.
+</span><span style="color:#6272a4">             * Indicates order in the buddy system if PageBuddy.
+</span><span style="color:#6272a4">             */</span>
+            <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> private;
+        };
+    
+        <span style="color:#ff79c6">struct</span> {	<span style="color:#6272a4">/* slab, slob and slub */</span>
+                    <span style="color:#ff79c6">union</span> {
+                        <span style="color:#ff79c6">struct</span> list_head slab_list;	<span style="color:#6272a4">/* uses lru */</span>
+                        <span style="color:#ff79c6">struct</span> {	<span style="color:#6272a4">/* Partial pages */</span>
+                            <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>next;
+        <span style="color:#ff79c6">#ifdef CONFIG_64BIT
+</span><span style="color:#ff79c6"></span>                            <span style="color:#8be9fd">int</span> pages;	<span style="color:#6272a4">/* Nr of pages left */</span>
+                            <span style="color:#8be9fd">int</span> pobjects;	<span style="color:#6272a4">/* Approximate count */</span>
+        <span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6"></span>                            <span style="color:#8be9fd">short</span> <span style="color:#8be9fd">int</span> pages;
+                            <span style="color:#8be9fd">short</span> <span style="color:#8be9fd">int</span> pobjects;
+        <span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>                        };
+            };
+            
+        <span style="color:#ff79c6">struct</span> kmem_cache <span style="color:#ff79c6">*</span>slab_cache; <span style="color:#6272a4">/* not slob */</span>
+                    <span style="color:#6272a4">/* Double-word boundary */</span>
+                    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>freelist;		<span style="color:#6272a4">/* first free object */</span>
+                    <span style="color:#ff79c6">union</span> {
+                        <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>s_mem;	<span style="color:#6272a4">/* slab: first object */</span>
+                        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> counters;		<span style="color:#6272a4">/* SLUB */</span>
+                        <span style="color:#ff79c6">struct</span> {			<span style="color:#6272a4">/* SLUB */</span>
+                            <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd;font-style:italic">inuse</span>:<span style="color:#bd93f9">16</span>;
+                            <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd;font-style:italic">objects</span>:<span style="color:#bd93f9">15</span>;
+                            <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd;font-style:italic">frozen</span>:<span style="color:#bd93f9">1</span>;
+                        };
+                    };
+                };
+        .....
+}
+</code></pre></div><p>我们能够看到<code>struct page</code>有很多<code>union</code>组成，<code>union</code> 结构是在 C 语言中被用于<span style="color: red;"><strong>同一块内存根据情况保存不同类型数据的一种方式</strong></span>。这里之所以用了 <code>union</code>，是因为一个物理页面使用模式有多种。</p>
+<ul>
+<li>第一种模式：直接用一整页，这一整页的物理内存直接与虚拟地址空间建立映射关系，我们把这种称为匿名页<code>（Anonymous Page）</code>。或者用于关联一个文件，然后再和虚拟地址空间建立映射关系，这样的文件，我们称为内存映射文件<code>（Memory-mapped File）</code>，这种分配页级别的，<code>Linux</code>采用一种被称为<strong>伙伴系统</strong><code>（Buddy System）</code>的技术。</li>
+<li>第二种模式：仅需要分配小的内存块。有时候，我们不需要一下子分配这么多的内存，例如分配一个 <code>task_struct</code> 结构，只需要分配小块的内存，去存储这个进程描述结构的对象。为了满足对这种小内存块的需要，<code>Linux</code> 系统采用了一种被称为<strong>slab allocator</strong>的技术</li>
+</ul>
+<blockquote>
+<p>上面说的两种，都是页的分配方式，也就是物理内存的分配方式，下一章，我们继续深入分析物理内存的这两种分配方式。</p>
+</blockquote>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--五物理内存空间布局及管理">Linux内存管理 | 五、物理内存空间布局及管理</a>
+      <ul>
+        <li><a href="#1内存节点node">1、内存节点node</a></li>
+        <li><a href="#2内存区域zone">2、内存区域zone</a>
+          <ul>
+            <li><a href="#21-各区域的布局">2.1 各区域的布局</a></li>
+            <li><a href="#22-各区域的管理">2.2 各区域的管理</a></li>
+          </ul>
+        </li>
+        <li><a href="#3内存页page">3、内存页page</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

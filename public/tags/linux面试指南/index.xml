@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux面试指南 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/</link>
+    <description>Recent content in Linux面试指南 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 17 Jan 2024 21:41:10 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Soc的Bring Up流程</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</link>
+      <pubDate>Sun, 12 Nov 2023 00:00:00 +0000</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</guid>
+      <description>1、Bring Up流程 #  SOC (System on a Chip) bring-up是一个复杂的过程，涉及到硬件、固件和软件的集成和验证，以下是一个基于BROM，SPL，UBOOT和Linux的启动流程的概述：
+ BROM (Boot Read-Only Memory)启动：启动的最初阶段，在这个阶段，系统会执行芯片ROM里面的代码，这部分代码主要用来检查启动模式，包括NOR、Nand、Emmc等，然后从对应的存储介质中加载SPL(Secondary Program Loader)代码。 SPL (Secondary Program Loader)启动：SPL属于Uboot的一部分，它的主要作用就是：初始化硬件并加载完整的U-boot，主要体现在初始化时钟、看门狗、DDR、GPIO以及存储外设，最后将U-boot代码加载到DDR中执行。 U-Boot启动：U-boot的主要作用是：引导加载Kernel和DTS。U-boot在启动之后，同样初始化Soc硬件资源，然后会计时等待，并执行默认的启动命令，将Kernel和DTS信息从存储介质中读取出来并加载到内存中执行。 Kernel启动：在U-Boot加载了内核映像和设备树之后，系统会启动Linux。在这个阶段，系统会初始化各种硬件设备，加载驱动程序并启动用户空间应用程序。   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  2、常见问题 #  Q：为什么上一个阶段已经初始化了硬件资源，下一个阶段为何重复初始化？
+A：
+  每个阶段的硬件初始化，其目标和需求都不同，硬件配置也会不一样，因此在不同阶段进行不同的初始化。
+  硬件状态可能会改变，在SOC启动过程中，硬件状态可能会因为电源管理、时钟管理等原因而改变，这可能需要在每个阶段都重新初始化以确保其正确工作
+  为了保证硬件资源的可靠性，最好每个阶段都重新初始化一次
+   Q：U-boot加载内核时，会进行重定位的操作，这一操作有何意义？
+A：
+ U-boot的重定位，主要作用是为了 给内核提供一个连续的、大的内存空间，供内核和其他应用程序使用 U-boot的加载过程分两个阶段，即：SPL和U-boot，   在SPL阶段，主要将U-boot代码从Flash中加载到RAM指定位置 在U-boot阶段，U-boot会将自身从RAM的开始部分移动到RAM的末尾，占用高地址空间，从而让低地址空间可以作为一个连续的，大的内存空间供内核和其他应用程序使用。   Q：在Bring Up中，为了保证启动时间，如何裁剪？
+A：
+ 启动时间的裁剪是一个重要的步骤，其主要目标是缩短从电源打开到操作系统完全启动的时间。
+  优化Bootloader：减小Bootloader的代码大小，减少硬件初始化（只初始化必要硬件设备）等 优化Kernel：减少启动服务数量，优化服务的启动顺序，使用预加载技术等方法来实现。 使用快速启动模式：一些SOC支持快速启动模式，这种模式下，SOC会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。 使用休眠和唤醒技术：一些SOC还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。   </description>
+    </item>
+    
+    <item>
+      <title>CPU体系架构</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/</link>
+      <pubDate>Wed, 17 Jan 2024 21:39:15 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/</guid>
+      <description>CPU体系架构 #  2.1 CPU体系架构有哪些？ #   我们常见的CPU架构有哪些呢？
+ 如果我们熟悉Linux，那么这个问题肯定不难回答！
+我们查看内核目录下的arch子目录，就可以看到Linux所支持的处理器架构，基本属于我们常见的类型了。
+# ls ./arch alpha arc arm arm64 c6x h8300 hexagon ia64 Kconfig m68k microblaze mips nds32 nios2 openrisc parisc powerpc riscv s390 sh sparc um unicore32 x86 xtensa  准确来说，CPU处理器架构主要有以下几种类型：
+ CISC（复杂指令集计算机）：CISC架构的CPU设计理念是尽可能减少程序指令的数量，以降低CPU和内存之间的通信频率。这种架构的一个显著特点是拥有大量的寄存器和复杂的指令集。Intel的x86架构就是一个典型的CISC架构 RISC（精简指令集计算机）：RISC架构的CPU设计理念是通过简化指令集来提高CPU的运行效率。这种架构的一个显著特点是拥有较少的寄存器和简单的指令集。ARM架构就是一个典型的RISC架构 MISC（中间指令集计算机）：MISC架构的CPU设计理念是在CISC和RISC之间寻找一个平衡点，既不过于复杂也不过于简单。这种架构的一个显著特点是指令集的复杂度介于CISC和RISC之间 VLIW（超长指令字计算机）：VLIW架构的CPU设计理念是通过增大指令长度来提高并行执行的可能性。这种架构的一个显著特点是指令长度远大于其他架构的CPU EPIC（显式并行指令计算）：EPIC架构的CPU设计理念是通过显式标记并行指令来提高CPU的运行效率。这种架构的一个显著特点是指令集中包含了并行执行的信息。Intel的Itanium架构就是一个典型的EPIC架构 超标量架构：超标量架构的CPU设计理念是通过在一个时钟周期内执行多条指令来提高CPU的运行效率。这种架构的一个显著特点是CPU内部包含了多个执行单元，可以同时执行多条指令 超线程技术：超线程技术是Intel公司为其部分CPU所采用的一种使单一处理器像多个逻辑处理器那样并行处理多个线程的技术 多核心架构：多核心架构的CPU设计理念是在一个CPU芯片内集成多个处理器核心，以提高并行处理能力。这种架构的一个显著特点是CPU内部包含了多个独立的处理器核心，每个核心可以独立执行指令   这里就有一个疑问，我们什么时候说RISC架构，什么时候说ARM架构，这两个有什么区别呢？
+ 以ARM和RISC为例：
+ ARM架构和RISC架构的主要区别在于ARM实际上是RISC的一个具体实现，而RISC则是一个更广泛的处理器设计理念。换句话说，ARM是RISC的一个子集。
+同理，X86架构是CISC的一个子集。
+ 2.2 常见的问题 #  Q1：你所熟知的处理器架构有哪些？
+我们常见的处理器架构有ARM、X86、mips架构等；
+ Q2：STM32属于什么架构的？
+STM32是ST公司开发的32位微控制器集成电路，基于 ARM 的 Cortex-M 系列内核。因此，STM32 属于 ARM 架构的微控制器。</description>
+    </item>
+    
+    <item>
+      <title>Linux用户态和内核态交互的几种方式</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/</link>
+      <pubDate>Wed, 17 Jan 2024 21:41:10 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/</guid>
+      <description>Linux用户态和内核态交互的几种方式 #  Linux分为内核态Kernel Mode和用户态User Mode，其通信方式主要有：
+ 系统调用System Call：最常见的用户态和内核态之间的通信方式。通过系统调用接口（open、read、write、fork等）请求内核执行特定的动作。 中断Interrupts：中断包括软中断和硬中断，每当中断到来的时候，CPU会暂停当前执行的用户态代码，切换到内核态来处理中断。 信号Signal：内核通过Signal通知用户态进程发生了某些事件，用户态注册信号处理函数，来响应特定的信号事件。如 SIGTERM、SIGINT 等。 共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效通信。这种方式避免了用户态和内核态之间频繁切换的问题，但是也需要考虑到数据的同步问题，保证数据一致性。   用户态User Mode访问内核态Kernel Mode的数据交互的方式有：
+  procfs进程文件系统：一个伪文件系统，因为其不占用外部存储空间，只占有少量的内存，挂载在/proc目录下
+  sysctl：它也是一个Linux命令，主要用来修改内核的运行时参数，也就是在内核运行时，动态修改内核参数。
+ 和 procfs 的区别在于：procfs 主要是输出只读数据，而 sysctl 输出的大部分信息是可写的。
+   sysfs虚拟文件系统：通过/sys来完成用户态和内核的通信，和 procfs 不同的是，sysfs 是将一些原本在 procfs 中的，关于设备和驱动的部分，独立出来，以 “设备树” 的形式呈现给用户。
+  netlink 接口：也是最常用的一种方式，本质是socket接口，使用netlink用于网络相关的内核和用户进程之间的消息传递。
+  共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效数据传输。
+   欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+  </channel>
+</rss>

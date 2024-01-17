@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Linux内存管理 | 六、物理内存分配——伙伴系统 #  上一章，我们了解了物理内存的布局以及Linux内核对其的管理方式，页（page）也是物理内存的最小单元，Linux内核对物理内存的分配主要分为两种：一种是整页的分配，采用的是伙伴系统，另一种是小内存块的分配，采用的是slab技术。
+下面我们先来看看什么是伙伴系统！
+ 1、伙伴系统（Buddy System） #  Linux系统中，对物理内存进行分配的核心是建立在页面级的伙伴系统之上。Linux内存管理的页大小为4KB，把所有的空闲页分组为11个页块链表，每个链表分别包含很多个大小的页块，有 1、2、4、8、16、32、64、128、256、512 和 1024 个连续页的页块，最大可以申请 1024 个连续页，对应 4MB 大小的连续内存。每个页块的第一个页的物理地址是该页块大小的整数倍。
+如下图所示：
+ 第 i 个页块链表中，页块中页的数目为 2^i。——仔细理解这个页块的含义。
+  在struct zone结构体中，有下面定义
+struct free_area	free_area[MAX_ORDER]; #define MAX_ORDER 11 free_area：存放不同大小的页块
+MAX_ORDER：就是指数
+ 当向内核请求分配 (2^(i-1)，2^i] 数目的页块时，按照 2^i 页块请求处理。如果对应的页块链表中没有空闲页块，那我们就在更大的页块链表中去找。当分配的页块中有多余的页时，伙伴系统会根据多余的页块大小插入到对应的空闲页块链表中。
+举个例子：
+例如，要请求一个 128 个页的页块时，先检查 128 个页的页块链表是否有空闲块。如果没有，则查 256 个页的页块链表；如果有空闲块的话，则将 256 个页的页块分成两份，一份使用，一份插入 128 个页的页块链表中。如果还是没有，就查 512 个页的页块链表；如果有的话，就分裂为 128、128、256 三个页块，一个 128 的使用，剩余两个插入对应页块链表。
+ 上面的这套机制就是伙伴系统所做的事情，它主要负责对物理内存页面进行跟踪，记录哪些是被内核使用的页面，哪些是空闲页面。
+ 2、页面分配器（Page Allocator） #  由上一章我们知道，物理内存被分为了几个区域：ZONE_DMA、ZONE_NORMAL、ZONE_HIGHMEM，其中前两个区域的物理页面与虚拟地址空间是线性映射的。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="六、物理内存分配——伙伴系统" />
+<meta property="og:description" content="Linux内存管理 | 六、物理内存分配——伙伴系统 #  上一章，我们了解了物理内存的布局以及Linux内核对其的管理方式，页（page）也是物理内存的最小单元，Linux内核对物理内存的分配主要分为两种：一种是整页的分配，采用的是伙伴系统，另一种是小内存块的分配，采用的是slab技术。
+下面我们先来看看什么是伙伴系统！
+ 1、伙伴系统（Buddy System） #  Linux系统中，对物理内存进行分配的核心是建立在页面级的伙伴系统之上。Linux内存管理的页大小为4KB，把所有的空闲页分组为11个页块链表，每个链表分别包含很多个大小的页块，有 1、2、4、8、16、32、64、128、256、512 和 1024 个连续页的页块，最大可以申请 1024 个连续页，对应 4MB 大小的连续内存。每个页块的第一个页的物理地址是该页块大小的整数倍。
+如下图所示：
+ 第 i 个页块链表中，页块中页的数目为 2^i。——仔细理解这个页块的含义。
+  在struct zone结构体中，有下面定义
+struct free_area	free_area[MAX_ORDER]; #define MAX_ORDER 11 free_area：存放不同大小的页块
+MAX_ORDER：就是指数
+ 当向内核请求分配 (2^(i-1)，2^i] 数目的页块时，按照 2^i 页块请求处理。如果对应的页块链表中没有空闲页块，那我们就在更大的页块链表中去找。当分配的页块中有多余的页时，伙伴系统会根据多余的页块大小插入到对应的空闲页块链表中。
+举个例子：
+例如，要请求一个 128 个页的页块时，先检查 128 个页的页块链表是否有空闲块。如果没有，则查 256 个页的页块链表；如果有空闲块的话，则将 256 个页的页块分成两份，一份使用，一份插入 128 个页的页块链表中。如果还是没有，就查 512 个页的页块链表；如果有的话，就分裂为 128、128、256 三个页块，一个 128 的使用，剩余两个插入对应页块链表。
+ 上面的这套机制就是伙伴系统所做的事情，它主要负责对物理内存页面进行跟踪，记录哪些是被内核使用的页面，哪些是空闲页面。
+ 2、页面分配器（Page Allocator） #  由上一章我们知道，物理内存被分为了几个区域：ZONE_DMA、ZONE_NORMAL、ZONE_HIGHMEM，其中前两个区域的物理页面与虚拟地址空间是线性映射的。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:16:10+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:16:10+08:00" />
+
+<title>六、物理内存分配——伙伴系统 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle" checked />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="active">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>六、物理内存分配——伙伴系统</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--六物理内存分配伙伴系统">Linux内存管理 | 六、物理内存分配——伙伴系统</a>
+      <ul>
+        <li><a href="#1伙伴系统buddy-system">1、伙伴系统（Buddy System）</a></li>
+        <li><a href="#2页面分配器page-allocator">2、页面分配器（Page Allocator）</a></li>
+        <li><a href="#3gfp_mask">3、gfp_mask</a></li>
+        <li><a href="#4alloc_pages">4、alloc_pages</a></li>
+        <li><a href="#5__get_free_pages">5、__get_free_pages</a></li>
+        <li><a href="#6get_zeroed_page">6、get_zeroed_page</a></li>
+        <li><a href="#7总结">7、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="linux内存管理--六物理内存分配伙伴系统">
+  Linux内存管理 | 六、物理内存分配——伙伴系统
+  <a class="anchor" href="#linux%e5%86%85%e5%ad%98%e7%ae%a1%e7%90%86--%e5%85%ad%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98%e5%88%86%e9%85%8d%e4%bc%99%e4%bc%b4%e7%b3%bb%e7%bb%9f">#</a>
+</h1>
+<p>上一章，我们了解了物理内存的布局以及<code>Linux</code>内核对其的管理方式，页<code>（page）</code>也是物理内存的最小单元，<code>Linux</code>内核对物理内存的分配主要分为两种：一种是整页的分配，采用的是伙伴系统，另一种是小内存块的分配，采用的是<code>slab</code>技术。</p>
+<p>下面我们先来看看什么是伙伴系统！</p>
+<p> </p>
+<h2 id="1伙伴系统buddy-system">
+  1、伙伴系统（Buddy System）
+  <a class="anchor" href="#1%e4%bc%99%e4%bc%b4%e7%b3%bb%e7%bb%9fbuddy-system">#</a>
+</h2>
+<p><code>Linux</code>系统中，对物理内存进行分配的核心是<strong>建立在页面级的伙伴系统之上</strong>。<code>Linux</code>内存管理的页大小为<code>4KB</code>，把所有的空闲页分组为11个页块链表，每个链表分别包含很多个大小的页块，有 1、2、4、8、16、32、64、128、256、512 和 1024 个连续页的页块，最大可以申请 1024 个连续页，对应 <code>4MB</code> 大小的连续内存。每个页块的第一个页的物理地址是该页块大小的整数倍。</p>
+<p>如下图所示：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231021143420253.png" alt="image-20231021143420253" /></p>
+<blockquote>
+<p>第 i 个页块链表中，页块中页的数目为 2^i。——仔细理解这个页块的含义。</p>
+</blockquote>
+<p> </p>
+<p>在<code>struct zone</code>结构体中，有下面定义</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> free_area	free_area[MAX_ORDER];
+
+
+<span style="color:#ff79c6">#define MAX_ORDER 11
+</span></code></pre></div><p><code>free_area</code>：存放不同大小的页块</p>
+<p><code>MAX_ORDER</code>：就是指数</p>
+<p> </p>
+<p>当向内核请求分配 (2^(i-1)，2^i] 数目的页块时，按照 2^i 页块请求处理。如果对应的页块链表中没有空闲页块，那我们就在更大的页块链表中去找。当分配的页块中有多余的页时，伙伴系统会根据多余的页块大小插入到对应的空闲页块链表中。</p>
+<p>举个例子：</p>
+<p>例如，要请求一个 128 个页的页块时，先检查 128 个页的页块链表是否有空闲块。如果没有，则查 256 个页的页块链表；如果有空闲块的话，则将 256 个页的页块分成两份，一份使用，一份插入 128 个页的页块链表中。如果还是没有，就查 512 个页的页块链表；如果有的话，就分裂为 128、128、256 三个页块，一个 128 的使用，剩余两个插入对应页块链表。</p>
+<p> </p>
+<p><span style="color: red;"><strong>上面的这套机制就是伙伴系统所做的事情，它主要负责对物理内存页面进行跟踪，记录哪些是被内核使用的页面，哪些是空闲页面。</strong></span></p>
+<p> </p>
+<h2 id="2页面分配器page-allocator">
+  2、页面分配器（Page Allocator）
+  <a class="anchor" href="#2%e9%a1%b5%e9%9d%a2%e5%88%86%e9%85%8d%e5%99%a8page-allocator">#</a>
+</h2>
+<p>由上一章我们知道，物理内存被分为了几个区域：<code>ZONE_DMA</code>、<code>ZONE_NORMAL</code>、<code>ZONE_HIGHMEM</code>，其中前两个区域的物理页面与虚拟地址空间是线性映射的。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231021153403131.png" alt="image-20231021153403131" /></p>
+<p><span style="color: red;"><strong>页面分配器主要的工作原理如下</strong></span>：</p>
+<ul>
+<li>如果页面分配器分配的物理页面在<code>ZONE_DMA</code>、<code>ZONE_NORMAL</code>区域，那么对应的虚拟地址到物理地址映射的页目录已经建立，因为是线性映射，两者之间有一个差值<code>PAGE_OFFSET</code>。</li>
+<li>如果页面分配器分配的物理页面在<code>ZONE_HIGHMEM</code>区域，那么内核此时还没有对该页面进行映射，因此页面分配器的调用者，首先在虚拟地址空间的动态映射区或者固定映射区分配一个虚拟地址，然后映射到该物理页面上。</li>
+</ul>
+<p> </p>
+<p>以上就是页面分配器的原理，对于我们只需要调用相关接口函数就可以了。</p>
+<p>页面分配函数主要有两个：<code>alloc_pages</code>和<code>__get_free_pages</code>，而这两个函数最终也会调用到<code>alloc_pages_node</code>，其实现原理完全一样。</p>
+<blockquote>
+<p>下面我们从代码层面来看页面分配器的工作原理</p>
+</blockquote>
+<p> </p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h2 id="3gfp_mask">
+  3、gfp_mask
+  <a class="anchor" href="#3gfp_mask">#</a>
+</h2>
+<p>我们先来了解一下<code>gfp_mask</code>，它并不是页面分配器函数，而只是这些页面分配函数中一个重要的参数，<span style="color: red;"><strong>是个用于控制分配行为的掩码，并可以告诉内核应该到哪个<code>zone</code>中分配物理内存页面。</strong></span></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/* Plain integer GFP bitmasks. Do not use this directly. */</span>
+<span style="color:#ff79c6">#define ___GFP_DMA		0x01u
+</span><span style="color:#ff79c6">#define ___GFP_HIGHMEM		0x02u
+</span><span style="color:#ff79c6">#define ___GFP_DMA32		0x04u
+</span><span style="color:#ff79c6">#define ___GFP_MOVABLE		0x08u
+</span><span style="color:#ff79c6">#define ___GFP_RECLAIMABLE	0x10u
+</span><span style="color:#ff79c6">#define ___GFP_HIGH		0x20u
+</span><span style="color:#ff79c6">#define ___GFP_IO		0x40u
+</span><span style="color:#ff79c6">#define ___GFP_FS		0x80u
+</span><span style="color:#ff79c6">#define ___GFP_WRITE		0x100u
+</span><span style="color:#ff79c6">#define ___GFP_NOWARN		0x200u
+</span><span style="color:#ff79c6">#define ___GFP_RETRY_MAYFAIL	0x400u
+</span><span style="color:#ff79c6">#define ___GFP_NOFAIL		0x800u
+</span><span style="color:#ff79c6">#define ___GFP_NORETRY		0x1000u
+</span><span style="color:#ff79c6">#define ___GFP_MEMALLOC		0x2000u
+</span><span style="color:#ff79c6">#define ___GFP_COMP		0x4000u
+</span><span style="color:#ff79c6">#define ___GFP_ZERO		0x8000u
+</span><span style="color:#ff79c6">#define ___GFP_NOMEMALLOC	0x10000u
+</span><span style="color:#ff79c6">#define ___GFP_HARDWALL		0x20000u
+</span><span style="color:#ff79c6">#define ___GFP_THISNODE		0x40000u
+</span><span style="color:#ff79c6">#define ___GFP_ATOMIC		0x80000u
+</span><span style="color:#ff79c6">#define ___GFP_ACCOUNT		0x100000u
+</span><span style="color:#ff79c6">#define ___GFP_DIRECT_RECLAIM	0x200000u
+</span><span style="color:#ff79c6">#define ___GFP_KSWAPD_RECLAIM	0x400000u
+</span><span style="color:#ff79c6">#ifdef CONFIG_LOCKDEP
+</span><span style="color:#ff79c6">#define ___GFP_NOLOCKDEP	0x800000u
+</span><span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6">#define ___GFP_NOLOCKDEP	0
+</span><span style="color:#ff79c6">#endif
+</span></code></pre></div><ul>
+<li>
+<p><code>___GFP_DMA</code>：在<code>ZONE_DMA</code>标识的内存区域中查找空闲页。</p>
+</li>
+<li>
+<p><code>___GFP_HIGHMEM</code>：在<code>ZONE_HIGHMEM</code>标识的内存区域中查找空闲页。</p>
+</li>
+<li>
+<p><code>___GFP_MOVABLE</code>：内核将分配的物理页标记为可移动的。</p>
+</li>
+<li>
+<p><code>___GFP_HIGH</code>：内核允许使用紧急分配链表中的保留内存页。该请求必须以原子方式完成，意味着请求过程不允许被中断。</p>
+</li>
+<li>
+<p><code>___GFP_IO</code>：内核在查找空闲页的过程中可以进行I/O操作，如此内核可以将换出的页写到硬盘。</p>
+</li>
+<li>
+<p><code>___GFP_FS</code>：查找空闲页的过程中允许执行文件系统相关操作。</p>
+</li>
+<li>
+<p><code>___GFP_ZERO</code>：用0填充成功分配出来的物理页。</p>
+</li>
+</ul>
+<p> </p>
+<p>通常意义上，这些以“__”打头的<code>GFP</code>掩码只限于在内存管理组件内部的代码使用，对于提供给外部的接口，比如驱动程序中所使用的页面分配函数，<code>gfp_mask</code>掩码以“<code>GFP_</code>”的形式出现，而这些掩码基本上就是上面提到的掩码的组合。</p>
+<p>例如内核为外部模块提供的最常使用的几个掩码如下：</p>
+<pre tabindex="0"><code>#define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
+#define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
+#define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
+#define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
+#define GFP_NOIO	(__GFP_RECLAIM)
+#define GFP_NOFS	(__GFP_RECLAIM | __GFP_IO)
+#define GFP_USER	(__GFP_RECLAIM | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
+#define GFP_DMA		__GFP_DMA
+#define GFP_DMA32	__GFP_DMA32
+#define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
+#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
+#define GFP_TRANSHUGE_LIGHT	((GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+             __GFP_NOMEMALLOC | __GFP_NOWARN) &amp; ~__GFP_RECLAIM)
+#define GFP_TRANSHUGE	(GFP_TRANSHUGE_LIGHT | __GFP_DIRECT_RECLAIM)
+</code></pre><ul>
+<li><code>GFP_ATOMIC</code>：内核模块中最常使用的掩码之一，用于原子分配。此掩码告诉页面分配器，在分配内存页时，绝对不能中断当前进程或者把当前进程移出调度器。</li>
+<li><code>GFP_KERNEL</code>：内核模块中最常使用的掩码之一，带有该掩码的内存分配可能导致当前进程进入睡眠状态。</li>
+<li><code>GFP_USER</code>：用于为用户空间分配内存页，可能引起进程的休眠。</li>
+<li><code>GFP_NOIO</code>：在分配过程中禁止I/O操作</li>
+<li><code>GFP_NOFS</code>：禁止文件系统相关的函数调用</li>
+<li><code>GFP_DMA</code>：限制页面分配器只能在<code>ZONE_DMA</code>域中分配空闲物理页面，用于分配适用于<code>DMA</code>缓冲区的内存。</li>
+</ul>
+<p> </p>
+<p><span style="color: red;"><strong>通过<code>gfp_mask</code>掩码，更加方便我们控制页面分配器到哪个区域去分配物理内存</strong></span>，分配内存的优先级如下：</p>
+<ol>
+<li>指定<code>__GFP_HIGHMEM</code>：先在<code>ZONE_HIGHMEM</code>域中查找空闲页，如果无法满足当前分配，页分配器将回退到<code>ZONE_NORMAL</code>域中继续查找，如果依然无法满足当前分配，分配器将回退到<code>ZONE_DMA</code>域，或者成功或者失败。</li>
+<li>指定<code>__GFP_DMA</code>：只能在<code>ZONE_DMA</code>中分配物理页面，如果无法满足，则分配失败。</li>
+<li>没有<code>__GFP_NORMAL</code>这样的掩码，但是前面已经提到，如果<code>gfp_mask</code>中没有明确指定<code>__GFP_HIGHMEM</code>或者是<code>__GFP_DMA</code>，默认就相当于<code>__GFP_NORMAL</code>，优先在<code>ZONE_NORMAL</code>域中分配，其次是<code>ZONE_DMA</code>域。</li>
+</ol>
+<p> </p>
+<h2 id="4alloc_pages">
+  4、alloc_pages
+  <a class="anchor" href="#4alloc_pages">#</a>
+</h2>
+<p><code>alloc_pages</code>函数负责分配<code>2^order</code>个连续的物理页面并返回起始页的<code>struct page</code>实例。</p>
+<p><code>alloc_pages</code>的实现源码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>
+<span style="color:#50fa7b">alloc_pages</span>(gfp_t gfp_mask, <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> order)
+{
+    <span style="color:#ff79c6">return</span> alloc_pages_current(gfp_mask, order);
+}
+
+<span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * 	alloc_pages_current - Allocate pages.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> *	@gfp:
+</span><span style="color:#6272a4"> *		%GFP_USER   user allocation,
+</span><span style="color:#6272a4"> *      	%GFP_KERNEL kernel allocation,
+</span><span style="color:#6272a4"> *      	%GFP_HIGHMEM highmem allocation,
+</span><span style="color:#6272a4"> *      	%GFP_FS     don&#39;t call back into a file system.
+</span><span style="color:#6272a4"> *      	%GFP_ATOMIC don&#39;t sleep.
+</span><span style="color:#6272a4"> *	@order: Power of two of allocation size in pages. 0 is a single page.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> *	Allocate a page from the kernel page pool.  When not in
+</span><span style="color:#6272a4"> *	interrupt context and apply the current process NUMA policy.
+</span><span style="color:#6272a4"> *	Returns NULL when no page can be allocated.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span><span style="color:#50fa7b">alloc_pages_current</span>(gfp_t gfp, <span style="color:#8be9fd">unsigned</span> order)
+{
+    <span style="color:#ff79c6">struct</span> mempolicy <span style="color:#ff79c6">*</span>pol <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>default_policy;
+    <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>page;
+
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>in_interrupt() <span style="color:#ff79c6">&amp;&amp;</span> <span style="color:#ff79c6">!</span>(gfp <span style="color:#ff79c6">&amp;</span> __GFP_THISNODE))
+        pol <span style="color:#ff79c6">=</span> get_task_policy(current);
+
+    <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">     * No reference counting needed for current-&gt;mempolicy
+</span><span style="color:#6272a4">     * nor system default_policy
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#ff79c6">if</span> (pol<span style="color:#ff79c6">-&gt;</span>mode <span style="color:#ff79c6">==</span> MPOL_INTERLEAVE)
+        page <span style="color:#ff79c6">=</span> alloc_page_interleave(gfp, order, interleave_nodes(pol));
+    <span style="color:#ff79c6">else</span>
+        page <span style="color:#ff79c6">=</span> __alloc_pages_nodemask(gfp, order,
+                policy_node(gfp, pol, numa_node_id()),
+                policy_nodemask(gfp, pol));
+
+    <span style="color:#ff79c6">return</span> page;
+}
+EXPORT_SYMBOL(alloc_pages_current);
+</code></pre></div><p><code>alloc_pages</code>调用<code>alloc_pages_current</code>，其中</p>
+<ul>
+<li><code>gfp</code>参数：即上文的<code>gfp_mask</code>，表明我们想要在哪个物理内存区域进行内存分配</li>
+<li><code>order</code>参数：表示分配 2 的 <code>order</code> 次方个页。</li>
+</ul>
+<p><code>__alloc_pages_nodemask</code>为伙伴系统的核心实现，它会调用 <code>get_page_from_freelist</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>
+<span style="color:#50fa7b">get_page_from_freelist</span>(gfp_t gfp_mask, <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> order, <span style="color:#8be9fd">int</span> alloc_flags,
+                        <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> alloc_context <span style="color:#ff79c6">*</span>ac)
+{
+......
+    for_next_zone_zonelist_nodemask(zone, z, ac<span style="color:#ff79c6">-&gt;</span>zonelist, ac<span style="color:#ff79c6">-&gt;</span>high_zoneidx, ac<span style="color:#ff79c6">-&gt;</span>nodemask) {
+        <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>page;
+......
+        page <span style="color:#ff79c6">=</span> rmqueue(ac<span style="color:#ff79c6">-&gt;</span>preferred_zoneref<span style="color:#ff79c6">-&gt;</span>zone, zone, order,
+                gfp_mask, alloc_flags, ac<span style="color:#ff79c6">-&gt;</span>migratetype);
+......
+}
+</code></pre></div><p>这里面的逻辑也很容易理解，就是在一个循环中先看当前节点的 <code>zone</code>。如果找不到空闲页，则再看备用节点的 <code>zone</code>。</p>
+<blockquote>
+<p>每一个 zone，都有伙伴系统维护的各种大小的队列，就像上面伙伴系统原理里讲的那样。</p>
+</blockquote>
+<p>这里调用 <code>rmqueue</code> 就很好理解了，就是找到合适大小的那个队列，把页面取下来。</p>
+<blockquote>
+<p>伙伴系统的实现代码，感兴趣的可以深入探究。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231022103859552.png" alt="image-20231022103859552" /></p>
+<p>在调用这个函数的时候，有几种情况：</p>
+<ol>
+<li>如果<code>gfp_mask</code>中没有指定<code>__GFP_HIGHMEM</code>，那么分配的物理页面必然来自<code>ZONE_NORMAL</code>或者<code>ZONE_DMA</code>，由于这两个区域内核在初始化的时候就已经建立了映射关系，所以内核很容易就能找到对应的虚拟地址<code>KVA（Kernel Virtual Address）</code></li>
+<li>如果<code>gfp_mask</code>中指定了<code>__GFP_HIGHMEM</code>，那么页分配器将优先在<code>ZONE_HIGHMEM</code>域中分配物理页，但也不排除因为<code>ZONE_HIGHMEM</code>没有足够的空闲页导致页面来自<code>ZONE_NORMAL</code>与<code>ZONE_DMA</code>域的可能性。对于新分配出的高端物理页面，由于内核尚未在页表中为之建立映射关系，所以此时需要：
+<ol>
+<li>在内核的动态映射区分配一个<code>KVA</code></li>
+<li>通过操作页表，将第一步中的<code>KVA</code>映射到该物理页面上，通过<code>kmap</code>实现</li>
+</ol>
+</li>
+</ol>
+<p> </p>
+<h2 id="5__get_free_pages">
+  5、__get_free_pages
+  <a class="anchor" href="#5__get_free_pages">#</a>
+</h2>
+<p><code>__get_free_pages</code>该函数负责分配<code>2^ordev</code>个连续的物理页面，返回起始页面所在内核线性地址。</p>
+<p>函数的实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * Common helper functions. Never use with __GFP_HIGHMEM because the returned
+</span><span style="color:#6272a4"> * address cannot represent highmem pages. Use alloc_pages and then kmap if
+</span><span style="color:#6272a4"> * you need to access high mem.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> <span style="color:#50fa7b">__get_free_pages</span>(gfp_t gfp_mask, <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> order)
+{
+    <span style="color:#ff79c6">struct</span> page <span style="color:#ff79c6">*</span>page;
+
+    page <span style="color:#ff79c6">=</span> alloc_pages(gfp_mask <span style="color:#ff79c6">&amp;</span> <span style="color:#ff79c6">~</span>__GFP_HIGHMEM, order);
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>page)
+        <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+    <span style="color:#ff79c6">return</span> (<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>) page_address(page);
+}
+EXPORT_SYMBOL(__get_free_pages);
+</code></pre></div><p>我们可以看到，函数内部调用了<code>alloc_pages</code>函数，并且不能从<code>__GFP_HIGHMEM</code>高端内存分配物理页，最后通过<code>page_address</code>来返回页面的起始页面的内核线性地址。</p>
+<p> </p>
+<h2 id="6get_zeroed_page">
+  6、get_zeroed_page
+  <a class="anchor" href="#6get_zeroed_page">#</a>
+</h2>
+<p><code>get_zeroed_page</code>用于分配一个物理页同时将页面对应的内容填充为0，函数返回页面所在的内核线性地址。</p>
+<p>可以看下内核代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> <span style="color:#50fa7b">get_zeroed_page</span>(gfp_t gfp_mask)
+{
+    <span style="color:#ff79c6">return</span> __get_free_pages(gfp_mask <span style="color:#ff79c6">|</span> __GFP_ZERO, <span style="color:#bd93f9">0</span>);
+}
+EXPORT_SYMBOL(get_zeroed_page);
+</code></pre></div><p>仅仅是在<code>__get_free_pages</code>基础上，使用了 <code>__GFP_ZERO</code>标志，来初始化分配页面的初始内容。</p>
+<p> </p>
+<h2 id="7总结">
+  7、总结
+  <a class="anchor" href="#7%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>以上，就是建立在伙伴系统之上的页面级分配器，常用的函数有：<code>alloc_pages</code>、<code>__get_free_pages</code>、<code>get_zeroed_page</code>、<code>__get_dma_pages</code>等，其底层实现都是一样的，只是<code>gfp_mask</code>不同。</p>
+<p> </p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--六物理内存分配伙伴系统">Linux内存管理 | 六、物理内存分配——伙伴系统</a>
+      <ul>
+        <li><a href="#1伙伴系统buddy-system">1、伙伴系统（Buddy System）</a></li>
+        <li><a href="#2页面分配器page-allocator">2、页面分配器（Page Allocator）</a></li>
+        <li><a href="#3gfp_mask">3、gfp_mask</a></li>
+        <li><a href="#4alloc_pages">4、alloc_pages</a></li>
+        <li><a href="#5__get_free_pages">5、__get_free_pages</a></li>
+        <li><a href="#6get_zeroed_page">6、get_zeroed_page</a></li>
+        <li><a href="#7总结">7、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

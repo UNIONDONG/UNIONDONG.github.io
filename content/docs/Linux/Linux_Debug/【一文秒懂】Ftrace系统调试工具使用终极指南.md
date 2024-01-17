@@ -1,3 +1,15 @@
+---
+date: '2023-12-13T21:56:32+08:00'
+title:       '【一文秒懂】Ftrace系统调试工具使用终极指南'
+description: ""
+author:      "Donge"
+image:       ""
+tags:        ["Linux调试工具"]
+categories:  ["Tech" ]
+weight: 1
+---
+
+
 # 【一文秒懂】Ftrace系统调试工具使用终极指南
 
 ## 1、Ftrace是什么

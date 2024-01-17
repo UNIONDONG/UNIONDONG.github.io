@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="Linux面试指南" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://uniondong.github.io/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/" />
+
+<title>Linux面试指南 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://uniondong.github.io/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/index.xml" title="Donge Blog" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Linux面试指南</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>18</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/">Soc的Bring Up流程</a>
+    </h2>
+    
+  <h5>Nov 12, 2023</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>, 
+      <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>, 
+      <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+  </div>
+  
+
+
+
+<p>
+  
+    <img src=/img/post-bg-miui6.jpg />
+  
+</p>
+
+
+    <p>1、Bring Up流程 #  SOC (System on a Chip) bring-up是一个复杂的过程，涉及到硬件、固件和软件的集成和验证，以下是一个基于BROM，SPL，UBOOT和Linux的启动流程的概述：
+ BROM (Boot Read-Only Memory)启动：启动的最初阶段，在这个阶段，系统会执行芯片ROM里面的代码，这部分代码主要用来检查启动模式，包括NOR、Nand、Emmc等，然后从对应的存储介质中加载SPL(Secondary Program Loader)代码。 SPL (Secondary Program Loader)启动：SPL属于Uboot的一部分，它的主要作用就是：初始化硬件并加载完整的U-boot，主要体现在初始化时钟、看门狗、DDR、GPIO以及存储外设，最后将U-boot代码加载到DDR中执行。 U-Boot启动：U-boot的主要作用是：引导加载Kernel和DTS。U-boot在启动之后，同样初始化Soc硬件资源，然后会计时等待，并执行默认的启动命令，将Kernel和DTS信息从存储介质中读取出来并加载到内存中执行。 Kernel启动：在U-Boot加载了内核映像和设备树之后，系统会启动Linux。在这个阶段，系统会初始化各种硬件设备，加载驱动程序并启动用户空间应用程序。   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  2、常见问题 #  Q：为什么上一个阶段已经初始化了硬件资源，下一个阶段为何重复初始化？
+A：
+  每个阶段的硬件初始化，其目标和需求都不同，硬件配置也会不一样，因此在不同阶段进行不同的初始化。
+  硬件状态可能会改变，在SOC启动过程中，硬件状态可能会因为电源管理、时钟管理等原因而改变，这可能需要在每个阶段都重新初始化以确保其正确工作
+  为了保证硬件资源的可靠性，最好每个阶段都重新初始化一次
+   Q：U-boot加载内核时，会进行重定位的操作，这一操作有何意义？
+A：
+ U-boot的重定位，主要作用是为了 给内核提供一个连续的、大的内存空间，供内核和其他应用程序使用 U-boot的加载过程分两个阶段，即：SPL和U-boot，   在SPL阶段，主要将U-boot代码从Flash中加载到RAM指定位置 在U-boot阶段，U-boot会将自身从RAM的开始部分移动到RAM的末尾，占用高地址空间，从而让低地址空间可以作为一个连续的，大的内存空间供内核和其他应用程序使用。   Q：在Bring Up中，为了保证启动时间，如何裁剪？
+A：
+ 启动时间的裁剪是一个重要的步骤，其主要目标是缩短从电源打开到操作系统完全启动的时间。
+  优化Bootloader：减小Bootloader的代码大小，减少硬件初始化（只初始化必要硬件设备）等 优化Kernel：减少启动服务数量，优化服务的启动顺序，使用预加载技术等方法来实现。 使用快速启动模式：一些SOC支持快速启动模式，这种模式下，SOC会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。 使用休眠和唤醒技术：一些SOC还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。   
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/">CPU体系架构</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+  </div>
+  
+
+
+
+
+    <p>CPU体系架构 #  2.1 CPU体系架构有哪些？ #   我们常见的CPU架构有哪些呢？
+ 如果我们熟悉Linux，那么这个问题肯定不难回答！
+我们查看内核目录下的arch子目录，就可以看到Linux所支持的处理器架构，基本属于我们常见的类型了。
+# ls ./arch alpha arc arm arm64 c6x h8300 hexagon ia64 Kconfig m68k microblaze mips nds32 nios2 openrisc parisc powerpc riscv s390 sh sparc um unicore32 x86 xtensa  准确来说，CPU处理器架构主要有以下几种类型：
+ CISC（复杂指令集计算机）：CISC架构的CPU设计理念是尽可能减少程序指令的数量，以降低CPU和内存之间的通信频率。这种架构的一个显著特点是拥有大量的寄存器和复杂的指令集。Intel的x86架构就是一个典型的CISC架构 RISC（精简指令集计算机）：RISC架构的CPU设计理念是通过简化指令集来提高CPU的运行效率。这种架构的一个显著特点是拥有较少的寄存器和简单的指令集。ARM架构就是一个典型的RISC架构 MISC（中间指令集计算机）：MISC架构的CPU设计理念是在CISC和RISC之间寻找一个平衡点，既不过于复杂也不过于简单。这种架构的一个显著特点是指令集的复杂度介于CISC和RISC之间 VLIW（超长指令字计算机）：VLIW架构的CPU设计理念是通过增大指令长度来提高并行执行的可能性。这种架构的一个显著特点是指令长度远大于其他架构的CPU EPIC（显式并行指令计算）：EPIC架构的CPU设计理念是通过显式标记并行指令来提高CPU的运行效率。这种架构的一个显著特点是指令集中包含了并行执行的信息。Intel的Itanium架构就是一个典型的EPIC架构 超标量架构：超标量架构的CPU设计理念是通过在一个时钟周期内执行多条指令来提高CPU的运行效率。这种架构的一个显著特点是CPU内部包含了多个执行单元，可以同时执行多条指令 超线程技术：超线程技术是Intel公司为其部分CPU所采用的一种使单一处理器像多个逻辑处理器那样并行处理多个线程的技术 多核心架构：多核心架构的CPU设计理念是在一个CPU芯片内集成多个处理器核心，以提高并行处理能力。这种架构的一个显著特点是CPU内部包含了多个独立的处理器核心，每个核心可以独立执行指令   这里就有一个疑问，我们什么时候说RISC架构，什么时候说ARM架构，这两个有什么区别呢？
+ 以ARM和RISC为例：
+ ARM架构和RISC架构的主要区别在于ARM实际上是RISC的一个具体实现，而RISC则是一个更广泛的处理器设计理念。换句话说，ARM是RISC的一个子集。
+同理，X86架构是CISC的一个子集。
+ 2.2 常见的问题 #  Q1：你所熟知的处理器架构有哪些？
+我们常见的处理器架构有ARM、X86、mips架构等；
+ Q2：STM32属于什么架构的？
+STM32是ST公司开发的32位微控制器集成电路，基于 ARM 的 Cortex-M 系列内核。因此，STM32 属于 ARM 架构的微控制器。
+        <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/">Linux用户态和内核态交互的几种方式</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+  </div>
+  
+
+
+
+
+    <p>Linux用户态和内核态交互的几种方式 #  Linux分为内核态Kernel Mode和用户态User Mode，其通信方式主要有：
+ 系统调用System Call：最常见的用户态和内核态之间的通信方式。通过系统调用接口（open、read、write、fork等）请求内核执行特定的动作。 中断Interrupts：中断包括软中断和硬中断，每当中断到来的时候，CPU会暂停当前执行的用户态代码，切换到内核态来处理中断。 信号Signal：内核通过Signal通知用户态进程发生了某些事件，用户态注册信号处理函数，来响应特定的信号事件。如 SIGTERM、SIGINT 等。 共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效通信。这种方式避免了用户态和内核态之间频繁切换的问题，但是也需要考虑到数据的同步问题，保证数据一致性。   用户态User Mode访问内核态Kernel Mode的数据交互的方式有：
+  procfs进程文件系统：一个伪文件系统，因为其不占用外部存储空间，只占有少量的内存，挂载在/proc目录下
+  sysctl：它也是一个Linux命令，主要用来修改内核的运行时参数，也就是在内核运行时，动态修改内核参数。
+ 和 procfs 的区别在于：procfs 主要是输出只读数据，而 sysctl 输出的大部分信息是可写的。
+   sysfs虚拟文件系统：通过/sys来完成用户态和内核的通信，和 procfs 不同的是，sysfs 是将一些原本在 procfs 中的，关于设备和驱动的部分，独立出来，以 “设备树” 的形式呈现给用户。
+  netlink 接口：也是最常用的一种方式，本质是socket接口，使用netlink用于网络相关的内核和用户进程之间的消息传递。
+  共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效数据传输。
+   欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+
+  
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>18</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

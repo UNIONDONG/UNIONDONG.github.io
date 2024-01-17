@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="三、Uboot驱动模型 #   全文耗时一周，精心汇总，希望对大家有所帮助，感觉可以的点赞，关注，不迷路，后续还有更多干货！
+看文章前，答应我，静下心来，慢慢品！
+ 3.1、什么是Uboot驱动模型 #  学过Linux的朋友基本都知道Linux的设备驱动模型，Uboot根据Linux的驱动模型架构，也引入了Uboot的驱动模型（driver model ：DM）。
+**这种驱动模型为驱动的定义和访问接口提供了统一的方法。**提高了驱动之间的兼容性以及访问的标准型，uboot驱动模型和kernel中的设备驱动模型类似。
+3.2、为什么要有驱动模型呢 #   无论是Linux还是Uboot，一个新对象的产生必定有其要解决的问题，驱动模型也不例外！
+  提高代码的可重用性：为了能够使代码在不同硬件平台，不同体系架构下运行，必须要最大限度的提高代码的可重用性。 高内聚，低耦合：分层的思想也是为了达到这一目标，低耦合体现在对外提供统一的抽象访问接口，高内聚将相关度紧密的集中抽象实现。 便于管理：在不断发展过程中，硬件设备越来越多，驱动程序也越来越多，为了更好的管理驱动，也需要一套优秀的驱动架构！  3.3、如何使用uboot的DM模型 #   DM模型的使用，可以通过menuconfig来配置。
+make menuconfig
+ ①：menuconfig配置全局DM模型 #  Device Drivers -&gt; Generic Driver Options -&gt; Enable Driver Model 通过上面的路径来打开Driver Model模型，最终配置在.config文件中，CONFIG_DM=y
+②：指定某个驱动的DM模型 #  全局的DM模型打开后，我们对于不通的驱动模块，使能或者失能DM功能。如MMC驱动为例：
+Device Drivers -&gt; MMC Host controller Support -&gt; Enable MMC controllers using Driver Model 最终反映在.config文件中的CONFIG_DM_MMC=y
+在对应的驱动中，可以看到判断#if !CONFIG_IS_ENABLED(DM_MMC)，来判断是否打开DM驱动模型。
+在管理驱动的Makefile文件中，也能看到obj-$(CONFIG_$(SPL_)DM_MMC) &#43;= mmc-uclass.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="三、Uboot驱动模型" />
+<meta property="og:description" content="三、Uboot驱动模型 #   全文耗时一周，精心汇总，希望对大家有所帮助，感觉可以的点赞，关注，不迷路，后续还有更多干货！
+看文章前，答应我，静下心来，慢慢品！
+ 3.1、什么是Uboot驱动模型 #  学过Linux的朋友基本都知道Linux的设备驱动模型，Uboot根据Linux的驱动模型架构，也引入了Uboot的驱动模型（driver model ：DM）。
+**这种驱动模型为驱动的定义和访问接口提供了统一的方法。**提高了驱动之间的兼容性以及访问的标准型，uboot驱动模型和kernel中的设备驱动模型类似。
+3.2、为什么要有驱动模型呢 #   无论是Linux还是Uboot，一个新对象的产生必定有其要解决的问题，驱动模型也不例外！
+  提高代码的可重用性：为了能够使代码在不同硬件平台，不同体系架构下运行，必须要最大限度的提高代码的可重用性。 高内聚，低耦合：分层的思想也是为了达到这一目标，低耦合体现在对外提供统一的抽象访问接口，高内聚将相关度紧密的集中抽象实现。 便于管理：在不断发展过程中，硬件设备越来越多，驱动程序也越来越多，为了更好的管理驱动，也需要一套优秀的驱动架构！  3.3、如何使用uboot的DM模型 #   DM模型的使用，可以通过menuconfig来配置。
+make menuconfig
+ ①：menuconfig配置全局DM模型 #  Device Drivers -&gt; Generic Driver Options -&gt; Enable Driver Model 通过上面的路径来打开Driver Model模型，最终配置在.config文件中，CONFIG_DM=y
+②：指定某个驱动的DM模型 #  全局的DM模型打开后，我们对于不通的驱动模块，使能或者失能DM功能。如MMC驱动为例：
+Device Drivers -&gt; MMC Host controller Support -&gt; Enable MMC controllers using Driver Model 最终反映在.config文件中的CONFIG_DM_MMC=y
+在对应的驱动中，可以看到判断#if !CONFIG_IS_ENABLED(DM_MMC)，来判断是否打开DM驱动模型。
+在管理驱动的Makefile文件中，也能看到obj-$(CONFIG_$(SPL_)DM_MMC) &#43;= mmc-uclass." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:28:52+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:28:52+08:00" />
+
+<title>三、Uboot驱动模型 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="active">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>三、Uboot驱动模型</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#三uboot驱动模型">三、Uboot驱动模型</a>
+      <ul>
+        <li><a href="#31什么是uboot驱动模型">3.1、什么是Uboot驱动模型</a></li>
+        <li><a href="#32为什么要有驱动模型呢">3.2、为什么要有驱动模型呢</a></li>
+        <li><a href="#33如何使用uboot的dm模型">3.3、如何使用uboot的DM模型</a>
+          <ul>
+            <li><a href="#menuconfig配置全局dm模型">①：menuconfig配置全局DM模型</a></li>
+            <li><a href="#指定某个驱动的dm模型">②：指定某个驱动的DM模型</a></li>
+          </ul>
+        </li>
+        <li><a href="#34dm模型数据结构">3.4、DM模型数据结构</a>
+          <ul>
+            <li><a href="#-global_data">① global_data</a></li>
+            <li><a href="#-uclass">② uclass</a></li>
+            <li><a href="#-uclass_driver">③ uclass_driver</a></li>
+            <li><a href="#-uclass_id">④ uclass_id</a></li>
+            <li><a href="#-udevice">⑤ udevice</a></li>
+            <li><a href="#-driver">③ driver</a></li>
+          </ul>
+        </li>
+        <li><a href="#35dm驱动模型之上帝视角">3.5、DM驱动模型之上帝视角</a></li>
+        <li><a href="#36dm模型udevice与driver绑定">3.6、DM模型——Udevice与driver绑定</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#37dm模型probe探测函数的执行">3.7、DM模型——probe探测函数的执行</a></li>
+        <li><a href="#38dm模型uclass与uclass_driver绑定">3.8、DM模型——uclass与uclass_driver绑定</a></li>
+        <li><a href="#39-参考文档">3.9 参考文档</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="三uboot驱动模型">
+  三、Uboot驱动模型
+  <a class="anchor" href="#%e4%b8%89uboot%e9%a9%b1%e5%8a%a8%e6%a8%a1%e5%9e%8b">#</a>
+</h1>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202201221422561.jpg" alt="Uboot驱动模型" /></p>
+<blockquote>
+<p>全文耗时一周，精心汇总，希望对大家有所帮助，感觉可以的点赞，关注，不迷路，后续还有更多干货！</p>
+<p>看文章前，答应我，静下心来，慢慢品！</p>
+</blockquote>
+<h2 id="31什么是uboot驱动模型">
+  3.1、什么是Uboot驱动模型
+  <a class="anchor" href="#31%e4%bb%80%e4%b9%88%e6%98%afuboot%e9%a9%b1%e5%8a%a8%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<p>学过Linux的朋友基本都知道Linux的设备驱动模型，Uboot根据Linux的驱动模型架构，也引入了Uboot的驱动模型（<strong>driver model ：DM</strong>）。</p>
+<p>**这种驱动模型为驱动的定义和访问接口提供了统一的方法。**提高了驱动之间的兼容性以及访问的标准型，uboot驱动模型和kernel中的设备驱动模型类似。</p>
+<h2 id="32为什么要有驱动模型呢">
+  3.2、为什么要有驱动模型呢
+  <a class="anchor" href="#32%e4%b8%ba%e4%bb%80%e4%b9%88%e8%a6%81%e6%9c%89%e9%a9%b1%e5%8a%a8%e6%a8%a1%e5%9e%8b%e5%91%a2">#</a>
+</h2>
+<blockquote>
+<p>无论是Linux还是Uboot，一个新对象的产生必定有其要解决的问题，驱动模型也不例外！</p>
+</blockquote>
+<ul>
+<li><strong>提高代码的可重用性</strong>：为了能够使代码在不同硬件平台，不同体系架构下运行，必须要最大限度的提高代码的可重用性。</li>
+<li><strong>高内聚，低耦合</strong>：分层的思想也是为了达到这一目标，低耦合体现在对外提供统一的抽象访问接口，高内聚将相关度紧密的集中抽象实现。</li>
+<li><strong>便于管理</strong>：在不断发展过程中，硬件设备越来越多，驱动程序也越来越多，为了更好的管理驱动，也需要一套优秀的驱动架构！</li>
+</ul>
+<h2 id="33如何使用uboot的dm模型">
+  3.3、如何使用uboot的DM模型
+  <a class="anchor" href="#33%e5%a6%82%e4%bd%95%e4%bd%bf%e7%94%a8uboot%e7%9a%84dm%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<blockquote>
+<p>DM模型的使用，可以通过menuconfig来配置。</p>
+<p><code>make menuconfig</code></p>
+</blockquote>
+<h3 id="menuconfig配置全局dm模型">
+  ①：menuconfig配置全局DM模型
+  <a class="anchor" href="#menuconfig%e9%85%8d%e7%bd%ae%e5%85%a8%e5%b1%80dm%e6%a8%a1%e5%9e%8b">#</a>
+</h3>
+<pre tabindex="0"><code>Device Drivers -&gt;  Generic Driver Options -&gt; Enable Driver Model  
+</code></pre><p>通过上面的路径来打开<code>Driver Model</code>模型，最终配置在<code>.config</code>文件中，<code>CONFIG_DM=y</code></p>
+<h3 id="指定某个驱动的dm模型">
+  ②：指定某个驱动的DM模型
+  <a class="anchor" href="#%e6%8c%87%e5%ae%9a%e6%9f%90%e4%b8%aa%e9%a9%b1%e5%8a%a8%e7%9a%84dm%e6%a8%a1%e5%9e%8b">#</a>
+</h3>
+<p>全局的DM模型打开后，我们对于不通的驱动模块，使能或者失能DM功能。如MMC驱动为例：</p>
+<pre tabindex="0"><code>Device Drivers -&gt; MMC Host controller Support -&gt; Enable MMC controllers using Driver Model
+</code></pre><p>最终反映在<code>.config</code>文件中的<code>CONFIG_DM_MMC=y</code></p>
+<p>在对应的驱动中，可以看到判断<code>#if !CONFIG_IS_ENABLED(DM_MMC)</code>，来判断是否打开DM驱动模型。</p>
+<p>在管理驱动的<code>Makefile</code>文件中，也能看到<code>obj-$(CONFIG_$(SPL_)DM_MMC) += mmc-uclass.o</code>，来判断是否将驱动模型加入到编译选项中。</p>
+<p>总之，我们要打开DM模型，最后反映在几个配置信息上：</p>
+<ul>
+<li><code>CONFIG_DM=y</code>，全局DM模型打开</li>
+<li><code>CONFIG_DM_XXX=y</code>，某个驱动的DM模型的打开</li>
+<li>可以通过<code>Kconifg</code>、<code>Makefile</code>来查看对应宏的编译情况</li>
+</ul>
+<p><img src="https://i.loli.net/2021/12/02/dXOn3fe91FZQWzq.jpg" alt="img" /></p>
+<h2 id="34dm模型数据结构">
+  3.4、DM模型数据结构
+  <a class="anchor" href="#34dm%e6%a8%a1%e5%9e%8b%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84">#</a>
+</h2>
+<p>要想了解DM模型整套驱动框架，我们必须先了解它的一砖一瓦！也就是组成驱动框架的各个数据结构。</p>
+<h3 id="-global_data">
+  ① global_data
+  <a class="anchor" href="#-global_data">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> global_data {
+...
+<span style="color:#ff79c6">#ifdef CONFIG_DM
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> udevice	<span style="color:#ff79c6">*</span>dm_root;	<span style="color:#6272a4">/* Root instance for Driver Model */</span>
+    <span style="color:#ff79c6">struct</span> udevice	<span style="color:#ff79c6">*</span>dm_root_f;	<span style="color:#6272a4">/* Pre-relocation root instance */</span>
+    <span style="color:#ff79c6">struct</span> list_head uclass_root;	<span style="color:#6272a4">/* Head of core tree */</span>
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>...
+}
+</code></pre></div><p><code>global_data</code>，管理着整个Uboot的全局变量，其中<code>dm_root</code>，<code>dm_root_f</code>，<code>uclass_root</code>用来管理整个DM模型。这几个变量代表什么意思呢？</p>
+<ul>
+<li><code>dm_root</code>：DM模型的根设备</li>
+<li><code>dm_root_f</code>：重定向前的根设备</li>
+<li><code>uclass_root</code>：<code>uclass</code>链表的头</li>
+</ul>
+<p>这几个变量，最终要的作用就是：管理整个模型中的<code>udevice</code>设备信息和<code>uclass</code>驱动类。</p>
+<h3 id="-uclass">
+  ② uclass
+  <a class="anchor" href="#-uclass">#</a>
+</h3>
+<p>我们首先看一下<code>uclass</code>这个结构体</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct uclass - a U-Boot drive class, collecting together similar drivers
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * A uclass provides an interface to a particular function, which is
+</span><span style="color:#6272a4"> * implemented by one or more drivers. Every driver belongs to a uclass even
+</span><span style="color:#6272a4"> * if it is the only driver in that uclass. An example uclass is GPIO, which
+</span><span style="color:#6272a4"> * provides the ability to change read inputs, set and clear outputs, etc.
+</span><span style="color:#6272a4"> * There may be drivers for on-chip SoC GPIO banks, I2C GPIO expanders and
+</span><span style="color:#6272a4"> * PMIC IO lines, all made available in a unified way through the uclass.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * @priv: Private data for this uclass
+</span><span style="color:#6272a4"> * @uc_drv: The driver for the uclass itself, not to be confused with a
+</span><span style="color:#6272a4"> * &#39;struct driver&#39;
+</span><span style="color:#6272a4"> * @dev_head: List of devices in this uclass (devices are attached to their
+</span><span style="color:#6272a4"> * uclass when their bind method is called)
+</span><span style="color:#6272a4"> * @sibling_node: Next uclass in the linked list of uclasses
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">struct</span> uclass {
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>priv;								<span style="color:#6272a4">//uclass的私有数据
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> uclass_driver <span style="color:#ff79c6">*</span>uc_drv;			<span style="color:#6272a4">//uclass类的操作函数集合
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> list_head dev_head;				<span style="color:#6272a4">//该uclass的所有设备
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> list_head sibling_node;			<span style="color:#6272a4">//下一个uclass的节点
+</span><span style="color:#6272a4"></span>};
+</code></pre></div><p>根据注释，我们就可以了解到，<code>uclass</code>相当于老师，管理着==对应某一个类别下==的所有的<code>udevice</code>。</p>
+<blockquote>
+<p>例如：一个IIC驱动程序，其驱动程序框架是一致的，只有一种，但是IIC驱动的设备可以有很多，如EEPROM，MCU6050等；</p>
+<p>所有在这里呢，<code>dev_head</code>链表就是用来管理该驱动类下的所有的设备。</p>
+</blockquote>
+<p><strong>总结：</strong><code>uclass</code>，来管理该类型下的所有设备，并且有对应的<code>uclass_driver</code>驱动。</p>
+<ul>
+<li>
+<h4 id="定义">
+  定义
+  <a class="anchor" href="#%e5%ae%9a%e4%b9%89">#</a>
+</h4>
+</li>
+</ul>
+<p><code>uclass</code>是<code>uboot</code>自动生成的，并且不是所有<code>uclass</code>都会生成，有对应<code>uclass_driver</code>并且有被<code>udevice</code>匹配到的<code>uclass</code>才会生成。</p>
+<ul>
+<li>
+<h4 id="存放">
+  存放
+  <a class="anchor" href="#%e5%ad%98%e6%94%be">#</a>
+</h4>
+</li>
+</ul>
+<p>所有生成的uclass都会被挂载<code>gd-&gt;uclass_root</code>链表上。</p>
+<ul>
+<li>
+<h4 id="相关api">
+  相关API
+  <a class="anchor" href="#%e7%9b%b8%e5%85%b3api">#</a>
+</h4>
+</li>
+</ul>
+<blockquote>
+<p>直接遍历链表<code>gd-&gt;uclass_root</code>链表并且根据<code>uclass_id</code>来获取到相应的<code>uclass</code>。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get</span>(<span style="color:#ff79c6">enum</span> uclass_id key, <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">**</span>ucp);
+<span style="color:#6272a4">// 从gd-&gt;uclass_root链表获取对应的ucla ss
+</span></code></pre></div><h3 id="-uclass_driver">
+  ③ uclass_driver
+  <a class="anchor" href="#-uclass_driver">#</a>
+</h3>
+<p>正如上面，我们看到了<code>uclass</code>类所包含<code>uclass_driver</code>结构体，<code>uclass_driver</code>正如其名，它就是<code>uclass</code>的驱动程序。其主要作用是：为<code>uclass</code>提供统一管理的接口，结构体如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct uclass_driver - Driver for the uclass
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * A uclass_driver provides a consistent interface to a set of related
+</span><span style="color:#6272a4"> * drivers.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">struct</span> uclass_driver {
+    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name; <span style="color:#6272a4">// 该uclass_driver的命令
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">enum</span> uclass_id id; <span style="color:#6272a4">// 对应的uclass id
+</span><span style="color:#6272a4"></span><span style="color:#6272a4">/* 以下函数指针主要是调用时机的区别 */</span>
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>post_bind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在udevice被绑定到该uclass之后调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>pre_unbind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在udevice被解绑出该uclass之前调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>pre_probe)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在该uclass的一个udevice进行probe之前调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>post_probe)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在该uclass的一个udevice进行probe之后调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>pre_remove)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);<span style="color:#6272a4">// 在该uclass的一个udevice进行remove之前调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>child_post_bind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在该uclass的一个udevice的一个子设备被绑定到该udevice之后调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>child_pre_probe)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev); <span style="color:#6272a4">// 在该uclass的一个udevice的一个子设备进行probe之前调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>init)(<span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">*</span>class); <span style="color:#6272a4">// 安装该uclass的时候调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>destroy)(<span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">*</span>class); <span style="color:#6272a4">// 销毁该uclass的时候调用
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> priv_auto_alloc_size; <span style="color:#6272a4">// 需要为对应的uclass分配多少私有数据
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> per_device_auto_alloc_size; <span style="color:#6272a4">//
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> per_device_platdata_auto_alloc_size; <span style="color:#6272a4">//
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> per_child_auto_alloc_size; <span style="color:#6272a4">//
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> per_child_platdata_auto_alloc_size;  <span style="color:#6272a4">//
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>ops; <span style="color:#6272a4">//操作集合
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">uint32_t</span> flags;   <span style="color:#6272a4">// 标识为
+</span><span style="color:#6272a4"></span>};
+</code></pre></div><ul>
+<li>
+<h4 id="定义-1">
+  定义
+  <a class="anchor" href="#%e5%ae%9a%e4%b9%89-1">#</a>
+</h4>
+</li>
+</ul>
+<p><code>uclass_driver</code>主要通过<code>UCLASS_DRIVER</code>来定义，这里就简单说明一下底层代码，耐心看哦！</p>
+<blockquote>
+<p>下面以pinctrl为例</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">UCLASS_DRIVER(pinctrl) <span style="color:#ff79c6">=</span> {
+    .id <span style="color:#ff79c6">=</span> UCLASS_PINCTRL,
+    .post_bind <span style="color:#ff79c6">=</span> pinctrl_post_bind,
+    .flags <span style="color:#ff79c6">=</span> DM_UC_FLAG_SEQ_ALIAS,
+    .name <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;pinctrl&#34;</span>,
+};
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/* Declare a new uclass_driver */</span>
+<span style="color:#ff79c6">#define UCLASS_DRIVER(__name)						\
+</span><span style="color:#ff79c6">    ll_entry_declare(struct uclass_driver, __name, uclass)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ll_entry_declare(_type, _name, _list)				\
+</span><span style="color:#ff79c6">    _type _u_boot_list_2_##_list##_2_##_name __aligned(4)		\
+</span><span style="color:#ff79c6">            __attribute__((unused,				\
+</span><span style="color:#ff79c6">            section(&#34;.u_boot_list_2_&#34;#_list&#34;_2_&#34;#_name)))
+</span></code></pre></div><p><strong>上面基本上就是我们的底层代码了，稍微有点绕，但是也不难！我们只需要将宏进行替换就行了！</strong></p>
+<p>通过上面的定义，我们替换掉宏之后，最终得到的定义如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> uclass_driver _u_boot_list_2_uclass_2_pinctrl <span style="color:#ff79c6">=</span> {
+    .id <span style="color:#ff79c6">=</span> UCLASS_PINCTRL,
+    .post_bind <span style="color:#ff79c6">=</span> pinctrl_post_bind,
+    .flags <span style="color:#ff79c6">=</span> DM_UC_FLAG_SEQ_ALIAS,
+    .name <span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;pinctrl&#34;</span>,
+}
+<span style="color:#6272a4">//同时存放在段._u_boot_list_2_uclass_2_pinctrl中，也就是section段的内容
+</span></code></pre></div><ul>
+<li>
+<h4 id="存放-1">
+  存放
+  <a class="anchor" href="#%e5%ad%98%e6%94%be-1">#</a>
+</h4>
+</li>
+</ul>
+<p>由上面结构体可得，其定义之后都被存放在了段<code>._u_boot_list_2_uclass_2_pinctrl</code>中，那么去哪里可以看到呢？</p>
+<p>在<code>u-boot.map</code>文件中搜索，<code>._u_boot_list_2_uclass_2_pinctrl</code>，就可以查到程序中定义的所有驱动程序。</p>
+<p>这里相信大家会有疑问，为什么是<code>uclass_2</code>呢？我们大概看一下，也会看到<code>uclass_1</code>和<code>uclass_3</code>，这两个代表什么呢？往下看！</p>
+<p><img src="https://s2.loli.net/2022/01/12/QGf5hjwN1Dvcd7H.png" alt="image-20220112085428516" /></p>
+<ul>
+<li>
+<h4 id="相关api-1">
+  相关API
+  <a class="anchor" href="#%e7%9b%b8%e5%85%b3api-1">#</a>
+</h4>
+</li>
+</ul>
+<blockquote>
+<p>想要获取uclass_driver需要先获取uclass_driver table。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> uclass_driver <span style="color:#ff79c6">*</span>uclass <span style="color:#ff79c6">=</span>
+        ll_entry_start(<span style="color:#ff79c6">struct</span> uclass_driver, uclass); 
+<span style="color:#6272a4">// 会根据.u_boot_list_2_uclass_1的段地址来得到uclass_driver table的地址
+</span><span style="color:#6272a4"></span>
+    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">int</span> n_ents <span style="color:#ff79c6">=</span> ll_entry_count(<span style="color:#ff79c6">struct</span> uclass_driver, uclass);
+<span style="color:#6272a4">// 获得uclass_driver table的长度
+</span><span style="color:#6272a4"></span>
+<span style="color:#ff79c6">struct</span> uclass_driver <span style="color:#ff79c6">*</span>lists_uclass_lookup(<span style="color:#ff79c6">enum</span> uclass_id id)
+<span style="color:#6272a4">// 从uclass_driver table中获取uclass id为id的uclass_driver。
+</span></code></pre></div><p>正如注释描述，上文中提到的<code>uclass_1</code>和<code>uclass_3</code>起到定位作用，用于计算<code>uclass_2</code>的长度！</p>
+<p>上述的API，主要用于根据<code>uclass_id</code>来查找到对应的<code>uclass_driver</code>，进而操作对应的<code>uclass</code>下的<code>udevice</code>。</p>
+<h3 id="-uclass_id">
+  ④ uclass_id
+  <a class="anchor" href="#-uclass_id">#</a>
+</h3>
+<p>我们在<code>uclass_driver</code>中，看到一个<code>uclass_id</code>类型，这种类型与<code>uclass</code>有什么关系呢？</p>
+<p>我们知道，<code>uclass</code>代表驱动的一个类别，<code>uclass_driver</code>是<code>uclass</code>的驱动程序，为<code>uclass</code>提供统一操作接口。而对于不同类型的驱动，就需要<code>uclass_id</code>来区分了！</p>
+<p>事实上，每一种类型的设备<code>uclass</code>都有唯一对应的<code>uclass_id</code>，贯穿设备模型，也是<code>udevice</code>与<code>uclass</code>相关联的关键之处。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">enum</span> uclass_id {
+    <span style="color:#6272a4">/* These are used internally by driver model */</span>
+    UCLASS_ROOT <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>,
+    UCLASS_DEMO,
+    UCLASS_TEST,
+    UCLASS_TEST_FDT,
+    UCLASS_TEST_BUS,
+    UCLASS_TEST_PROBE,
+......
+    <span style="color:#6272a4">/* U-Boot uclasses start here - in alphabetical order */</span>
+    UCLASS_ACPI_PMC,	<span style="color:#6272a4">/* (x86) Power-management controller (PMC) */</span>
+    UCLASS_ADC,		<span style="color:#6272a4">/* Analog-to-digital converter */</span>
+    UCLASS_AHCI,		<span style="color:#6272a4">/* SATA disk controller */</span>
+    UCLASS_AUDIO_CODEC,	<span style="color:#6272a4">/* Audio codec with control and data path */</span>
+    UCLASS_AXI,		<span style="color:#6272a4">/* AXI bus */</span>
+    UCLASS_BLK,		<span style="color:#6272a4">/* Block device */</span>
+    UCLASS_BOARD,		<span style="color:#6272a4">/* Device information from hardware */</span>
+......
+};
+</code></pre></div><p><strong>在这里，我们就把他当作一个设备识别的标志即可！</strong></p>
+<blockquote>
+<p>最后，压轴的两个结构体出来了，也是DM模型最终操作的对象。</p>
+</blockquote>
+<h3 id="-udevice">
+  ⑤ udevice
+  <a class="anchor" href="#-udevice">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct udevice - An instance of a driver
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * This holds information about a device, which is a driver bound to a
+</span><span style="color:#6272a4"> * particular port or peripheral (essentially a driver instance).
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">struct</span> udevice {
+    <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>driver;		<span style="color:#6272a4">//device 对应的driver
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name;					<span style="color:#6272a4">//device 的名称
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>platdata;
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>parent_platdata;
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>uclass_platdata;
+    ofnode node;						<span style="color:#6272a4">//设备树节点
+</span><span style="color:#6272a4"></span>    ulong driver_data;
+    <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>parent;				<span style="color:#6272a4">//父设备
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>priv;							<span style="color:#6272a4">// 私有数据的指针
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">*</span>uclass;				<span style="color:#6272a4">//驱动所属的uclass
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>uclass_priv;
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>parent_priv;
+    <span style="color:#ff79c6">struct</span> list_head uclass_node;
+    <span style="color:#ff79c6">struct</span> list_head child_head;
+    <span style="color:#ff79c6">struct</span> list_head sibling_node;
+    <span style="color:#8be9fd">uint32_t</span> flags;
+    <span style="color:#8be9fd">int</span> req_seq;
+    <span style="color:#8be9fd">int</span> seq;
+<span style="color:#ff79c6">#ifdef CONFIG_DEVRES
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> list_head devres_head;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>};
+</code></pre></div><ul>
+<li>
+<h4 id="定义-2">
+  定义
+  <a class="anchor" href="#%e5%ae%9a%e4%b9%89-2">#</a>
+</h4>
+<ul>
+<li>**硬编码：**代码中调用<code>U_BOOT_DEVICE</code>宏来定义设备资源，实际为一个设备实例。</li>
+<li>**设备树：**将设备描述信息写在对应的DTS文件中，然后编译成DTB，最终由uboot解析设备树后动态生成的。</li>
+<li><strong>传参方式：通过命令行或者接口将设备资源信息传递进来，非常灵活。</strong></li>
+</ul>
+</li>
+<li>
+<h4 id="存放-2">
+  存放
+  <a class="anchor" href="#%e5%ad%98%e6%94%be-2">#</a>
+</h4>
+</li>
+</ul>
+<p><code>udevice</code>是最基础的一个设备单元，我们把它作为一个独立的个体，上层所有的操作，最终都与该结构体有关。</p>
+<p>我们创建一个设备后，为了服从统一的管理，该结构体会被连接到DM模型下，并入到机制中。那么<code>udevice</code>会被连接到哪里呢？</p>
+<ul>
+<li>将<code>udevice</code>连接到对应的<code>uclass</code>中，<code>uclass</code>主要用来管理着同一类的驱动</li>
+<li>除此之外，有父子关系的<code>udevice</code>，还会连接到<code>udevice-&gt;child_head</code>链表下，方便调用</li>
+</ul>
+<p><strong>大概可以理解为下面这样：</strong></p>
+<p><img src="https://s2.loli.net/2022/01/10/5NemOR1aPMhjFA3.png" alt="image-20220110200005987" /></p>
+<ul>
+<li>
+<h4 id="相关api-2">
+  相关API
+  <a class="anchor" href="#%e7%9b%b8%e5%85%b3api-2">#</a>
+</h4>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define uclass_foreach_dev(pos, uc) \
+</span><span style="color:#ff79c6">    list_for_each_entry(pos, &amp;uc-&gt;dev_head, uclass_node)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define uclass_foreach_dev_safe(pos, next, uc)  \
+</span><span style="color:#ff79c6">    list_for_each_entry_safe(pos, next, &amp;uc-&gt;dev_head, uclass_node)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get_device</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#8be9fd">int</span> index, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp); <span style="color:#6272a4">// 通过索引从uclass中获取udevice
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get_device_by_name</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name, <span style="color:#6272a4">// 通过设备名从uclass中获取udevice
+</span><span style="color:#6272a4"></span>                  <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get_device_by_seq</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#8be9fd">int</span> seq, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get_device_by_of_offset</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#8be9fd">int</span> node,
+                   <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get_device_by_phandle</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>parent,
+                 <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_first_device</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_first_device_err</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_next_device</span>(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_resolve_seq</span>(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+</code></pre></div><p>这些相关的API，主要作用就是根据<code>uclass_id</code>，查找对应的<code>uclass</code>，然后根据索引值或者名称，来查找到对应的<code>udevice</code></p>
+<h3 id="-driver">
+  ③ driver
+  <a class="anchor" href="#-driver">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> driver {
+    <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name;							<span style="color:#6272a4">//驱动名称
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">enum</span> uclass_id id;					<span style="color:#6272a4">//驱动所对应的uclass_id	
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> udevice_id <span style="color:#ff79c6">*</span>of_match;	<span style="color:#6272a4">//匹配函数
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>bind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);	<span style="color:#6272a4">//绑定函数
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>probe)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);	<span style="color:#6272a4">//注册函数
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>remove)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>unbind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>ofdata_to_platdata)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>child_post_bind)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>child_pre_probe)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> (<span style="color:#ff79c6">*</span>child_post_remove)(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev);
+    <span style="color:#8be9fd">int</span> priv_auto_alloc_size;
+    <span style="color:#8be9fd">int</span> platdata_auto_alloc_size;
+    <span style="color:#8be9fd">int</span> per_child_auto_alloc_size;
+    <span style="color:#8be9fd">int</span> per_child_platdata_auto_alloc_size;
+    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>ops;	<span style="color:#6272a4">/* driver-specific operations */</span>
+    <span style="color:#8be9fd">uint32_t</span> flags;
+<span style="color:#ff79c6">#if CONFIG_IS_ENABLED(ACPIGEN)
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> acpi_ops <span style="color:#ff79c6">*</span>acpi_ops;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>};
+</code></pre></div><ul>
+<li>
+<h4 id="定义-3">
+  定义
+  <a class="anchor" href="#%e5%ae%9a%e4%b9%89-3">#</a>
+</h4>
+</li>
+</ul>
+<p><code>driver</code>对象，主要通过<code>U_BOOT_DRIVER</code>来定义</p>
+<blockquote>
+<p>以pinctrl来举例</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">U_BOOT_DRIVER(xxx_pinctrl) <span style="color:#ff79c6">=</span> {
+    .name		<span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;xxx_pinctrl&#34;</span>,
+    .id		<span style="color:#ff79c6">=</span> UCLASS_PINCTRL,
+    .of_match	<span style="color:#ff79c6">=</span> arobot_pinctrl_match,
+    .priv_auto_alloc_size <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">sizeof</span>(<span style="color:#ff79c6">struct</span> xxx_pinctrl),
+    .ops		<span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>arobot_pinctrl_ops,
+    .probe		<span style="color:#ff79c6">=</span> arobot_v2s_pinctrl_probe,
+    .remove 	<span style="color:#ff79c6">=</span> arobot_v2s_pinctrl_remove,
+};
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/* Declare a new U-Boot driver */</span>
+<span style="color:#ff79c6">#define U_BOOT_DRIVER(__name)						\
+</span><span style="color:#ff79c6">    ll_entry_declare(struct driver, __name, driver)
+</span><span style="color:#ff79c6"></span>
+
+<span style="color:#ff79c6">#define ll_entry_declare(_type, _name, _list)				\
+</span><span style="color:#ff79c6">    _type _u_boot_list_2_##_list##_2_##_name __aligned(4)		\
+</span><span style="color:#ff79c6">            __attribute__((unused,				\
+</span><span style="color:#ff79c6">            section(&#34;.u_boot_list_2_&#34;#_list&#34;_2_&#34;#_name)))
+</span></code></pre></div><p><strong>通过上面的定义，最终我们定义的结构体如下：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> driver _u_boot_list_2_driver_2_xxx_pinctrl <span style="color:#ff79c6">=</span> {
+    .name		<span style="color:#ff79c6">=</span> <span style="color:#f1fa8c">&#34;xxx_pinctrl&#34;</span>,
+    .id		<span style="color:#ff79c6">=</span> UCLASS_PINCTRL,
+    .of_match	<span style="color:#ff79c6">=</span> arobot_pinctrl_match,
+    .priv_auto_alloc_size <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">sizeof</span>(<span style="color:#ff79c6">struct</span> xxx_pinctrl),
+    .ops		<span style="color:#ff79c6">=</span> <span style="color:#ff79c6">&amp;</span>arobot_pinctrl_ops,
+    .probe		<span style="color:#ff79c6">=</span> arobot_v2s_pinctrl_probe,
+    .remove 	<span style="color:#ff79c6">=</span> arobot_v2s_pinctrl_remove,
+}
+<span style="color:#6272a4">//同时存放在段._u_boot_list_2_driver_2_xxx_pinctrl中
+</span></code></pre></div><ul>
+<li>
+<h4 id="存放-3">
+  存放
+  <a class="anchor" href="#%e5%ad%98%e6%94%be-3">#</a>
+</h4>
+</li>
+</ul>
+<p>由上面结构体可得，其定义之后都被存放在了段<code>._u_boot_list_2_driver_2_xxx</code>中，那么去哪里可以看到呢？</p>
+<p>在<code>u-boot.map</code>文件中搜索，<code>._u_boot_list_2_driver</code>，就可以查到程序中定义的所有驱动程序。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202203310824866.png" alt="image-20220331082429756" /></p>
+<p>最终，所有driver结构体以列表的形式被放在<code>.u_boot_list_2_driver_1</code>和<code>.u_boot_list_2_driver_3</code>的区间中。</p>
+<ul>
+<li>
+<h4 id="相关api-3">
+  相关API
+  <a class="anchor" href="#%e7%9b%b8%e5%85%b3api-3">#</a>
+</h4>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"> 
+<span style="color:#6272a4">/*先获取driver table 表*/</span>
+<span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>drv <span style="color:#ff79c6">=</span>
+        ll_entry_start(<span style="color:#ff79c6">struct</span> driver, driver);		<span style="color:#6272a4">// 会根据.u_boot_list_2_driver_1的段地址来得到uclass_driver table的地址
+</span><span style="color:#6272a4"></span>  <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">int</span> n_ents <span style="color:#ff79c6">=</span> ll_entry_count(<span style="color:#ff79c6">struct</span> driver, driver);		<span style="color:#6272a4">// 通过.u_boot_list_2_driver_3的段地址 减去 .u_boot_list_2_driver_1的段地址 获得driver table的长度
+</span><span style="color:#6272a4"></span>
+<span style="color:#6272a4">/*遍历所有的driver*/</span>
+<span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>lists_driver_lookup_name(<span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name)	<span style="color:#6272a4">// 从driver table中获取名字为name的driver。
+</span></code></pre></div><p>正如注释描述，上文中提到的<code>driver_1</code>和<code>driver_3</code>起到定位作用，用于计算<code>driver_2</code>的长度！</p>
+<p>上述的API，主要用于根据<code>name</code>来查找到对应的<code>driver</code>驱动程序。</p>
+<p>综上，DM模型相关的数据结构介绍完毕，整体设计的架构如下：</p>
+<p><img src="https://s2.loli.net/2022/01/12/I6etk9T2aZyfSvK.png" alt="image-20220112090637141" /></p>
+<p>正如红线部分，如何实现<code>driver</code>和<code>udevice</code>的绑定、<code>uclass</code>、<code>uclass_driver</code>的绑定呢？</p>
+<p>要想真正搞懂这些，我们不得不去深入到DM的初始化流程。</p>
+<h2 id="35dm驱动模型之上帝视角">
+  3.5、DM驱动模型之上帝视角
+  <a class="anchor" href="#35dm%e9%a9%b1%e5%8a%a8%e6%a8%a1%e5%9e%8b%e4%b9%8b%e4%b8%8a%e5%b8%9d%e8%a7%86%e8%a7%92">#</a>
+</h2>
+<blockquote>
+<p>对于DM模型，我们站在上帝视角来观察整套模型框架是如何的！</p>
+</blockquote>
+<p>从<strong>对象设计</strong>的角度来看，Uboot的驱动模型可以分为<strong>静态形式和动态形式</strong>。</p>
+<ul>
+<li>
+<p>**静态模式：**对象是离散的，和其他对象分隔开，减小对象复杂度，利于模块化设计。</p>
+</li>
+<li>
+<p><strong>动态模式：<strong>运行态表达形式的对象是</strong>把所有的静态对象组合成层次视图，有清晰的数据关联视图</strong></p>
+</li>
+</ul>
+<p><strong>在静态模式下</strong>，驱动模型主要将对象分为<code>udevice</code>和<code>driver</code>，即设备和驱动程序，两个就像火车的两条轨道，永远也不会产生交集，驱动和设备可以想注册多少就注册多少。</p>
+<p><img src="https://s2.loli.net/2022/01/10/OYR9UD3f26J8KzX.png" alt="image-20220110112235895" /></p>
+<p>我们看一下<code>udevice</code>的描述：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct udevice - An instance of a driver
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * This holds information about a device, which is a driver bound to a
+</span><span style="color:#6272a4"> * particular port or peripheral (essentially a driver instance).
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> */</span>
+</code></pre></div><p><code>udevice</code>是<code>driver</code>的一个实例，两个不相交的铁轨，终归也是想要发生爱情的。那么如何让其产生交集呢？这就是动态模式需要做的工作了！</p>
+<p>**在动态模式下，**引入了<code>uclass</code>和<code>uclass_driver</code>两个数据结构，实现了对<code>udevice</code>和<code>driver</code>的管理。</p>
+<p>看一下<code>uclass</code>和<code>uclass_driver</code>两个结构体的说明：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct uclass - a U-Boot drive class, collecting together similar drivers
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> */</span>
+
+
+<span style="color:#6272a4">/**
+</span><span style="color:#6272a4"> * struct uclass_driver - Driver for the uclass
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * A uclass_driver provides a consistent interface to a set of related
+</span><span style="color:#6272a4"> * drivers.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> */</span>
+</code></pre></div><ul>
+<li>**uclass：**设备组公共属性对象，作为<code>udevice</code>的一个属性，主要用来管理某个驱动类的所有的设备。</li>
+<li>**uclass_driver：**设备组公共行为对象，<code>uclass</code>的驱动程序，主要将<code>uclass</code>管理的设备和驱动实现绑定、注册，移除等操作。</li>
+</ul>
+<p>通过这两个结构体的引入，可以将毫不相关的<code>udevice</code>是<code>driver</code>关联起来！</p>
+<p><code>udevice</code>与<code>driver</code>的绑定：通过驱动的<code>of_match</code>和<code>compatible</code>属性来配对，绑定。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202201202026789.png" alt="image-20220120202638750" /></p>
+<p><code>udevice</code>与<code>uclass</code>的绑定：<code>udevice</code>内的<code>driver</code>下的<code>uclass_id</code>，来与<code>uclass</code>对应的<code>uclass_driver</code>的<code>uclass_id</code>进行匹配。</p>
+<p><code>uclass</code>与<code>uclass_driver</code>的绑定：已知<code>udevice</code>内的<code>driver</code>下的<code>uclass_id</code>，创建<code>uclass</code>的同时，通过``uclass_id<code>找到对应的</code>uclass_driver<code>对象，然后将</code>uclass_driver<code>绑定到</code>uclass`上！</p>
+<p><strong>整体结构如下：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202201202034015.png" alt="image-20220120203453935" /></p>
+<p><img src="https://img-blog.csdn.net/20161119201742692" alt="DM下的接口调用流程" /></p>
+<h2 id="36dm模型udevice与driver绑定">
+  3.6、DM模型——Udevice与driver绑定
+  <a class="anchor" href="#36dm%e6%a8%a1%e5%9e%8budevice%e4%b8%8edriver%e7%bb%91%e5%ae%9a">#</a>
+</h2>
+<blockquote>
+<p>相信站在上帝视角看完DM的整体架构，大家都对DM框架有一定了解，下面我们来看看具体的实现细节！</p>
+</blockquote>
+<p>DM的初始化分为两个部分，一个是在<code>relocate</code>重定向之前的初始化：<code>initf_dm</code>，一个是在<code>relocate</code>重定向之后的初始化：<code>initr_dm</code>。</p>
+<p><strong>我们对比这两个函数：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">initf_dm</span>(<span style="color:#8be9fd">void</span>)
+{
+<span style="color:#ff79c6">#if defined(CONFIG_DM) &amp;&amp; CONFIG_VAL(SYS_MALLOC_F_LEN)
+</span><span style="color:#ff79c6"></span>    <span style="color:#8be9fd">int</span> ret;
+
+    bootstage_start(BOOTSTAGE_ID_ACCUM_DM_F, <span style="color:#f1fa8c">&#34;dm_f&#34;</span>);
+    ret <span style="color:#ff79c6">=</span> dm_init_and_scan(<span style="color:#8be9fd;font-style:italic">true</span>);					<span style="color:#6272a4">//这里为true
+</span><span style="color:#6272a4"></span>    bootstage_accum(BOOTSTAGE_ID_ACCUM_DM_F);
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">return</span> ret;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6">#ifdef CONFIG_TIMER_EARLY
+</span><span style="color:#ff79c6"></span>    ret <span style="color:#ff79c6">=</span> dm_timer_init();
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">return</span> ret;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">initr_dm</span>(<span style="color:#8be9fd">void</span>)
+{
+    <span style="color:#8be9fd">int</span> ret;
+
+    <span style="color:#6272a4">/* Save the pre-reloc driver model and start a new one */</span>
+    gd<span style="color:#ff79c6">-&gt;</span>dm_root_f <span style="color:#ff79c6">=</span> gd<span style="color:#ff79c6">-&gt;</span>dm_root;
+    gd<span style="color:#ff79c6">-&gt;</span>dm_root <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+<span style="color:#ff79c6">#ifdef CONFIG_TIMER
+</span><span style="color:#ff79c6"></span>    gd<span style="color:#ff79c6">-&gt;</span>timer <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    bootstage_start(BOOTSTAGE_ID_ACCUM_DM_R, <span style="color:#f1fa8c">&#34;dm_r&#34;</span>);
+    ret <span style="color:#ff79c6">=</span> dm_init_and_scan(<span style="color:#8be9fd;font-style:italic">false</span>);						<span style="color:#6272a4">//这里为false
+</span><span style="color:#6272a4"></span>    bootstage_accum(BOOTSTAGE_ID_ACCUM_DM_R);
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">return</span> ret;
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+
+</code></pre></div><p>两个均调用了<code>dm_init_and_scan</code>这个接口，这两个的关键区别在于参数的不同。</p>
+<ul>
+<li>首先说明一下dts节点中的“<code>u-boot,dm-pre-reloc</code>”属性，当设置了这个属性时，则表示这个设备在<code>relocate</code>之前就需要使用。</li>
+<li>当dm_init_and_scan的参数为<code>true</code>时，只会对带有“<code>u-boot,dm-pre-reloc</code>”属性的节点进行解析。而当参数为<code>false</code>的时候，则会对所有节点都进行解析。</li>
+</ul>
+<p><strong>DM初始化的大体步骤如下：</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202201221340003.png" alt="image-20220122134027436" /></p>
+<blockquote>
+<p>如上程序执行流程图，下面我们详细讲解几个函数。</p>
+</blockquote>
+<h4 id="-dm_init">
+  ① dm_init
+  <a class="anchor" href="#-dm_init">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">dm_init</span>(<span style="color:#8be9fd">bool</span> of_live)
+{
+    <span style="color:#8be9fd">int</span> ret;
+
+    <span style="color:#ff79c6">if</span> (gd<span style="color:#ff79c6">-&gt;</span>dm_root) {
+        dm_warn(<span style="color:#f1fa8c">&#34;Virtual root driver already exists!</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>);
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>EINVAL;
+    }
+    INIT_LIST_HEAD(<span style="color:#ff79c6">&amp;</span>DM_UCLASS_ROOT_NON_CONST);
+
+<span style="color:#ff79c6">#if defined(CONFIG_NEEDS_MANUAL_RELOC)
+</span><span style="color:#ff79c6"></span>    fix_drivers();
+    fix_uclass();
+    fix_devices();
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>
+    ret <span style="color:#ff79c6">=</span> device_bind_by_name(<span style="color:#8be9fd;font-style:italic">NULL</span>, <span style="color:#8be9fd;font-style:italic">false</span>, <span style="color:#ff79c6">&amp;</span>root_info, <span style="color:#ff79c6">&amp;</span>DM_ROOT_NON_CONST);		<span style="color:#6272a4">//查找root_driver驱动，并绑定
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">return</span> ret;
+<span style="color:#ff79c6">#if CONFIG_IS_ENABLED(OF_CONTROL)
+</span><span style="color:#ff79c6"># if CONFIG_IS_ENABLED(OF_LIVE)
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">if</span> (of_live)
+        DM_ROOT_NON_CONST<span style="color:#ff79c6">-&gt;</span>node <span style="color:#ff79c6">=</span> np_to_ofnode(gd<span style="color:#ff79c6">-&gt;</span>of_root);
+    <span style="color:#ff79c6">else</span>
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>        DM_ROOT_NON_CONST<span style="color:#ff79c6">-&gt;</span>node <span style="color:#ff79c6">=</span> offset_to_ofnode(<span style="color:#bd93f9">0</span>);
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    ret <span style="color:#ff79c6">=</span> device_probe(DM_ROOT_NON_CONST);										<span style="color:#6272a4">//probe激活root_driver驱动
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">return</span> ret;
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+</code></pre></div><p><code>dm_init</code>这个函数，名字起的容易让人误导，这个函数主要做的就是初始化了根设备<code>root_driver</code>，根据这个跟设备，初始化了<code>global_data</code>中的<code>dm_root</code>、<code>uclass_root</code>。</p>
+<h4 id="-lists_bind_fdt">
+  ② lists_bind_fdt
+  <a class="anchor" href="#-lists_bind_fdt">#</a>
+</h4>
+<blockquote>
+<p>我们通常会使用设备树来定义各种设备，所以这个函数才是主角。</p>
+</blockquote>
+<p>这个函数主要用来查找子设备，并且根据查找到的子设备，进而查找对应驱动进行绑定！即：实现了<code>driver</code>和<code>device</code>的绑定。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">lists_bind_fdt</span>(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>parent, ofnode node, <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">**</span>devp,
+           <span style="color:#8be9fd">bool</span> pre_reloc_only)
+{
+    <span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>driver <span style="color:#ff79c6">=</span> ll_entry_start(<span style="color:#ff79c6">struct</span> driver, driver);				<span style="color:#6272a4">//获得驱动列表的起始地址
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">int</span> n_ents <span style="color:#ff79c6">=</span> ll_entry_count(<span style="color:#ff79c6">struct</span> driver, driver);					<span style="color:#6272a4">//获得驱动列表的总数量
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> udevice_id <span style="color:#ff79c6">*</span>id;
+    <span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>entry;
+    <span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev;
+    <span style="color:#8be9fd">bool</span> found <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">false</span>;
+    <span style="color:#ff79c6">const</span> <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>name, <span style="color:#ff79c6">*</span>compat_list, <span style="color:#ff79c6">*</span>compat;
+    <span style="color:#8be9fd">int</span> compat_length, i;
+    <span style="color:#8be9fd">int</span> result <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+    <span style="color:#8be9fd">int</span> ret <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+
+    <span style="color:#ff79c6">if</span> (devp)
+        <span style="color:#ff79c6">*</span>devp <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+    name <span style="color:#ff79c6">=</span> ofnode_get_name(node);
+    log_debug(<span style="color:#f1fa8c">&#34;bind node %s</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, name);
+
+    compat_list <span style="color:#ff79c6">=</span> ofnode_get_property(node, <span style="color:#f1fa8c">&#34;compatible&#34;</span>, <span style="color:#ff79c6">&amp;</span>compat_length);		<span style="color:#6272a4">//得到compatible属性，用于匹配driver驱动
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>compat_list) {
+        <span style="color:#ff79c6">if</span> (compat_length <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">-</span>FDT_ERR_NOTFOUND) {
+            log_debug(<span style="color:#f1fa8c">&#34;Device &#39;%s&#39; has no compatible string</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>,
+                  name);
+            <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+        }
+
+        dm_warn(<span style="color:#f1fa8c">&#34;Device tree error at node &#39;%s&#39;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, name);
+        <span style="color:#ff79c6">return</span> compat_length;
+    }
+
+    <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">     * Walk through the compatible string list, attempting to match each
+</span><span style="color:#6272a4">     * compatible string in order such that we match in order of priority
+</span><span style="color:#6272a4">     * from the first string to the last.
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#ff79c6">for</span> (i <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>; i <span style="color:#ff79c6">&lt;</span> compat_length; i <span style="color:#ff79c6">+=</span> strlen(compat) <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">1</span>) {
+        compat <span style="color:#ff79c6">=</span> compat_list <span style="color:#ff79c6">+</span> i;
+        log_debug(<span style="color:#f1fa8c">&#34;   - attempt to match compatible string &#39;%s&#39;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>,
+              compat);
+
+        <span style="color:#ff79c6">for</span> (entry <span style="color:#ff79c6">=</span> driver; entry <span style="color:#ff79c6">!=</span> driver <span style="color:#ff79c6">+</span> n_ents; entry<span style="color:#ff79c6">++</span>) {				<span style="color:#6272a4">//循环判断所有驱动是否匹配	
+</span><span style="color:#6272a4"></span>            ret <span style="color:#ff79c6">=</span> driver_check_compatible(entry<span style="color:#ff79c6">-&gt;</span>of_match, <span style="color:#ff79c6">&amp;</span>id,
+                              compat);
+            <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>ret)
+                <span style="color:#ff79c6">break</span>;
+        }
+        <span style="color:#ff79c6">if</span> (entry <span style="color:#ff79c6">==</span> driver <span style="color:#ff79c6">+</span> n_ents)
+            <span style="color:#ff79c6">continue</span>;
+
+        <span style="color:#ff79c6">if</span> (pre_reloc_only) {
+            <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>ofnode_pre_reloc(node) <span style="color:#ff79c6">&amp;&amp;</span>
+                <span style="color:#ff79c6">!</span>(entry<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> DM_FLAG_PRE_RELOC)) {
+                log_debug(<span style="color:#f1fa8c">&#34;Skipping device pre-relocation</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>);
+                <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+            }
+        }
+
+        log_debug(<span style="color:#f1fa8c">&#34;   - found match at &#39;%s&#39;: &#39;%s&#39; matches &#39;%s&#39;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>,
+              entry<span style="color:#ff79c6">-&gt;</span>name, entry<span style="color:#ff79c6">-&gt;</span>of_match<span style="color:#ff79c6">-&gt;</span>compatible,
+              id<span style="color:#ff79c6">-&gt;</span>compatible);
+        ret <span style="color:#ff79c6">=</span> device_bind_with_driver_data(parent, entry, name,
+                           id<span style="color:#ff79c6">-&gt;</span>data, node, <span style="color:#ff79c6">&amp;</span>dev);								<span style="color:#6272a4">//该函数，用于创建udevice对象，并与查找到的driver绑定
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">if</span> (ret <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">-</span>ENODEV) {
+            log_debug(<span style="color:#f1fa8c">&#34;Driver &#39;%s&#39; refuses to bind</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, entry<span style="color:#ff79c6">-&gt;</span>name);
+            <span style="color:#ff79c6">continue</span>;
+        }
+        <span style="color:#ff79c6">if</span> (ret) {
+            dm_warn(<span style="color:#f1fa8c">&#34;Error binding driver &#39;%s&#39;: %d</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, entry<span style="color:#ff79c6">-&gt;</span>name,
+                ret);
+            <span style="color:#ff79c6">return</span> ret;
+        } <span style="color:#ff79c6">else</span> {
+            found <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">true</span>;
+            <span style="color:#ff79c6">if</span> (devp)
+                <span style="color:#ff79c6">*</span>devp <span style="color:#ff79c6">=</span> dev;
+        }
+        <span style="color:#ff79c6">break</span>;
+    }
+
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>found <span style="color:#ff79c6">&amp;&amp;</span> <span style="color:#ff79c6">!</span>result <span style="color:#ff79c6">&amp;&amp;</span> ret <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">-</span>ENODEV)
+        log_debug(<span style="color:#f1fa8c">&#34;No match for node &#39;%s&#39;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, name);
+
+    <span style="color:#ff79c6">return</span> result;
+}
+</code></pre></div><p><code>lists_bind_fdt</code>这个函数，主要用来扫描设备树中的各个节点；</p>
+<p>根据扫描到的<code>udevice</code>设备信息，通过<code>compatible</code>来匹配<code>compatible</code>相同的<code>driver</code>，匹配成功后，就会创建对应的<code>struct udevice</code>结构体，它会同时指向设备资源和driver，这样设备资源和driver就绑定在一起了。</p>
+<h2 id="37dm模型probe探测函数的执行">
+  3.7、DM模型——probe探测函数的执行
+  <a class="anchor" href="#37dm%e6%a8%a1%e5%9e%8bprobe%e6%8e%a2%e6%b5%8b%e5%87%bd%e6%95%b0%e7%9a%84%e6%89%a7%e8%a1%8c">#</a>
+</h2>
+<blockquote>
+<p>上述，完成了DM模型的初始化，但是我们只是建立了<code>driver</code>和<code>udevice</code>的绑定关系，那么何时调用到我们驱动中的<code>probe</code>探测函数呢？<code>uclass</code>与<code>driver</code>又何时匹配的呢？</p>
+</blockquote>
+<p>上文呢，<code>dm_init</code>只是负责初始化并绑定了<code>udevice</code>和<code>driver</code>，那么<code>probe</code>探测函数的执行，当然是在该驱动初始化的时候喽！</p>
+<blockquote>
+<p>下文以mmc驱动为例！其初始化流程如下：</p>
+</blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202201221353293.png" alt="image-20220122135318237" /></p>
+<p>详细代码在这里就不展开来叙述了！</p>
+<p>在MMC驱动初始化后，有没有注意到<code>mmc_probe</code>这个函数，该函数就是间接调用了我们驱动编写的<code>probe</code>函数。</p>
+<p>执行流程在上面已经很清楚了：根据<code>uclass_id</code>，调用``uclass_get_device_by_seq<code>来得到</code>udevice<code>，进而调用</code>device_probe<code>来找到对应驱动的</code>probe`。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">device_probe</span>(<span style="color:#ff79c6">struct</span> udevice <span style="color:#ff79c6">*</span>dev)
+{
+    <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> driver <span style="color:#ff79c6">*</span>drv;
+    <span style="color:#8be9fd">int</span> ret;
+    <span style="color:#8be9fd">int</span> seq;
+
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>dev)
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>EINVAL;
+
+    <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> DM_FLAG_ACTIVATED)
+        <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+
+    drv <span style="color:#ff79c6">=</span> dev<span style="color:#ff79c6">-&gt;</span>driver;													<span style="color:#6272a4">//获取driver
+</span><span style="color:#6272a4"></span>    assert(drv);
+
+    ret <span style="color:#ff79c6">=</span> device_ofdata_to_platdata(dev);
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">goto</span> fail;
+
+    <span style="color:#6272a4">/* Ensure all parents are probed */</span>
+    <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>parent) {													<span style="color:#6272a4">//父设备probe
+</span><span style="color:#6272a4"></span>        ret <span style="color:#ff79c6">=</span> device_probe(dev<span style="color:#ff79c6">-&gt;</span>parent);
+        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+
+        <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">         * The device might have already been probed during
+</span><span style="color:#6272a4">         * the call to device_probe() on its parent device
+</span><span style="color:#6272a4">         * (e.g. PCI bridge devices). Test the flags again
+</span><span style="color:#6272a4">         * so that we don&#39;t mess up the device.
+</span><span style="color:#6272a4">         */</span>
+        <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> DM_FLAG_ACTIVATED)
+            <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+    }
+
+    seq <span style="color:#ff79c6">=</span> uclass_resolve_seq(dev);
+    <span style="color:#ff79c6">if</span> (seq <span style="color:#ff79c6">&lt;</span> <span style="color:#bd93f9">0</span>) {
+        ret <span style="color:#ff79c6">=</span> seq;
+        <span style="color:#ff79c6">goto</span> fail;
+    }
+    dev<span style="color:#ff79c6">-&gt;</span>seq <span style="color:#ff79c6">=</span> seq;
+
+    dev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">|=</span> DM_FLAG_ACTIVATED;
+
+    <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">     * Process pinctrl for everything except the root device, and
+</span><span style="color:#6272a4">     * continue regardless of the result of pinctrl. Don&#39;t process pinctrl
+</span><span style="color:#6272a4">     * settings for pinctrl devices since the device may not yet be
+</span><span style="color:#6272a4">     * probed.
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>parent <span style="color:#ff79c6">&amp;&amp;</span> device_get_uclass_id(dev) <span style="color:#ff79c6">!=</span> UCLASS_PINCTRL)
+        pinctrl_select_state(dev, <span style="color:#f1fa8c">&#34;default&#34;</span>);
+
+    <span style="color:#ff79c6">if</span> (CONFIG_IS_ENABLED(POWER_DOMAIN) <span style="color:#ff79c6">&amp;&amp;</span> dev<span style="color:#ff79c6">-&gt;</span>parent <span style="color:#ff79c6">&amp;&amp;</span>
+        (device_get_uclass_id(dev) <span style="color:#ff79c6">!=</span> UCLASS_POWER_DOMAIN) <span style="color:#ff79c6">&amp;&amp;</span>
+        <span style="color:#ff79c6">!</span>(drv<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> DM_FLAG_DEFAULT_PD_CTRL_OFF)) {
+        ret <span style="color:#ff79c6">=</span> dev_power_domain_on(dev);
+        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+    }
+
+    ret <span style="color:#ff79c6">=</span> uclass_pre_probe_device(dev);
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">goto</span> fail;
+
+    <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>parent <span style="color:#ff79c6">&amp;&amp;</span> dev<span style="color:#ff79c6">-&gt;</span>parent<span style="color:#ff79c6">-&gt;</span>driver<span style="color:#ff79c6">-&gt;</span>child_pre_probe) {
+        ret <span style="color:#ff79c6">=</span> dev<span style="color:#ff79c6">-&gt;</span>parent<span style="color:#ff79c6">-&gt;</span>driver<span style="color:#ff79c6">-&gt;</span>child_pre_probe(dev);
+        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+    }
+
+    <span style="color:#6272a4">/* Only handle devices that have a valid ofnode */</span>
+    <span style="color:#ff79c6">if</span> (dev_of_valid(dev)) {
+        <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">         * Process &#39;assigned-{clocks/clock-parents/clock-rates}&#39;
+</span><span style="color:#6272a4">         * properties
+</span><span style="color:#6272a4">         */</span>
+        ret <span style="color:#ff79c6">=</span> clk_set_defaults(dev, <span style="color:#bd93f9">0</span>);
+        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+    }
+
+    <span style="color:#ff79c6">if</span> (drv<span style="color:#ff79c6">-&gt;</span>probe) {												
+        ret <span style="color:#ff79c6">=</span> drv<span style="color:#ff79c6">-&gt;</span>probe(dev);										<span style="color:#6272a4">//调用驱动的probe
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+    }
+
+    ret <span style="color:#ff79c6">=</span> uclass_post_probe_device(dev);
+    <span style="color:#ff79c6">if</span> (ret)
+        <span style="color:#ff79c6">goto</span> fail_uclass;
+
+    <span style="color:#ff79c6">if</span> (dev<span style="color:#ff79c6">-&gt;</span>parent <span style="color:#ff79c6">&amp;&amp;</span> device_get_uclass_id(dev) <span style="color:#ff79c6">==</span> UCLASS_PINCTRL)
+        pinctrl_select_state(dev, <span style="color:#f1fa8c">&#34;default&#34;</span>);
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+<span style="color:#8be9fd;font-style:italic">fail_uclass</span>:
+    <span style="color:#ff79c6">if</span> (device_remove(dev, DM_REMOVE_NORMAL)) {
+        dm_warn(<span style="color:#f1fa8c">&#34;%s: Device &#39;%s&#39; failed to remove on error path</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>,
+            __func__, dev<span style="color:#ff79c6">-&gt;</span>name);
+    }
+<span style="color:#8be9fd;font-style:italic">fail</span>:
+    dev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;=</span> <span style="color:#ff79c6">~</span>DM_FLAG_ACTIVATED;
+
+    dev<span style="color:#ff79c6">-&gt;</span>seq <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">-</span><span style="color:#bd93f9">1</span>;
+    device_free(dev);
+
+    <span style="color:#ff79c6">return</span> ret;
+}
+</code></pre></div><p><strong>主要工作归纳如下：</strong></p>
+<ul>
+<li>根据<code>udevice</code>获取<code>driver</code></li>
+<li>然后判断是否父设备被<code>probe</code></li>
+<li>对父设备进行probe</li>
+<li>调用driver的probe函数</li>
+</ul>
+<h2 id="38dm模型uclass与uclass_driver绑定">
+  3.8、DM模型——uclass与uclass_driver绑定
+  <a class="anchor" href="#38dm%e6%a8%a1%e5%9e%8buclass%e4%b8%8euclass_driver%e7%bb%91%e5%ae%9a">#</a>
+</h2>
+<blockquote>
+<p>上述完成了<code>driver</code>的<code>probe</code>函数调用，基本底层都已经准备好了，<code>uclass</code>何时与<code>uclass_driver</code>绑定，给上层提供统一的API呢？</p>
+</blockquote>
+<p><code>uclass</code>与<code>uclass_driver</code>绑定，也是在驱动<code>probe</code>之后，确保该驱动存在，设备存在，最后为该驱动绑定<code>uclass</code>与<code>uclass_driver</code>，为上层提供统一接口。</p>
+<blockquote>
+<p>以根据MMC驱动为例</p>
+</blockquote>
+<p>回到上文的驱动流程图，看到<code>mmc_do_preinit</code>这个函数了嘛？里面调用了<code>ret = uclass_get(UCLASS_MMC, &amp;uc);</code>，该函数才是真正的将<code>uclass</code>与<code>uclass_driver</code>绑定。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_get</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">**</span>ucp)
+{
+    <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">*</span>uc;
+
+    <span style="color:#ff79c6">*</span>ucp <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+    uc <span style="color:#ff79c6">=</span> uclass_find(id);
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>uc)
+        <span style="color:#ff79c6">return</span> uclass_add(id, ucp);
+    <span style="color:#ff79c6">*</span>ucp <span style="color:#ff79c6">=</span> uc;
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+</code></pre></div><p><strong><code>uclass_get</code>主要实现了</strong>：根据<code>uclass_id</code>查找对应的<code>uclass</code>是否被添加到<code>global_data-&gt;uclass_root</code>链表中，如果没有添加到，就调用<code>uclass_add</code>函数，实现<code>uclass</code>与<code>uclass_driver</code>的绑定，并将其添加到<code>global_data-&gt;uclass_root</code>链表中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">uclass_add</span>(<span style="color:#ff79c6">enum</span> uclass_id id, <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">**</span>ucp)
+{
+    <span style="color:#ff79c6">struct</span> uclass_driver <span style="color:#ff79c6">*</span>uc_drv;
+    <span style="color:#ff79c6">struct</span> uclass <span style="color:#ff79c6">*</span>uc;
+    <span style="color:#8be9fd">int</span> ret;
+
+    <span style="color:#ff79c6">*</span>ucp <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+    uc_drv <span style="color:#ff79c6">=</span> lists_uclass_lookup(id);					<span style="color:#6272a4">//根据uclass_id查找到对应的driver
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>uc_drv) {
+        debug(<span style="color:#f1fa8c">&#34;Cannot find uclass for id %d: please add the UCLASS_DRIVER() declaration for this UCLASS_... id</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>,
+              id);
+        <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">         * Use a strange error to make this case easier to find. When
+</span><span style="color:#6272a4">         * a uclass is not available it can prevent driver model from
+</span><span style="color:#6272a4">         * starting up and this failure is otherwise hard to debug.
+</span><span style="color:#6272a4">         */</span>
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>EPFNOSUPPORT;
+    }
+    uc <span style="color:#ff79c6">=</span> calloc(<span style="color:#bd93f9">1</span>, <span style="color:#ff79c6">sizeof</span>(<span style="color:#ff79c6">*</span>uc));
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>uc)
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>ENOMEM;
+    <span style="color:#ff79c6">if</span> (uc_drv<span style="color:#ff79c6">-&gt;</span>priv_auto_alloc_size) {
+        uc<span style="color:#ff79c6">-&gt;</span>priv <span style="color:#ff79c6">=</span> calloc(<span style="color:#bd93f9">1</span>, uc_drv<span style="color:#ff79c6">-&gt;</span>priv_auto_alloc_size);
+        <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>uc<span style="color:#ff79c6">-&gt;</span>priv) {
+            ret <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">-</span>ENOMEM;
+            <span style="color:#ff79c6">goto</span> fail_mem;
+        }
+    }
+    uc<span style="color:#ff79c6">-&gt;</span>uc_drv <span style="color:#ff79c6">=</span> uc_drv;												<span style="color:#6272a4">//uclass与uclass_driver绑定
+</span><span style="color:#6272a4"></span>    INIT_LIST_HEAD(<span style="color:#ff79c6">&amp;</span>uc<span style="color:#ff79c6">-&gt;</span>sibling_node);
+    INIT_LIST_HEAD(<span style="color:#ff79c6">&amp;</span>uc<span style="color:#ff79c6">-&gt;</span>dev_head);
+    list_add(<span style="color:#ff79c6">&amp;</span>uc<span style="color:#ff79c6">-&gt;</span>sibling_node, <span style="color:#ff79c6">&amp;</span>DM_UCLASS_ROOT_NON_CONST);				<span style="color:#6272a4">//添加到global_data-&gt;uclass_root链表中
+</span><span style="color:#6272a4"></span>
+    <span style="color:#ff79c6">if</span> (uc_drv<span style="color:#ff79c6">-&gt;</span>init) {
+        ret <span style="color:#ff79c6">=</span> uc_drv<span style="color:#ff79c6">-&gt;</span>init(uc);
+        <span style="color:#ff79c6">if</span> (ret)
+            <span style="color:#ff79c6">goto</span> fail;
+    }
+
+    <span style="color:#ff79c6">*</span>ucp <span style="color:#ff79c6">=</span> uc;
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+<span style="color:#8be9fd;font-style:italic">fail</span>:
+    <span style="color:#ff79c6">if</span> (uc_drv<span style="color:#ff79c6">-&gt;</span>priv_auto_alloc_size) {
+        free(uc<span style="color:#ff79c6">-&gt;</span>priv);
+        uc<span style="color:#ff79c6">-&gt;</span>priv <span style="color:#ff79c6">=</span> <span style="color:#8be9fd;font-style:italic">NULL</span>;
+    }
+    list_del(<span style="color:#ff79c6">&amp;</span>uc<span style="color:#ff79c6">-&gt;</span>sibling_node);
+<span style="color:#8be9fd;font-style:italic">fail_mem</span>:
+    free(uc);
+
+    <span style="color:#ff79c6">return</span> ret;
+}
+</code></pre></div><p>好啦，到这里基本就把Uboot的DM模型全部理清楚啦，耗时一个周，总感觉想要自己去讲明白，真的不是一件容易的事情呢！</p>
+<p>如果对你们有帮助，记得点个赞哦！</p>
+<h2 id="39-参考文档">
+  3.9 参考文档
+  <a class="anchor" href="#39-%e5%8f%82%e8%80%83%e6%96%87%e6%a1%a3">#</a>
+</h2>
+<p>[1] : <a href="https://www.dazhuanlan.com/archevalier/topics/1323360">https://www.dazhuanlan.com/archevalier/topics/1323360</a></p>
+<p>[2] : <a href="https://www.cnblogs.com/gs1008612/p/8253213.html">https://www.cnblogs.com/gs1008612/p/8253213.html</a></p>
+<p>[3] : <a href="https://blog.csdn.net/kunkliu/article/details/103168591">https://blog.csdn.net/kunkliu/article/details/103168591</a></p>
+<p>[4] : <a href="https://blog.csdn.net/ooonebook/article/details/53234020">https://blog.csdn.net/ooonebook/article/details/53234020</a></p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#三uboot驱动模型">三、Uboot驱动模型</a>
+      <ul>
+        <li><a href="#31什么是uboot驱动模型">3.1、什么是Uboot驱动模型</a></li>
+        <li><a href="#32为什么要有驱动模型呢">3.2、为什么要有驱动模型呢</a></li>
+        <li><a href="#33如何使用uboot的dm模型">3.3、如何使用uboot的DM模型</a>
+          <ul>
+            <li><a href="#menuconfig配置全局dm模型">①：menuconfig配置全局DM模型</a></li>
+            <li><a href="#指定某个驱动的dm模型">②：指定某个驱动的DM模型</a></li>
+          </ul>
+        </li>
+        <li><a href="#34dm模型数据结构">3.4、DM模型数据结构</a>
+          <ul>
+            <li><a href="#-global_data">① global_data</a></li>
+            <li><a href="#-uclass">② uclass</a></li>
+            <li><a href="#-uclass_driver">③ uclass_driver</a></li>
+            <li><a href="#-uclass_id">④ uclass_id</a></li>
+            <li><a href="#-udevice">⑤ udevice</a></li>
+            <li><a href="#-driver">③ driver</a></li>
+          </ul>
+        </li>
+        <li><a href="#35dm驱动模型之上帝视角">3.5、DM驱动模型之上帝视角</a></li>
+        <li><a href="#36dm模型udevice与driver绑定">3.6、DM模型——Udevice与driver绑定</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#37dm模型probe探测函数的执行">3.7、DM模型——probe探测函数的执行</a></li>
+        <li><a href="#38dm模型uclass与uclass_driver绑定">3.8、DM模型——uclass与uclass_driver绑定</a></li>
+        <li><a href="#39-参考文档">3.9 参考文档</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="四、Uboot命令行模式分析 #   前几篇文章，我们也了解了Uboot的启动流程，那么这节就主要讲讲Uboot的命令行模式。
+另外，文章末尾还提供eMMC5.1官方标准协议.pdf和eMMC4.51官方标准协议-中文.pdf下载渠道，方便深入了解底层协议。
+正文如下：
+  4.1 如何进入命令行模式 #  我们正常启动流程，默认是直接跳过Uboot命令行模式的，因为Uboot主要的作用是引导Kernel，一般我们不进行uboot开发时，都默认跳过进入命令行模式。
+ 那么，我们要想进入Uboot命令行模式，需要进行哪些配置呢？
+ 打开我们准备好一份Uboot源码，进入menuconfig配置菜单，主要设置下列几个配置信息！
+  CONFIG_CMDLINE：命令行模式开关 CONFIG_SYS_PROMPT：命令行模式提示符 CONFIG_HUSH_PARSER：使用hush shell 来对命令进行解析 BOOTDELAY：设置启动延时   Tip：meneconfig中查找苦难？实时/符号，输入1或2或3，直接查找指定标识。
+   打开之后，重新编译，并将Uboot镜像烧录到开发板中，再次启动，我们就能够看到倒计时。
+[2022-03-02:13:33:47]U-Boot 2020.10-rc1-00043-ge62a6d17c6-dirty (Feb 08 2022 - 10:14:14 &#43;0800) [2022-03-02:13:33:47] [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:47]MMC: mmc1@xxxxxx: 1 [2022-03-02:13:33:47]In: serial [2022-03-02:13:33:47]Out: serial [2022-03-02:13:33:47]Err: serial [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:49]Hit any key to stop autoboot: 2 Hit any key to stop autoboot：我们在倒计时结束前，任意键入一个按键，即可进入！
+ 4.2 Uboot基本命令解析 #  进入Uboot命令行模式后，键入help或者?">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="四、Uboot命令行模式分析" />
+<meta property="og:description" content="四、Uboot命令行模式分析 #   前几篇文章，我们也了解了Uboot的启动流程，那么这节就主要讲讲Uboot的命令行模式。
+另外，文章末尾还提供eMMC5.1官方标准协议.pdf和eMMC4.51官方标准协议-中文.pdf下载渠道，方便深入了解底层协议。
+正文如下：
+  4.1 如何进入命令行模式 #  我们正常启动流程，默认是直接跳过Uboot命令行模式的，因为Uboot主要的作用是引导Kernel，一般我们不进行uboot开发时，都默认跳过进入命令行模式。
+ 那么，我们要想进入Uboot命令行模式，需要进行哪些配置呢？
+ 打开我们准备好一份Uboot源码，进入menuconfig配置菜单，主要设置下列几个配置信息！
+  CONFIG_CMDLINE：命令行模式开关 CONFIG_SYS_PROMPT：命令行模式提示符 CONFIG_HUSH_PARSER：使用hush shell 来对命令进行解析 BOOTDELAY：设置启动延时   Tip：meneconfig中查找苦难？实时/符号，输入1或2或3，直接查找指定标识。
+   打开之后，重新编译，并将Uboot镜像烧录到开发板中，再次启动，我们就能够看到倒计时。
+[2022-03-02:13:33:47]U-Boot 2020.10-rc1-00043-ge62a6d17c6-dirty (Feb 08 2022 - 10:14:14 &#43;0800) [2022-03-02:13:33:47] [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:47]MMC: mmc1@xxxxxx: 1 [2022-03-02:13:33:47]In: serial [2022-03-02:13:33:47]Out: serial [2022-03-02:13:33:47]Err: serial [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:49]Hit any key to stop autoboot: 2 Hit any key to stop autoboot：我们在倒计时结束前，任意键入一个按键，即可进入！
+ 4.2 Uboot基本命令解析 #  进入Uboot命令行模式后，键入help或者?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:31:50+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:31:50+08:00" />
+
+<title>四、Uboot命令行模式分析 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="active">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>四、Uboot命令行模式分析</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#四uboot命令行模式分析">四、Uboot命令行模式分析</a>
+      <ul>
+        <li><a href="#41-如何进入命令行模式">4.1 如何进入命令行模式</a></li>
+        <li><a href="#42-uboot基本命令解析">4.2 <code>Uboot</code>基本命令解析</a></li>
+        <li><a href="#43-命令行模式代码执行流程分析">4.3 命令行模式代码执行流程分析</a></li>
+        <li><a href="#44-如何添加uboot命令">4.4 如何添加Uboot命令</a>
+          <ul>
+            <li><a href="#第一步照葫芦">第一步：照葫芦</a></li>
+            <li><a href="#第二步画瓢">第二步：画瓢</a></li>
+            <li><a href="#第三步优雅">第三步：优雅</a></li>
+          </ul>
+        </li>
+        <li><a href="#45-uboot命令底层实现分析">4.5 Uboot命令底层实现分析</a>
+          <ul>
+            <li><a href="#451-u_boot_cmd">4.5.1 U_BOOT_CMD</a></li>
+          </ul>
+        </li>
+        <li><a href="#46-uboot命令响应流程">4.6 Uboot命令响应流程</a></li>
+        <li><a href="#46-推荐文档">4.6 推荐文档</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="四uboot命令行模式分析">
+  四、Uboot命令行模式分析
+  <a class="anchor" href="#%e5%9b%9buboot%e5%91%bd%e4%bb%a4%e8%a1%8c%e6%a8%a1%e5%bc%8f%e5%88%86%e6%9e%90">#</a>
+</h1>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205312213482.png" alt="四、Uboot命令行模式分析" /></p>
+<blockquote>
+<p>前几篇文章，我们也了解了<code>Uboot</code>的启动流程，那么这节就主要讲讲<code>Uboot</code>的命令行模式。</p>
+<p><strong>另外，文章末尾还提供<code>eMMC5.1官方标准协议.pdf</code>和<code>eMMC4.51官方标准协议-中文.pdf</code>下载渠道，方便深入了解底层协议。</strong></p>
+<p><strong>正文如下</strong>：</p>
+</blockquote>
+<p> </p>
+<h2 id="41-如何进入命令行模式">
+  4.1 如何进入命令行模式
+  <a class="anchor" href="#41-%e5%a6%82%e4%bd%95%e8%bf%9b%e5%85%a5%e5%91%bd%e4%bb%a4%e8%a1%8c%e6%a8%a1%e5%bc%8f">#</a>
+</h2>
+<p>我们正常启动流程，默认是直接跳过<code>Uboot</code>命令行模式的，因为<code>Uboot</code>主要的作用是引导<code>Kernel</code>，一般我们不进行<code>uboot</code>开发时，都默认跳过进入命令行模式。</p>
+<p> </p>
+<p><font color = "red"><strong>那么，我们要想进入Uboot命令行模式，需要进行哪些配置呢？</strong></font></p>
+<blockquote>
+<p>打开我们准备好一份Uboot源码，进入menuconfig配置菜单，主要设置下列几个配置信息！</p>
+</blockquote>
+<ul>
+<li><code>CONFIG_CMDLINE</code>：命令行模式开关</li>
+<li><code>CONFIG_SYS_PROMPT</code>：命令行模式提示符</li>
+<li><code>CONFIG_HUSH_PARSER</code>：使用hush shell 来对命令进行解析</li>
+<li><code>BOOTDELAY</code>：设置启动延时</li>
+</ul>
+<blockquote>
+<p><strong>Tip</strong>：<code>meneconfig</code>中查找苦难？实时<code>/</code>符号，输入<code>1或2或3</code>，直接查找指定标识。</p>
+</blockquote>
+<p> </p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311655629.png" alt="image-20220531165504571" /></p>
+<p> </p>
+<p>打开之后，重新编译，并将<code>Uboot</code>镜像烧录到开发板中，再次启动，我们就能够看到倒计时。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>U-Boot 2020.10-rc1-00043-ge62a6d17c6-dirty <span style="color:#ff79c6">(</span>Feb <span style="color:#bd93f9">08</span> <span style="color:#bd93f9">2022</span> - 10:14:14 +0800<span style="color:#ff79c6">)</span>
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>Model: xxxxxx
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>MMC:   mmc1@xxxxxx: <span style="color:#bd93f9">1</span>
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>In:    serial
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>Out:   serial
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>Err:   serial
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:47<span style="color:#ff79c6">]</span>Model: xxxxxx
+<span style="color:#ff79c6">[</span>2022-03-02:13:33:49<span style="color:#ff79c6">]</span>Hit any key to stop autoboot:  <span style="color:#bd93f9">2</span> 
+</code></pre></div><p><code>Hit any key to stop autoboot</code>：我们在倒计时结束前，任意键入一个按键，即可进入！</p>
+<p> </p>
+<h2 id="42-uboot基本命令解析">
+  4.2 <code>Uboot</code>基本命令解析
+  <a class="anchor" href="#42-uboot%e5%9f%ba%e6%9c%ac%e5%91%bd%e4%bb%a4%e8%a7%a3%e6%9e%90">#</a>
+</h2>
+<p>进入<code>Uboot</code>命令行模式后，键入<code>help</code>或者<code>?</code>，可以查看所有支持的<code>Uboot</code>命令。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311702352.png" alt="image-20220531170218298" /></p>
+<p><strong>注意</strong>：<code>Uboot</code>支持的命令大都远远超过显示的，还有好多没有打开，可以在<code>menuconfig</code>中，打开相应的功能，如<code>mmc</code>相关的，<code>md</code>内存相关的。</p>
+<p> </p>
+<p><font color = "red"><strong>常用命令如下</strong></font>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">version				<span style="color:#6272a4">#查看uboot版本</span>
+reset 				<span style="color:#6272a4">#重启Uboot</span>
+
+printenv			<span style="color:#6272a4">#打印uboot环境变量</span>
+setenv name value	<span style="color:#6272a4">#设置环境变量</span>
+
+
+md addr				<span style="color:#6272a4">#查看内存指令</span>
+nm addr				<span style="color:#6272a4">#修改内存值</span>
+mm addr				<span style="color:#6272a4">#自增修改内存值</span>
+
+mmc dev id			<span style="color:#6272a4">#选择mmc卡</span>
+mmc rescan			<span style="color:#6272a4">#扫描卡</span>
+
+<span style="color:#8be9fd;font-style:italic">echo</span> <span style="color:#8be9fd;font-style:italic">$name</span>			<span style="color:#6272a4">#打印环境变量</span>
+</code></pre></div><blockquote>
+<p>更多指令使用，可以见文末整理的文档</p>
+</blockquote>
+<p> </p>
+<h2 id="43-命令行模式代码执行流程分析">
+  4.3 命令行模式代码执行流程分析
+  <a class="anchor" href="#43-%e5%91%bd%e4%bb%a4%e8%a1%8c%e6%a8%a1%e5%bc%8f%e4%bb%a3%e7%a0%81%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b%e5%88%86%e6%9e%90">#</a>
+</h2>
+<blockquote>
+<p>结合下面的程序执行流程图，代码，一起分析。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311708227.png" alt="image-20220531170831165" /></p>
+<p>上图为<code>Uboot</code>命令行模式的代码具体执行流程，结合  <strong><a href="https://blog.csdn.net/dong__ge/article/details/123336063?spm=1001.2014.3001.5502#t9">专栏系列（二）uboot启动流程分析</a></strong>，文章内已经详细分析函数内部实现。</p>
+<p> </p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">abortboot</span>(<span style="color:#8be9fd">int</span> bootdelay)
+{
+	<span style="color:#8be9fd">int</span> abort <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+
+	<span style="color:#ff79c6">if</span> (bootdelay <span style="color:#ff79c6">&gt;=</span> <span style="color:#bd93f9">0</span>) {
+		<span style="color:#ff79c6">if</span> (IS_ENABLED(CONFIG_AUTOBOOT_KEYED))
+			abort <span style="color:#ff79c6">=</span> abortboot_key_sequence(bootdelay);
+		<span style="color:#ff79c6">else</span>
+			abort <span style="color:#ff79c6">=</span> abortboot_single_key(bootdelay);				<span style="color:#6272a4">//按键检测
+</span><span style="color:#6272a4"></span>	}
+
+	<span style="color:#ff79c6">if</span> (IS_ENABLED(CONFIG_SILENT_CONSOLE) <span style="color:#ff79c6">&amp;&amp;</span> abort)
+		gd<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;=</span> <span style="color:#ff79c6">~</span>GD_FLG_SILENT;
+
+	<span style="color:#ff79c6">return</span> abort;
+}
+
+
+<span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">abortboot_single_key</span>(<span style="color:#8be9fd">int</span> bootdelay)
+{
+	<span style="color:#8be9fd">int</span> abort <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+	<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> ts;
+
+	printf(<span style="color:#f1fa8c">&#34;Hit any key to stop autoboot: %2d &#34;</span>, bootdelay);			<span style="color:#6272a4">//打印倒计时
+</span><span style="color:#6272a4"></span>
+	<span style="color:#6272a4">/*
+</span><span style="color:#6272a4">	 * Check if key already pressed
+</span><span style="color:#6272a4">	 */</span>
+	<span style="color:#ff79c6">if</span> (tstc()) {	<span style="color:#6272a4">/* we got a key press	*/</span>							<span style="color:#6272a4">//获取按键
+</span><span style="color:#6272a4"></span>		(<span style="color:#8be9fd">void</span>) getc();  <span style="color:#6272a4">/* consume input	*/</span>
+		puts(<span style="color:#f1fa8c">&#34;</span><span style="color:#f1fa8c">\b\b\b</span><span style="color:#f1fa8c"> 0&#34;</span>);
+		abort <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">1</span>;	<span style="color:#6272a4">/* don&#39;t auto boot	*/</span>
+	}
+
+	<span style="color:#ff79c6">while</span> ((bootdelay <span style="color:#ff79c6">&gt;</span> <span style="color:#bd93f9">0</span>) <span style="color:#ff79c6">&amp;&amp;</span> (<span style="color:#ff79c6">!</span>abort)) {
+		<span style="color:#ff79c6">--</span>bootdelay;
+		<span style="color:#6272a4">/* delay 1000 ms */</span>
+		ts <span style="color:#ff79c6">=</span> get_timer(<span style="color:#bd93f9">0</span>);
+		<span style="color:#ff79c6">do</span> {
+			<span style="color:#ff79c6">if</span> (tstc()) {	<span style="color:#6272a4">/* we got a key press	*/</span>					<span style="color:#6272a4">//获取按键
+</span><span style="color:#6272a4"></span>				<span style="color:#8be9fd">int</span> key;
+
+				abort  <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">1</span>;	<span style="color:#6272a4">/* don&#39;t auto boot	*/</span>
+				bootdelay <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;	<span style="color:#6272a4">/* no more delay	*/</span>
+				key <span style="color:#ff79c6">=</span> getc(); <span style="color:#6272a4">/* consume input	*/</span>
+				<span style="color:#ff79c6">if</span> (IS_ENABLED(CONFIG_USE_AUTOBOOT_MENUKEY))
+					menukey <span style="color:#ff79c6">=</span> key;
+				<span style="color:#ff79c6">break</span>;
+			}
+			udelay(<span style="color:#bd93f9">10000</span>);
+		} <span style="color:#ff79c6">while</span> (<span style="color:#ff79c6">!</span>abort <span style="color:#ff79c6">&amp;&amp;</span> get_timer(ts) <span style="color:#ff79c6">&lt;</span> <span style="color:#bd93f9">1000</span>);						<span style="color:#6272a4">//延时1S
+</span><span style="color:#6272a4"></span>
+		printf(<span style="color:#f1fa8c">&#34;</span><span style="color:#f1fa8c">\b\b\b</span><span style="color:#f1fa8c">%2d &#34;</span>, bootdelay);
+	}
+
+	putc(<span style="color:#f1fa8c">&#39;\n&#39;</span>);
+
+	<span style="color:#ff79c6">return</span> abort;
+}
+
+</code></pre></div><p><code>abortboot_single_key</code>：该函数主要用于<code>while</code>循环检测按键，如果有按键按下，将<code>abort</code>标志位置1，最后运行<code>cli_loop</code>命令行模式的函数。</p>
+<p>如果按键不按下，标志位<code>abort</code>不起作用，直接运行<code>run_command_list(s, -1, 0);</code>，<code>s = env_get(&quot;bootcmd&quot;);</code>，直接跳转到我们设置的环境变量<code>bootcmd</code>所设定的指令，而不执行<code>cli_loop</code>函数。</p>
+<blockquote>
+<p>对照运行流程图看代码，容易理解！！！</p>
+</blockquote>
+<p> </p>
+<h2 id="44-如何添加uboot命令">
+  4.4 如何添加Uboot命令
+  <a class="anchor" href="#44-%e5%a6%82%e4%bd%95%e6%b7%bb%e5%8a%a0uboot%e5%91%bd%e4%bb%a4">#</a>
+</h2>
+<p><font color = "red"><strong>如何自定义一个<code>Uboot</code>命令呢？</strong></font></p>
+<p>我们暂且先不考虑实现的原理，就仅仅照葫芦画瓢来实现一个简单的<code>Uboot</code>命令！</p>
+<p> </p>
+<h3 id="第一步照葫芦">
+  第一步：照葫芦
+  <a class="anchor" href="#%e7%ac%ac%e4%b8%80%e6%ad%a5%e7%85%a7%e8%91%ab%e8%8a%a6">#</a>
+</h3>
+<p>我们打开<code>Uboot</code>的源码文件，进入<code>cmd</code>目录，没错，所有的命令实现都存放在该目录下。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311710040.png" alt="image-20220531171054987" /></p>
+<p>有没有看到<code>help.C</code>这个文件呢，我们就拿<code>help</code>这个文件来类比。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311711319.png" alt="image-20220531171133262" /></p>
+<p><code>U_BOOT_CMD</code>：用来定义一个命令</p>
+<p><code>help</code>：用于命令行键入的指令</p>
+<p><code>do_help</code>：键入指令后，执行的函数</p>
+<p><strong>要想进一步使用该命令，我们不得不去了解每个参数的含义。</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> cmd_tbl_s {
+	<span style="color:#8be9fd">char</span>		<span style="color:#ff79c6">*</span>name;		<span style="color:#6272a4">/* Command Name			*/</span>
+	<span style="color:#8be9fd">int</span>		maxargs;	<span style="color:#6272a4">/* maximum number of arguments	*/</span>
+	<span style="color:#8be9fd">int</span>		repeatable;	<span style="color:#6272a4">/* autorepeat allowed?		*/</span>
+					<span style="color:#6272a4">/* Implementation function	*/</span>
+	<span style="color:#8be9fd">int</span>		(<span style="color:#ff79c6">*</span>cmd)(<span style="color:#ff79c6">struct</span> cmd_tbl_s <span style="color:#ff79c6">*</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">int</span>, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>[]);
+	<span style="color:#8be9fd">char</span>		<span style="color:#ff79c6">*</span>usage;		<span style="color:#6272a4">/* Usage message	(short)	*/</span>
+	<span style="color:#8be9fd">char</span>		<span style="color:#ff79c6">*</span>help;		<span style="color:#6272a4">/* Help  message	(long)	*/</span>
+	<span style="color:#6272a4">/* do auto completion on the arguments */</span>
+	<span style="color:#8be9fd">int</span>		(<span style="color:#ff79c6">*</span>complete)(<span style="color:#8be9fd">int</span> argc, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>argv[], <span style="color:#8be9fd">char</span> last_char, <span style="color:#8be9fd">int</span> maxv, <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>cmdv[]);
+};
+
+<span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> cmd_tbl_s	cmd_tbl_t;
+</code></pre></div><p>每个参数分别对应了：命令名、可接收的最大参数、命令可重复、响应函数、使用示例、帮助信息。</p>
+<p> </p>
+<h3 id="第二步画瓢">
+  第二步：画瓢
+  <a class="anchor" href="#%e7%ac%ac%e4%ba%8c%e6%ad%a5%e7%94%bb%e7%93%a2">#</a>
+</h3>
+<p>弄明白这个道理，假如我们想加入一个<code>helpme</code>的指令，该怎么做？</p>
+<ul>
+<li><font color = "red"><strong>定义一个指令</strong></font></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">U_BOOT_CMD(
+	helpme,	CONFIG_SYS_MAXARGS,	<span style="color:#bd93f9">1</span>,	do_helpme,
+	<span style="color:#f1fa8c">&#34;helpme dong&#34;</span>,
+	<span style="color:#f1fa8c">&#34;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;	- print brief description of all commands</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;helpme command ...</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;	- print detailed usage of &#39;command&#39;&#34;</span>
+);
+</code></pre></div><ul>
+<li><font color = "red"><strong>定义一个执行函数</strong></font></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">do_helpme</span>(<span style="color:#ff79c6">struct</span> cmd_tbl <span style="color:#ff79c6">*</span>cmdtp, <span style="color:#8be9fd">int</span> flag, <span style="color:#8be9fd">int</span> argc,
+		   <span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span><span style="color:#ff79c6">const</span> argv[])
+{
+	printf(<span style="color:#f1fa8c">&#34;Cmd test ok!</span><span style="color:#f1fa8c">\r\n</span><span style="color:#f1fa8c">&#34;</span>);
+	printf(<span style="color:#f1fa8c">&#34;argc = %d</span><span style="color:#f1fa8c">\r\n</span><span style="color:#f1fa8c">&#34;</span>, argc);
+	printf(<span style="color:#f1fa8c">&#34;argv = &#34;</span>);
+	<span style="color:#ff79c6">for</span>(<span style="color:#8be9fd">int</span> i <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>; i <span style="color:#ff79c6">&lt;</span> argc; <span style="color:#ff79c6">++</span>i) {
+		printf(<span style="color:#f1fa8c">&#34;%s</span><span style="color:#f1fa8c">\t</span><span style="color:#f1fa8c">&#34;</span>, argv[i]);
+	}
+	printf(<span style="color:#f1fa8c">&#34;</span><span style="color:#f1fa8c">\r\n</span><span style="color:#f1fa8c">&#34;</span>);
+}
+</code></pre></div><p>这样，就可以编译-&gt;烧录-&gt;运行了。</p>
+<p>进入<code>Uboot</code>命令行，键入<code>help</code>查看添加的命令<code>helpme</code>。</p>
+<ul>
+<li><font color = "red"><strong>键入命令测试</strong></font></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ff79c6">=</span>&gt; helpme <span style="color:#bd93f9">123456</span> <span style="color:#bd93f9">123</span>
+Cmd <span style="color:#8be9fd;font-style:italic">test</span> ok!
+<span style="color:#8be9fd;font-style:italic">argc</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">3</span>
+<span style="color:#8be9fd;font-style:italic">argv</span> <span style="color:#ff79c6">=</span> helpme   <span style="color:#bd93f9">123456</span>  <span style="color:#bd93f9">123</span>
+</code></pre></div><p> </p>
+<h3 id="第三步优雅">
+  第三步：优雅
+  <a class="anchor" href="#%e7%ac%ac%e4%b8%89%e6%ad%a5%e4%bc%98%e9%9b%85">#</a>
+</h3>
+<p>如果我们只是暂时测试，这样添加无伤大雅；如果我们需要投入正规项目使用，这么做有点激进了。</p>
+<p>更加合理的做法是：</p>
+<ul>
+<li>在<code>uboot/cmd</code>目录下，建立一个文件<code>XXX.c</code></li>
+<li>将要添加的命令写入<code>XXX.c</code>该文件中</li>
+<li>修改<code>Makefile</code>文件，编译该文件：<code>obj-y += XXX.o</code></li>
+<li>重新编译，烧录</li>
+</ul>
+<blockquote>
+<p>说白了，就是创建一个文件，将自定义指令添加进去，尽量不修改源码！</p>
+</blockquote>
+<p> </p>
+<h2 id="45-uboot命令底层实现分析">
+  4.5 Uboot命令底层实现分析
+  <a class="anchor" href="#45-uboot%e5%91%bd%e4%bb%a4%e5%ba%95%e5%b1%82%e5%ae%9e%e7%8e%b0%e5%88%86%e6%9e%90">#</a>
+</h2>
+<p>上面写了傻瓜式添加命令的方法，对于进行<code>Uboot</code>开发，当然我们需要去了解一下内部的实现原理。</p>
+<h3 id="451-u_boot_cmd">
+  4.5.1 U_BOOT_CMD
+  <a class="anchor" href="#451-u_boot_cmd">#</a>
+</h3>
+<p>查看<code>U_BOOT_CMD</code>宏定义</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define U_BOOT_CMD(_name, _maxargs, _rep, _cmd, _usage, _help)		\
+</span><span style="color:#ff79c6">	U_BOOT_CMD_COMPLETE(_name, _maxargs, _rep, _cmd, _usage, _help, NULL)
+</span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define U_BOOT_CMD_COMPLETE(_name, _maxargs, _rep, _cmd, _usage, _help, _comp) \
+</span><span style="color:#ff79c6">	ll_entry_declare(struct cmd_tbl, _name, cmd) =			\
+</span><span style="color:#ff79c6">		U_BOOT_CMD_MKENT_COMPLETE(_name, _maxargs, _rep, _cmd,	\
+</span><span style="color:#ff79c6">						_usage, _help, _comp);
+</span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define U_BOOT_CMD_MKENT_COMPLETE(_name, _maxargs, _rep, _cmd,		\
+</span><span style="color:#ff79c6">				_usage, _help, _comp)			\
+</span><span style="color:#ff79c6">		{ #_name, _maxargs,					\
+</span><span style="color:#ff79c6">		 _rep ? cmd_always_repeatable : cmd_never_repeatable,	\
+</span><span style="color:#ff79c6">		 _cmd, _usage, _CMD_HELP(_help) _CMD_COMPLETE(_comp) }
+</span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define ll_entry_declare(_type, _name, _list)				\
+</span><span style="color:#ff79c6">	_type _u_boot_list_2_##_list##_2_##_name __aligned(4)		\
+</span><span style="color:#ff79c6">			__attribute__((unused,				\
+</span><span style="color:#ff79c6">			section(&#34;.u_boot_list_2_&#34;#_list&#34;_2_&#34;#_name)))
+</span></code></pre></div><p> </p>
+<blockquote>
+<p><strong>乍一看，都是宏定义，为什么看起来这么吃力？</strong></p>
+</blockquote>
+<h4 id="在这里不得不提到和的区别">
+  在这里，不得不提到<code>#</code>和<code>##</code>的区别
+  <a class="anchor" href="#%e5%9c%a8%e8%bf%99%e9%87%8c%e4%b8%8d%e5%be%97%e4%b8%8d%e6%8f%90%e5%88%b0%e5%92%8c%e7%9a%84%e5%8c%ba%e5%88%ab">#</a>
+</h4>
+<ul>
+<li><code>#</code>：转换为字符串</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">...
+<span style="color:#ff79c6">#define TO_STR(x) #x
+</span><span style="color:#ff79c6"></span><span style="color:#8be9fd">int</span> main()
+{
+    <span style="color:#8be9fd">int</span> value <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123</span>;
+    printf(<span style="color:#f1fa8c">&#34;TO_STR(value) = %s</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, TO_STR(value));
+    printf(<span style="color:#f1fa8c">&#34;TO_STR(123) = %s</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, TO_STR(<span style="color:#bd93f9">123</span>));
+}
+
+<span style="color:#6272a4">//打印
+</span><span style="color:#6272a4"></span>TO_STR(value) <span style="color:#ff79c6">=</span> value;
+TO_STR(<span style="color:#bd93f9">123</span>) <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123</span>;
+</code></pre></div><ul>
+<li><code>##</code>：两个字符拼接</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define CONNECT(x,y) x##y
+</span><span style="color:#ff79c6">#define VAR(y) data##y
+</span><span style="color:#ff79c6"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">main</span>()
+{
+    <span style="color:#8be9fd">int</span> xy <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123</span>;
+    printf(<span style="color:#f1fa8c">&#34;xy = %d</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, CONNECT(x, y));
+
+    CONNECT(x, y) <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123456</span>;
+    printf(<span style="color:#f1fa8c">&#34;xy = %d</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, CONNECT(x, y));
+
+    <span style="color:#8be9fd">int</span> VAR(<span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">100</span>;
+    printf(<span style="color:#f1fa8c">&#34;VAR(1) = data1 = %d</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, data1);
+}
+
+<span style="color:#6272a4">//打印
+</span><span style="color:#6272a4"></span>xy <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123</span>
+xy <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">123456</span>
+VAR(<span style="color:#bd93f9">1</span>) <span style="color:#ff79c6">=</span> data1 <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">100</span>
+</code></pre></div><blockquote>
+<p><font color = "red"><strong>回到正文</strong></font></p>
+</blockquote>
+<p><strong>上面的宏定义，简单来看，转换流程就是</strong>：</p>
+<p><code>U_BOOT_CMD</code> -&gt; <code>U_BOOT_CMD_COMPLETE</code> -&gt; <code>ll_entry_declare = U_BOOT_CMD_MKENT_COMPLETE</code> -&gt; <code>_type xxx = {aaa, bbb, ccc , ...}</code></p>
+<p><font color='red'> <strong>其本质就是：</strong> <code>struct my_struct test = {1, 2, 3};</code><strong>结构体赋值语句</strong>。</font></p>
+<p> </p>
+<p><strong>以<code>help</code>命令为例</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">U_BOOT_CMD(
+	help,	CONFIG_SYS_MAXARGS,	<span style="color:#bd93f9">1</span>,	do_help,
+	<span style="color:#f1fa8c">&#34;print command description/usage&#34;</span>,
+	<span style="color:#f1fa8c">&#34;</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;	- print brief description of all commands</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;help command ...</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+	<span style="color:#f1fa8c">&#34;	- print detailed usage of &#39;command&#39;&#34;</span>
+);
+</code></pre></div><p><strong>直接展开来看</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> cmd_tbl _u_boot_list_2_cmd_2_help <span style="color:#50fa7b">__aligned</span>(<span style="color:#bd93f9">4</span>) __attribute__((unused, section(<span style="color:#f1fa8c">&#34;.u_boot_list_2_cmd_2_help&#34;</span>))) <span style="color:#ff79c6">=</span> 
+{<span style="color:#f1fa8c">&#34;help&#34;</span>, CONFIG_SYS_MAXARGS, cmd_always_repeatable, do_help, <span style="color:#f1fa8c">&#34;xxx&#34;</span>, <span style="color:#f1fa8c">&#34;xxx&#34;</span>};
+</code></pre></div><p>也就相当于，我们定义一个命令，给其赋值。</p>
+<h4 id="定义的命令存放在哪里呢">
+  定义的命令存放在哪里呢？
+  <a class="anchor" href="#%e5%ae%9a%e4%b9%89%e7%9a%84%e5%91%bd%e4%bb%a4%e5%ad%98%e6%94%be%e5%9c%a8%e5%93%aa%e9%87%8c%e5%91%a2">#</a>
+</h4>
+<p>根据上面展开来看，<code>section(&quot;.u_boot_list_2_cmd_2_help&quot;)</code>，存放在段<code>.u_boot_list_2_cmd_2_help</code>中，打开<code>u-boot.map</code>文件，我们可以查找得到。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311713707.png" alt="image-20220531171337636" /></p>
+<p>有没有觉得很熟悉，没错，跟前面讲过的驱动模型很像。</p>
+<p>我们定义的命令，被<code>u_boot_list_2_cmd_1</code>和<code>u_boot_list_2_cmd_3</code>两个段所包括，用于遍历，最终查找得到我们想要的命令。</p>
+<h2 id="46-uboot命令响应流程">
+  4.6 Uboot命令响应流程
+  <a class="anchor" href="#46-uboot%e5%91%bd%e4%bb%a4%e5%93%8d%e5%ba%94%e6%b5%81%e7%a8%8b">#</a>
+</h2>
+<p><strong>命令响应流程见图</strong>：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202205311946369.png" alt="image-20220531194613304" /></p>
+<p> </p>
+<p>根据<code>4.3 命令行模式代码执行流程分析</code>，我们可以知道，命令行模式最终执行<code>cli_loop</code>函数，实现与用户的交互。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">cli_loop</span>(<span style="color:#8be9fd">void</span>)
+{
+	bootstage_mark(BOOTSTAGE_ID_ENTER_CLI_LOOP);
+<span style="color:#ff79c6">#ifdef CONFIG_HUSH_PARSER
+</span><span style="color:#ff79c6"></span>	parse_file_outer();
+	<span style="color:#6272a4">/* This point is never reached */</span>
+	<span style="color:#ff79c6">for</span> (;;);
+<span style="color:#ff79c6">#elif defined(CONFIG_CMDLINE)
+</span><span style="color:#ff79c6"></span>	cli_simple_loop();
+<span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6"></span>	printf(<span style="color:#f1fa8c">&#34;## U-Boot command line is disabled. Please enable CONFIG_CMDLINE</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>);
+<span style="color:#ff79c6">#endif </span><span style="color:#6272a4">/*CONFIG_HUSH_PARSER*/</span><span style="color:#ff79c6">
+</span><span style="color:#ff79c6"></span>}
+</code></pre></div><p>通过分析代码，<code>Uboot</code>的命令行有两种模式：一种是<code>HUSH解析</code>，另一种是<code>通用解析</code>。</p>
+<ul>
+<li><strong>HUSH解析</strong>：调用<code>parse_file_outer</code>并不断循环</li>
+<li><strong>通用解析</strong>：调用<code>cli_simple_loop</code>并不断循环。</li>
+</ul>
+<p> </p>
+<p><font color="red"><strong>无论哪种命令行解析，说白了就是输入输出的处理，必定会读取数据，执行相应命令，打印出对应数据</strong></font></p>
+<p> </p>
+<p><strong>HUSH模式</strong></p>
+<ul>
+<li><strong>输入数据处理</strong>：<code>parse_stream</code></li>
+<li><strong>输出数据处理</strong>：<code>run_list</code></li>
+</ul>
+<p><strong>通用模式</strong>：</p>
+<ul>
+<li><strong>输入数据处理</strong>：<code>cli_readline</code></li>
+<li><strong>输出数据处理</strong>：<code>run_command_repeatable</code></li>
+</ul>
+<blockquote>
+<p><strong>具体实现流程，参照上面的流程图！</strong></p>
+<p><strong>命令行模式的深入解析，准备在下节详细介绍！</strong></p>
+</blockquote>
+<p>目前，我们已经对命令行的整体运行流程进行梳理，熟悉整体的运行逻辑，并且能够添加自定义命令喽。</p>
+<p> </p>
+<h2 id="46-推荐文档">
+  4.6 推荐文档
+  <a class="anchor" href="#46-%e6%8e%a8%e8%8d%90%e6%96%87%e6%a1%a3">#</a>
+</h2>
+<p>[1]：https://www.pianshen.com/article/21471247431/</p>
+<p>[2]：https://blog.csdn.net/weixin_44895651/article/details/108211268</p>
+<p>[3]：https://blog.51cto.com/u_2847568/4917530?b=totalstatistic</p>
+<p>[4]：https://blog.csdn.net/SilverFOX111/article/details/86892231</p>
+<p>[5]：https://blog.csdn.net/andy_wsj/article/details/8614905</p>
+<p> 
+另外，如果有同学想了解<code>Emmc</code>协议的，可以【<a href="https://t.zsxq.com/0eUcTOhdO">戳这里</a>】下载<code>eMMC5.1官方标准协议.pdf</code>和<code>eMMC4.51官方标准协议-中文.pdf</code></p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#四uboot命令行模式分析">四、Uboot命令行模式分析</a>
+      <ul>
+        <li><a href="#41-如何进入命令行模式">4.1 如何进入命令行模式</a></li>
+        <li><a href="#42-uboot基本命令解析">4.2 <code>Uboot</code>基本命令解析</a></li>
+        <li><a href="#43-命令行模式代码执行流程分析">4.3 命令行模式代码执行流程分析</a></li>
+        <li><a href="#44-如何添加uboot命令">4.4 如何添加Uboot命令</a>
+          <ul>
+            <li><a href="#第一步照葫芦">第一步：照葫芦</a></li>
+            <li><a href="#第二步画瓢">第二步：画瓢</a></li>
+            <li><a href="#第三步优雅">第三步：优雅</a></li>
+          </ul>
+        </li>
+        <li><a href="#45-uboot命令底层实现分析">4.5 Uboot命令底层实现分析</a>
+          <ul>
+            <li><a href="#451-u_boot_cmd">4.5.1 U_BOOT_CMD</a></li>
+          </ul>
+        </li>
+        <li><a href="#46-uboot命令响应流程">4.6 Uboot命令响应流程</a></li>
+        <li><a href="#46-推荐文档">4.6 推荐文档</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

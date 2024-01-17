@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Linux内存管理 | 三、虚拟地址空间管理 #  上一节，我们主要了解了虚拟内存空间的布局情况，趁热打铁，我们直接从源代码的视角，来看一下Linux内核是如何管理虚拟内存空间的。
+废话不多说，直接开始！
+1、用户态空间管理 #  读完上一节我们知道，用户态的布局情况如下：
+我们运行的可执行程序，被加载进内存后，会作为一个进程存在，这个进程Linux内核会将其抽象成一个结构体。没错，它就是task_struct。
+1.1 task_struct结构体 #  task_struct结构体是进程的抽象，进程所涉及到的内容非常多，下面只列举出一些重要的数据结构，方面理解。
+// include/linux/sched.h struct task_struct { ... pid_t	pid;	//	进程PID  pid_t	tgid;	//	线程PID  struct files_struct	*files;	// 进程打开的文件信息  struct mm_struct	*mm;	//	进程虚拟内存空间的内存描述符  ... } 如上，进程抽象为task_struct结构体，通过mm_struct结构体来管理虚拟内存空间。
+1.2 mm_struct结构体 #  每个进程都有唯一的 mm_struct 结构体，也就是前边提到的每个进程的虚拟地址空间都是独立，互不干扰的。
+mm_struct的结构体如下：
+//	include/linux/mm_types.h struct mm_struct { ... struct { ... unsigned long task_size;	/* size of task vm space */ .">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="三、虚拟地址空间管理" />
+<meta property="og:description" content="Linux内存管理 | 三、虚拟地址空间管理 #  上一节，我们主要了解了虚拟内存空间的布局情况，趁热打铁，我们直接从源代码的视角，来看一下Linux内核是如何管理虚拟内存空间的。
+废话不多说，直接开始！
+1、用户态空间管理 #  读完上一节我们知道，用户态的布局情况如下：
+我们运行的可执行程序，被加载进内存后，会作为一个进程存在，这个进程Linux内核会将其抽象成一个结构体。没错，它就是task_struct。
+1.1 task_struct结构体 #  task_struct结构体是进程的抽象，进程所涉及到的内容非常多，下面只列举出一些重要的数据结构，方面理解。
+// include/linux/sched.h struct task_struct { ... pid_t	pid;	//	进程PID  pid_t	tgid;	//	线程PID  struct files_struct	*files;	// 进程打开的文件信息  struct mm_struct	*mm;	//	进程虚拟内存空间的内存描述符  ... } 如上，进程抽象为task_struct结构体，通过mm_struct结构体来管理虚拟内存空间。
+1.2 mm_struct结构体 #  每个进程都有唯一的 mm_struct 结构体，也就是前边提到的每个进程的虚拟地址空间都是独立，互不干扰的。
+mm_struct的结构体如下：
+//	include/linux/mm_types.h struct mm_struct { ... struct { ... unsigned long task_size;	/* size of task vm space */ ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:15:35+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:15:35+08:00" />
+
+<title>三、虚拟地址空间管理 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle" checked />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="active">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>三、虚拟地址空间管理</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--三虚拟地址空间管理">Linux内存管理 | 三、虚拟地址空间管理</a>
+      <ul>
+        <li><a href="#1用户态空间管理">1、用户态空间管理</a>
+          <ul>
+            <li><a href="#11-task_struct结构体">1.1 task_struct结构体</a></li>
+            <li><a href="#12-mm_struct结构体">1.2 mm_struct结构体</a></li>
+            <li><a href="#13-内核态和用户态的划分">1.3 内核态和用户态的划分</a></li>
+            <li><a href="#14-位置信息描述">1.4 位置信息描述</a></li>
+            <li><a href="#15-区域属性描述">1.5 区域属性描述</a></li>
+          </ul>
+        </li>
+        <li><a href="#2内核态空间管理">2、内核态空间管理</a>
+          <ul>
+            <li><a href="#21-分界线定义">2.1 分界线定义</a></li>
+            <li><a href="#22-直接映射区定义">2.2 直接映射区定义</a></li>
+            <li><a href="#23-安全保护区定义">2.3 安全保护区定义</a></li>
+            <li><a href="#23-动态映射区定义">2.3 动态映射区定义</a></li>
+            <li><a href="#24-永久映射区定义">2.4 永久映射区定义</a></li>
+            <li><a href="#25-固定映射区定义">2.5 固定映射区定义</a></li>
+            <li><a href="#26-临时映射区定义">2.6 临时映射区定义</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总结">3、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="linux内存管理--三虚拟地址空间管理">
+  Linux内存管理 | 三、虚拟地址空间管理
+  <a class="anchor" href="#linux%e5%86%85%e5%ad%98%e7%ae%a1%e7%90%86--%e4%b8%89%e8%99%9a%e6%8b%9f%e5%9c%b0%e5%9d%80%e7%a9%ba%e9%97%b4%e7%ae%a1%e7%90%86">#</a>
+</h1>
+<p>上一节，我们主要了解了虚拟内存空间的布局情况，趁热打铁，我们直接从源代码的视角，来看一下<code>Linux</code>内核是如何管理虚拟内存空间的。</p>
+<p>废话不多说，直接开始！</p>
+<h2 id="1用户态空间管理">
+  1、用户态空间管理
+  <a class="anchor" href="#1%e7%94%a8%e6%88%b7%e6%80%81%e7%a9%ba%e9%97%b4%e7%ae%a1%e7%90%86">#</a>
+</h2>
+<p>读完上一节我们知道，用户态的布局情况如下：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231005160139650.png" alt="image-20231005160139650" /></p>
+<p>我们运行的可执行程序，被加载进内存后，会作为一个进程存在，这个进程<code>Linux</code>内核会将其抽象成一个结构体。没错，它就是<code>task_struct</code>。</p>
+<h3 id="11-task_struct结构体">
+  1.1 task_struct结构体
+  <a class="anchor" href="#11-task_struct%e7%bb%93%e6%9e%84%e4%bd%93">#</a>
+</h3>
+<p><code>task_struct</code>结构体是进程的抽象，进程所涉及到的内容非常多，下面只列举出一些重要的数据结构，方面理解。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">// include/linux/sched.h
+</span><span style="color:#6272a4"></span><span style="color:#ff79c6">struct</span> task_struct {
+    ...
+    pid_t				pid;		<span style="color:#6272a4">//	进程PID
+</span><span style="color:#6272a4"></span>    pid_t				tgid;		<span style="color:#6272a4">//	线程PID
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> files_struct	<span style="color:#ff79c6">*</span>files;		<span style="color:#6272a4">//  进程打开的文件信息
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">struct</span> mm_struct	<span style="color:#ff79c6">*</span>mm;		<span style="color:#6272a4">//	进程虚拟内存空间的内存描述符
+</span><span style="color:#6272a4"></span>    ...
+}
+</code></pre></div><p><span style="color: red;"><strong>如上，进程抽象为<code>task_struct</code>结构体，通过<code>mm_struct</code>结构体来管理虚拟内存空间。</strong></span></p>
+<h3 id="12-mm_struct结构体">
+  1.2 mm_struct结构体
+  <a class="anchor" href="#12-mm_struct%e7%bb%93%e6%9e%84%e4%bd%93">#</a>
+</h3>
+<p>每个进程都有唯一的 <code>mm_struct</code> 结构体，也就是前边提到的每个进程的虚拟地址空间都是独立，互不干扰的。</p>
+<p><code>mm_struct</code>的结构体如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">//	include/linux/mm_types.h
+</span><span style="color:#6272a4"></span><span style="color:#ff79c6">struct</span> mm_struct {
+    ...
+    <span style="color:#ff79c6">struct</span> {
+        ...
+        
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> task_size;	<span style="color:#6272a4">/* size of task vm space */</span>
+    	...
+        
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> mmap_base;	<span style="color:#6272a4">/* base of mmap area */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> total_vm;		<span style="color:#6272a4">/* Total pages mapped */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> locked_vm;	<span style="color:#6272a4">/* Pages that have PG_mlocked set */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> pinned_vm;	<span style="color:#6272a4">/* Refcount permanently increased */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> data_vm;		<span style="color:#6272a4">/* VM_WRITE &amp; ~VM_SHARED &amp; ~VM_STACK */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> exec_vm;		<span style="color:#6272a4">/* VM_EXEC &amp; ~VM_WRITE &amp; ~VM_STACK */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> stack_vm;		<span style="color:#6272a4">/* VM_STACK */</span>
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> start_code, end_code, start_data, end_data;
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> start_brk, brk, start_stack;
+        <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> arg_start, arg_end, env_start, env_end;        
+        ...
+        
+        <span style="color:#ff79c6">struct</span> vm_area_struct <span style="color:#ff79c6">*</span>mmap;		<span style="color:#6272a4">/* list of VMAs */</span>
+        <span style="color:#ff79c6">struct</span> rb_root mm_rb;
+        ...
+        
+        
+    }__randomize_layout;
+    ...
+}
+</code></pre></div><p> </p>
+<h3 id="13-内核态和用户态的划分">
+  1.3 内核态和用户态的划分
+  <a class="anchor" href="#13-%e5%86%85%e6%a0%b8%e6%80%81%e5%92%8c%e7%94%a8%e6%88%b7%e6%80%81%e7%9a%84%e5%88%92%e5%88%86">#</a>
+</h3>
+<p><code>mm_struct</code>里面定义的<code>task_size</code>变量，就是用来划分虚拟内存的用户空间和内核空间的。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> task_size;
+</code></pre></div><p><code>task_size</code>也就是两者的分界线，下面我们看下<code>task_size</code>是如何被赋值的。</p>
+<p> </p>
+<p>当我们执行一个新的进程的时候，<code>Linux</code>内核会执行<code>load_elf_binary</code>的<code>API</code>接口，进而调用<code>setup_new_exec</code>函数来实现新进程的创建。</p>
+<p>在<code>setup_new_exec</code>函数中，会执行</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">current-&gt;mm-&gt;task_size <span style="color:#ff79c6">=</span> TASK_SIZE;
+</code></pre></div><p>这个<code>TASK_SIZE</code>就是我们设置的内核空间地址和用户空间地址的分界线，由我们自定义配置。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#ifdef CONFIG_X86_32
+</span><span style="color:#ff79c6"></span><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * User space process size: 3GB (default).
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define TASK_SIZE			PAGE_OFFSET
+</span><span style="color:#ff79c6">#define TASK_SIZE_MAX		TASK_SIZE
+</span><span style="color:#ff79c6"></span><span style="color:#6272a4">/*
+</span><span style="color:#6272a4">config PAGE_OFFSET
+</span><span style="color:#6272a4">        hex
+</span><span style="color:#6272a4">        default 0xC0000000
+</span><span style="color:#6272a4">        depends on X86_32
+</span><span style="color:#6272a4">*/</span>
+<span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6"></span><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * User space process size. 47bits minus one guard page.
+</span><span style="color:#6272a4">*/</span>
+<span style="color:#ff79c6">#define TASK_SIZE_MAX	((1UL &lt;&lt; 47) - PAGE_SIZE)
+</span><span style="color:#ff79c6">#define TASK_SIZE		(test_thread_flag(TIF_ADDR32) ? \
+</span><span style="color:#ff79c6">                    IA32_PAGE_OFFSET : TASK_SIZE_MAX)
+</span><span style="color:#ff79c6"></span>......
+
+</code></pre></div><p>这里我们只需要知道<code>TASK_SIZE</code>默认值3为<code>PAGE_OFFSET</code>，并且默认为<code>0xC0000000</code>为分界线的，即用户空间<code>3GB</code>，内核空间<code>1GB</code>；当然这个可以由我们动态配置，可以配置<code>PAGE_OFFSET</code>为<code>0x80000000</code>，即用户空间和内核空间均为<code>2GB</code>，取决于我们的应用场合，当你看到与我们讲解不同时，也不用大惊小怪。</p>
+<blockquote>
+<p>以上，表达的概念很简单，如下图：</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/8e6efc5f2c39a39959c337077359a824.png" alt="image.png" /></p>
+<p> </p>
+<h3 id="14-位置信息描述">
+  1.4 位置信息描述
+  <a class="anchor" href="#14-%e4%bd%8d%e7%bd%ae%e4%bf%a1%e6%81%af%e6%8f%8f%e8%bf%b0">#</a>
+</h3>
+<p>我们知道用户态内存空间分为几个区域：代码段、数据段、BSS段、堆、文件映射和匿名映射区、栈等几个部分，同样在<code>mm_struct</code>中，定义了这些区域的统计信息和位置。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> mmap_base;	<span style="color:#6272a4">/* base of mmap area */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> total_vm;		<span style="color:#6272a4">/* Total pages mapped */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> locked_vm;	<span style="color:#6272a4">/* Pages that have PG_mlocked set */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> pinned_vm;	<span style="color:#6272a4">/* Refcount permanently increased */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> data_vm;		<span style="color:#6272a4">/* VM_WRITE &amp; ~VM_SHARED &amp; ~VM_STACK */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> exec_vm;		<span style="color:#6272a4">/* VM_EXEC &amp; ~VM_WRITE &amp; ~VM_STACK */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> stack_vm;		<span style="color:#6272a4">/* VM_STACK */</span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> start_code, end_code, start_data, end_data;
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> start_brk, brk, start_stack;
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> arg_start, arg_end, env_start, env_end;
+</code></pre></div><ul>
+<li><code>total_vm</code>：总映射页面的数目。（这么大的虚拟内存空间，不可能全部映射到真实的物理内存，都是按需映射的，这里表示当前映射的页面总数目）</li>
+</ul>
+<blockquote>
+<p>由于物理内存比较小，当内存吃紧的时候，就会发生<strong>换入换出</strong>的操作，即将暂时不用的页面换出到硬盘上，有的页面比较重要，不能换出。</p>
+</blockquote>
+<ul>
+<li><code>locked_vm</code>：被锁定不能换出的页面</li>
+<li><code>pinned_vm</code> ：不能换出、也不能移动的页面</li>
+<li><code>data_vm</code>：存放数据页的页的数目</li>
+<li><code>exec_vm</code>：存放可执行文件的页的数目</li>
+<li><code>stack_vm</code>：存放堆栈信息页的数目</li>
+<li><code>start_code</code>、<code>end_code</code>：表示可执行代码开始和结束的位置</li>
+<li><code>start_data</code>、<code>end_data</code>：表示已初始化数据的开始位置和结束位置</li>
+<li><code>start_brk</code>、<code>brk</code>：堆的起始地址，结束地址</li>
+<li><code>start_stack</code>：是栈的起始位置，在 <code>RBP</code> 寄存器中存储，栈的结束位置也就是栈顶指针，在 <code>RSP</code> 寄存器中存储。在栈中内存地址的增长方向也是由高地址向低地址增长。</li>
+<li><code>arg_start</code>、<code>arg_end</code>：参数列表的起始位置和结束位置</li>
+<li><code>env_start</code>、<code>env_end</code>：环境变量的起始位置和结束位置</li>
+</ul>
+<p> </p>
+<p><strong>整体的布局情况如下</strong>：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/2b2dbb2b6ea19871152a3bf6566df205.png" alt="image.png" /></p>
+<p> </p>
+<h3 id="15-区域属性描述">
+  1.5 区域属性描述
+  <a class="anchor" href="#15-%e5%8c%ba%e5%9f%9f%e5%b1%9e%e6%80%a7%e6%8f%8f%e8%bf%b0">#</a>
+</h3>
+<p>尽管已经有了一些变量来描述每一个段的信息，但是<code>Linux</code>内核在<code>mm_struct</code>结构体里面，还有一个专门的数据结构<code>vm_area_struct</code>来管理每个区域的属性。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> vm_area_struct <span style="color:#ff79c6">*</span>mmap;		<span style="color:#6272a4">/* list of VMAs */</span>
+<span style="color:#ff79c6">struct</span> rb_root mm_rb;
+</code></pre></div><p><code>mmap</code>：为一个单链表，将所有的区域串联起来</p>
+<p><code>mm_rb</code>：为一个红黑树，方便查找和修改内存区域。</p>
+<p> </p>
+<p>下面看一下<code>vm_area_struct</code>数据结构：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> vm_area_struct {
+    <span style="color:#6272a4">/* The first cache line has the info for VMA tree walking. */</span>
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> vm_start;		<span style="color:#6272a4">/* Our start address within vm_mm. */</span>
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> vm_end;		<span style="color:#6272a4">/* The first byte after our end address within vm_mm. */</span>
+    <span style="color:#6272a4">/* linked list of VM areas per task, sorted by address */</span>
+    <span style="color:#ff79c6">struct</span> vm_area_struct <span style="color:#ff79c6">*</span>vm_next, <span style="color:#ff79c6">*</span>vm_prev;
+    <span style="color:#ff79c6">struct</span> rb_node vm_rb;
+    <span style="color:#ff79c6">struct</span> mm_struct <span style="color:#ff79c6">*</span>vm_mm;	<span style="color:#6272a4">/* The address space we belong to. */</span>
+    <span style="color:#ff79c6">struct</span> list_head anon_vma_chain; <span style="color:#6272a4">/* Serialized by mmap_sem &amp;
+</span><span style="color:#6272a4">                      * page_table_lock */</span>
+    <span style="color:#ff79c6">struct</span> anon_vma <span style="color:#ff79c6">*</span>anon_vma;	<span style="color:#6272a4">/* Serialized by page_table_lock */</span>
+    <span style="color:#6272a4">/* Function pointers to deal with this struct. */</span>
+    <span style="color:#ff79c6">const</span> <span style="color:#ff79c6">struct</span> vm_operations_struct <span style="color:#ff79c6">*</span>vm_ops;
+    <span style="color:#ff79c6">struct</span> file <span style="color:#ff79c6">*</span> vm_file;		<span style="color:#6272a4">/* File we map to (can be NULL). */</span>
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span> vm_private_data;		<span style="color:#6272a4">/* was vm_pte (shared mem) */</span>
+} __randomize_layout;
+</code></pre></div><ul>
+<li>
+<p><code>vm_start</code>、<code>vm_end</code>：为该区域在用户空间的起始和结束地址</p>
+</li>
+<li>
+<p><code>vm_next</code>、<code>vm_prev</code>：将该区域添加到链表上，便于管理。</p>
+</li>
+<li>
+<p><code>vm_rb</code>：将这个区域放到红黑树上</p>
+</li>
+<li>
+<p><code>vm_ops</code>：对该区域可以进行的内存操作</p>
+</li>
+<li>
+<p><code>anon_vma</code>：匿名映射</p>
+</li>
+<li>
+<p><code>vm_file</code>：文件映射</p>
+</li>
+</ul>
+<p> </p>
+<p>用户态空间的每个区域都由该结构体来管理，最终形成下面的这个结构：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231008184824770.png" alt="image-20231008184824770" /></p>
+<p> </p>
+<blockquote>
+<p>顺便介绍一下 我的圈子：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，期待大家的加入。</p>
+</blockquote>
+<h2 id="2内核态空间管理">
+  2、内核态空间管理
+  <a class="anchor" href="#2%e5%86%85%e6%a0%b8%e6%80%81%e7%a9%ba%e9%97%b4%e7%ae%a1%e7%90%86">#</a>
+</h2>
+<p>上面，我们从源码角度了解了用户态空间管理，下面我们看内核态空间管理。</p>
+<p>回顾一下，我们内核态的布局情况是怎么样的呢，还记得吗？</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231005155942462.png" alt="image-20231005155942462" /></p>
+<p>我们要知道：</p>
+<ol>
+<li>内核态的虚拟空间和任何一个进程都没有关系，所有的进程看到的内核态虚拟空间都是一样的。</li>
+<li>在内核态，我们直接操作的依旧是虚拟地址，而非物理地址</li>
+<li>不同<code>CPU</code>结构下，内核态空间的布局格式是不变的，但是大小会有所调整，比如<code>ARM</code>和<code>X86</code>的大小空间有所不同。</li>
+</ol>
+<p> </p>
+<p>内核态空间管理并不像用户态那样使用结构体来统一管理，而是直接使用宏来定义每个区域的分界线，</p>
+<blockquote>
+<p>下面我们以<code>x86</code>架构来分析内核态空间的管理</p>
+</blockquote>
+<h3 id="21-分界线定义">
+  2.1 分界线定义
+  <a class="anchor" href="#21-%e5%88%86%e7%95%8c%e7%ba%bf%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * User space process size: 3GB (default).
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define TASK_SIZE		PAGE_OFFSET
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/* PAGE_OFFSET - the virtual address of the start of the kernel image */</span>
+<span style="color:#ff79c6">#define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __PAGE_OFFSET		__PAGE_OFFSET_BASE
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __PAGE_OFFSET_BASE	_AC(CONFIG_PAGE_OFFSET, UL)
+</span><span style="color:#ff79c6"></span>
+config PAGE_OFFSET
+    hex
+    <span style="color:#ff79c6">default</span> <span style="color:#bd93f9">0xB0000000</span> <span style="color:#ff79c6">if</span> VMSPLIT_3G_OPT
+    <span style="color:#ff79c6">default</span> <span style="color:#bd93f9">0x80000000</span> <span style="color:#ff79c6">if</span> VMSPLIT_2G
+    <span style="color:#ff79c6">default</span> <span style="color:#bd93f9">0x78000000</span> <span style="color:#ff79c6">if</span> VMSPLIT_2G_OPT
+    <span style="color:#ff79c6">default</span> <span style="color:#bd93f9">0x40000000</span> <span style="color:#ff79c6">if</span> VMSPLIT_1G
+    <span style="color:#ff79c6">default</span> <span style="color:#bd93f9">0xC0000000</span>
+    depends on X86_32
+</code></pre></div><p><code>TASK_SIZE</code>：内核态空间与用户态空间的分界线</p>
+<p><code>PAGE_OFFSET</code>：该宏表示内核镜像起始的虚拟地址。</p>
+<p><code>CONFIG_PAGE_OFFSET</code>：这个宏定义的值，根据实际情况自行设定，默认为<code>0XC0000000</code>，可以设置为<code>0X80000000</code>等。</p>
+<p>以上，<code>TASK_SIZE</code>就被定义为<code>0XC0000000</code>作为用户态空间和内核态空间的分界线，将<code>4G</code>虚拟内存分配为<code>3G/1G</code>结构。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231010072937276.png" alt="image-20231010072937276" /></p>
+<h3 id="22-直接映射区定义">
+  2.2 直接映射区定义
+  <a class="anchor" href="#22-%e7%9b%b4%e6%8e%a5%e6%98%a0%e5%b0%84%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p>直接映射区是定义在<code>PAGE_OFFSET</code>和<code>high_memory</code>之间的区域。</p>
+<ul>
+<li><code>PAGE_OFFSET</code>：表示内核镜像的起始地址，上文已经说明。</li>
+<li><code>high_memory</code>也是表示的就是<code>896M</code>这个值，表示高端内存的分界线。</li>
+</ul>
+<blockquote>
+<p>顺便说明以下，<code>TASK_SIZE</code>和<code>PAGE_OFFSET</code>在不同架构下是不同的，在<code>ARM</code>架构下，两者并不相等，本文以<code>X86</code>架构为例</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231010073949813.png" alt="image-20231010073949813" /></p>
+<h3 id="23-安全保护区定义">
+  2.3 安全保护区定义
+  <a class="anchor" href="#23-%e5%ae%89%e5%85%a8%e4%bf%9d%e6%8a%a4%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p>系统会在<code>high_memory</code>和<code>VMALLOC_START</code>之间预留<code>8M</code>的安全保护区，防止访问越界。</p>
+<p><code>VMALLOC_OFFSET</code>表示的是内核动态映射区的偏移，也就是所谓的安全保护区。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define VMALLOC_START		(((unsigned long)high_memory + VMALLOC_OFFSET) &amp; ~(VMALLOC_OFFSET-1))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define VMALLOC_OFFSET		(8*1024*1024)
+</span></code></pre></div><p>可以很清楚的看到<code>VMALLOC_OFFSET</code>定义了<code>8M</code>的空间，<code>VMALLOC_START</code>在<code>high_memory</code>基础上，偏移了<code>VMALLOC_OFFSET</code> <code>8M</code>空间大小作为安全保护区，以防越界访问。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231010074810831.png" alt="image-20231010074810831" /></p>
+<h3 id="23-动态映射区定义">
+  2.3 动态映射区定义
+  <a class="anchor" href="#23-%e5%8a%a8%e6%80%81%e6%98%a0%e5%b0%84%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p><code>VMALLOC_START</code>和<code>VMALLOC_END</code>之间称为内核动态映射区。</p>
+<p>和用户态进程使用 <code>malloc</code> 申请内存一样，在这块动态映射区内核是使用 <code>vmalloc</code> 进行内存分配。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define VMALLOC_START		(((unsigned long)high_memory + VMALLOC_OFFSET) &amp; ~(VMALLOC_OFFSET-1))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#ifdef CONFIG_HIGHMEM
+</span><span style="color:#ff79c6"># define VMALLOC_END	(PKMAP_BASE - 2 * PAGE_SIZE)
+</span><span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6"># define VMALLOC_END	(LDT_BASE_ADDR - 2 * PAGE_SIZE)
+</span><span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>
+</code></pre></div><p><code>PKMAP_BASE</code>：是永久映射区的起始地址。</p>
+<p><code>VMALLOC_END</code>：在永久映射区的起始地址下，偏移2个<code>PAGE_SIZE</code>作为安全保护区。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231010075717944.png" alt="image-20231010075717944" /></p>
+<h3 id="24-永久映射区定义">
+  2.4 永久映射区定义
+  <a class="anchor" href="#24-%e6%b0%b8%e4%b9%85%e6%98%a0%e5%b0%84%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p><code>PKMAP_BASE</code> 到 <code>FIXADDR_START</code> 的空间称为永久内核映射，在内核的这段虚拟地址空间中允许建立与物理高端内存的长期映射关系。</p>
+<blockquote>
+<p>比如内核通过 alloc_pages() 函数在物理内存的高端内存中申请获取到的物理内存页，这些物理内存页可以通过调用 kmap 映射到永久映射区中。</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define PKMAP_BASE		\
+</span><span style="color:#ff79c6">    ((LDT_BASE_ADDR - PAGE_SIZE) &amp; PMD_MASK)
+</span><span style="color:#ff79c6"></span>    
+<span style="color:#ff79c6">#define LDT_BASE_ADDR		\
+</span><span style="color:#ff79c6">    ((CPU_ENTRY_AREA_BASE - PAGE_SIZE) &amp; PMD_MASK)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define CPU_ENTRY_AREA_BASE						\
+</span><span style="color:#ff79c6">    ((FIXADDR_TOT_START - PAGE_SIZE * (CPU_ENTRY_AREA_PAGES + 1))   \
+</span><span style="color:#ff79c6">     &amp; PMD_MASK)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define FIXADDR_TOT_START	(FIXADDR_TOP - FIXADDR_TOT_SIZE)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define FIXADDR_TOP	((unsigned long)__FIXADDR_TOP)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define FIXADDR_TOT_SIZE	(__end_of_fixed_addresses &lt;&lt; PAGE_SHIFT)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> __FIXADDR_TOP <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0xfffff000</span>;
+
+<span style="color:#ff79c6">#define PMD_MASK	(~(PMD_SIZE - 1))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define PAGE_SHIFT		12
+</span><span style="color:#ff79c6">#define PAGE_SIZE		(_AC(1,UL) &lt;&lt; PAGE_SHIFT)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define CPU_ENTRY_AREA_PAGES	(NR_CPUS * 40)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define FIXADDR_START		(FIXADDR_TOP - FIXADDR_SIZE)
+</span><span style="color:#ff79c6"></span>
+</code></pre></div><ul>
+<li><code>PKMAP_BASE</code>：是永久映射区的起始地址，它经过一系列的计算得到，具体可以看上面的宏定义，我们大概了解就行了，不同体系结构的定义位置还不一样。</li>
+<li><code>FIXADDR_START</code>：是固定映射区的起始地址，也是永久映射区的结束地址。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231011194447450.png" alt="image-20231011194447450" /></p>
+<h3 id="25-固定映射区定义">
+  2.5 固定映射区定义
+  <a class="anchor" href="#25-%e5%9b%ba%e5%ae%9a%e6%98%a0%e5%b0%84%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p><code>FIXADDR_START</code>到<code>FIXADDR_TOP</code>的空间称为固定映射区，主要用于满足特殊的需求。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define FIXADDR_TOP	((unsigned long)__FIXADDR_TOP)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> __FIXADDR_TOP <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0xfffff000</span>;
+</code></pre></div><p>固定映射区中的虚拟地址，可以自由映射到物理内存的高端地址空间上，特点是其映射的虚拟地址是不变的，物理地址是可以改变的。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231011195006927.png" alt="image-20231011195006927" /></p>
+<h3 id="26-临时映射区定义">
+  2.6 临时映射区定义
+  <a class="anchor" href="#26-%e4%b8%b4%e6%97%b6%e6%98%a0%e5%b0%84%e5%8c%ba%e5%ae%9a%e4%b9%89">#</a>
+</h3>
+<p>最后<code>FIXADDR_TOP</code>到<code>0xFFFFFFFF</code>之间的区域称为临时映射区。</p>
+<blockquote>
+<p>它主要用来做什么呢，网上举的一个例子，大家参考以下。</p>
+</blockquote>
+<p>假设用户态的进程要映射一个文件到内存中，先要映射用户态进程空间的一段虚拟地址到物理内存，然后将文件内容写入这个物理内存供用户态进程访问。</p>
+<p>给用户态进程分配物理内存页可以通过 alloc_pages()，分配完毕后，按说将用户态进程虚拟地址和物理内存的映射关系放在用户态进程的页表中，就完事大吉了。这个时候，用户态进程可以通过用户态的虚拟地址，也即 0 至 3G 的部分，经过页表映射后访问物理内存，并不需要内核态的虚拟地址里面也划出一块来，映射到这个物理内存页。</p>
+<p>但是如果要把文件内容写入物理内存，这件事情要内核来干了，这就只好通过 <code>kmap_atomic</code> 做一个临时映射，写入物理内存完毕后，再 <code>kunmap_atomic</code> 来解映射即可。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231011195939077.png" alt="image-20231011195939077" /></p>
+<p>以上，就是内核态空间的布局以及管理。</p>
+<h2 id="3总结">
+  3、总结
+  <a class="anchor" href="#3%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>该篇文章，主要从源码角度来了解用户态空间和内核态空间是如何管理的，挪用大佬的一个图片，结合上面所讲的，相信很快就能茅塞顿开。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231011200638903.png" alt="image-20231011200638903" /></p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--三虚拟地址空间管理">Linux内存管理 | 三、虚拟地址空间管理</a>
+      <ul>
+        <li><a href="#1用户态空间管理">1、用户态空间管理</a>
+          <ul>
+            <li><a href="#11-task_struct结构体">1.1 task_struct结构体</a></li>
+            <li><a href="#12-mm_struct结构体">1.2 mm_struct结构体</a></li>
+            <li><a href="#13-内核态和用户态的划分">1.3 内核态和用户态的划分</a></li>
+            <li><a href="#14-位置信息描述">1.4 位置信息描述</a></li>
+            <li><a href="#15-区域属性描述">1.5 区域属性描述</a></li>
+          </ul>
+        </li>
+        <li><a href="#2内核态空间管理">2、内核态空间管理</a>
+          <ul>
+            <li><a href="#21-分界线定义">2.1 分界线定义</a></li>
+            <li><a href="#22-直接映射区定义">2.2 直接映射区定义</a></li>
+            <li><a href="#23-安全保护区定义">2.3 安全保护区定义</a></li>
+            <li><a href="#23-动态映射区定义">2.3 动态映射区定义</a></li>
+            <li><a href="#24-永久映射区定义">2.4 永久映射区定义</a></li>
+            <li><a href="#25-固定映射区定义">2.5 固定映射区定义</a></li>
+            <li><a href="#26-临时映射区定义">2.6 临时映射区定义</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总结">3、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

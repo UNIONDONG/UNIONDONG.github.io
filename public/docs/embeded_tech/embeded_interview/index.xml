@@ -6,7 +6,7 @@
     <description>Recent content in 嵌入式面经 on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 12 Nov 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://uniondong.github.io/docs/embeded_tech/embeded_interview/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 17 Jan 2024 21:41:10 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/embeded_tech/embeded_interview/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Soc的Bring Up流程</title>
       <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/</link>
@@ -26,6 +26,43 @@ A：
 A：
  启动时间的裁剪是一个重要的步骤，其主要目标是缩短从电源打开到操作系统完全启动的时间。
   优化Bootloader：减小Bootloader的代码大小，减少硬件初始化（只初始化必要硬件设备）等 优化Kernel：减少启动服务数量，优化服务的启动顺序，使用预加载技术等方法来实现。 使用快速启动模式：一些SOC支持快速启动模式，这种模式下，SOC会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。 使用休眠和唤醒技术：一些SOC还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。   </description>
+    </item>
+    
+    <item>
+      <title>CPU体系架构</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/</link>
+      <pubDate>Wed, 17 Jan 2024 21:39:15 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/</guid>
+      <description>CPU体系架构 #  2.1 CPU体系架构有哪些？ #   我们常见的CPU架构有哪些呢？
+ 如果我们熟悉Linux，那么这个问题肯定不难回答！
+我们查看内核目录下的arch子目录，就可以看到Linux所支持的处理器架构，基本属于我们常见的类型了。
+# ls ./arch alpha arc arm arm64 c6x h8300 hexagon ia64 Kconfig m68k microblaze mips nds32 nios2 openrisc parisc powerpc riscv s390 sh sparc um unicore32 x86 xtensa  准确来说，CPU处理器架构主要有以下几种类型：
+ CISC（复杂指令集计算机）：CISC架构的CPU设计理念是尽可能减少程序指令的数量，以降低CPU和内存之间的通信频率。这种架构的一个显著特点是拥有大量的寄存器和复杂的指令集。Intel的x86架构就是一个典型的CISC架构 RISC（精简指令集计算机）：RISC架构的CPU设计理念是通过简化指令集来提高CPU的运行效率。这种架构的一个显著特点是拥有较少的寄存器和简单的指令集。ARM架构就是一个典型的RISC架构 MISC（中间指令集计算机）：MISC架构的CPU设计理念是在CISC和RISC之间寻找一个平衡点，既不过于复杂也不过于简单。这种架构的一个显著特点是指令集的复杂度介于CISC和RISC之间 VLIW（超长指令字计算机）：VLIW架构的CPU设计理念是通过增大指令长度来提高并行执行的可能性。这种架构的一个显著特点是指令长度远大于其他架构的CPU EPIC（显式并行指令计算）：EPIC架构的CPU设计理念是通过显式标记并行指令来提高CPU的运行效率。这种架构的一个显著特点是指令集中包含了并行执行的信息。Intel的Itanium架构就是一个典型的EPIC架构 超标量架构：超标量架构的CPU设计理念是通过在一个时钟周期内执行多条指令来提高CPU的运行效率。这种架构的一个显著特点是CPU内部包含了多个执行单元，可以同时执行多条指令 超线程技术：超线程技术是Intel公司为其部分CPU所采用的一种使单一处理器像多个逻辑处理器那样并行处理多个线程的技术 多核心架构：多核心架构的CPU设计理念是在一个CPU芯片内集成多个处理器核心，以提高并行处理能力。这种架构的一个显著特点是CPU内部包含了多个独立的处理器核心，每个核心可以独立执行指令   这里就有一个疑问，我们什么时候说RISC架构，什么时候说ARM架构，这两个有什么区别呢？
+ 以ARM和RISC为例：
+ ARM架构和RISC架构的主要区别在于ARM实际上是RISC的一个具体实现，而RISC则是一个更广泛的处理器设计理念。换句话说，ARM是RISC的一个子集。
+同理，X86架构是CISC的一个子集。
+ 2.2 常见的问题 #  Q1：你所熟知的处理器架构有哪些？
+我们常见的处理器架构有ARM、X86、mips架构等；
+ Q2：STM32属于什么架构的？
+STM32是ST公司开发的32位微控制器集成电路，基于 ARM 的 Cortex-M 系列内核。因此，STM32 属于 ARM 架构的微控制器。</description>
+    </item>
+    
+    <item>
+      <title>Linux用户态和内核态交互的几种方式</title>
+      <link>https://uniondong.github.io/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/</link>
+      <pubDate>Wed, 17 Jan 2024 21:41:10 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/</guid>
+      <description>Linux用户态和内核态交互的几种方式 #  Linux分为内核态Kernel Mode和用户态User Mode，其通信方式主要有：
+ 系统调用System Call：最常见的用户态和内核态之间的通信方式。通过系统调用接口（open、read、write、fork等）请求内核执行特定的动作。 中断Interrupts：中断包括软中断和硬中断，每当中断到来的时候，CPU会暂停当前执行的用户态代码，切换到内核态来处理中断。 信号Signal：内核通过Signal通知用户态进程发生了某些事件，用户态注册信号处理函数，来响应特定的信号事件。如 SIGTERM、SIGINT 等。 共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效通信。这种方式避免了用户态和内核态之间频繁切换的问题，但是也需要考虑到数据的同步问题，保证数据一致性。   用户态User Mode访问内核态Kernel Mode的数据交互的方式有：
+  procfs进程文件系统：一个伪文件系统，因为其不占用外部存储空间，只占有少量的内存，挂载在/proc目录下
+  sysctl：它也是一个Linux命令，主要用来修改内核的运行时参数，也就是在内核运行时，动态修改内核参数。
+ 和 procfs 的区别在于：procfs 主要是输出只读数据，而 sysctl 输出的大部分信息是可写的。
+   sysfs虚拟文件系统：通过/sys来完成用户态和内核的通信，和 procfs 不同的是，sysfs 是将一些原本在 procfs 中的，关于设备和驱动的部分，独立出来，以 “设备树” 的形式呈现给用户。
+  netlink 接口：也是最常用的一种方式，本质是socket接口，使用netlink用于网络相关的内核和用户进程之间的消息传递。
+  共享内存Share Memory：允许多个进程在它们的地址空间中共享一块内存区域，从而实现用户态和内核态之间的高效数据传输。
+   欢迎关注【嵌入式艺术】，董哥原创！  </description>
     </item>
     
   </channel>

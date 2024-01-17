@@ -6,7 +6,7 @@
     <description>Recent content in Uboot开发详解 on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 17 Nov 2023 22:11:57 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 17 Jan 2024 21:31:50 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>一、uboot基础了解</title>
       <link>https://uniondong.github.io/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/</link>
@@ -44,6 +44,44 @@ Uboot（BL2阶段）：主要负责初始化外部设备，引导Kernel启动，
 OUTPUT_FORMAT(&amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#34;) OUTPUT_ARCH(arm) ENTRY(_start) SECTIONS { . = 0x00000000;	@起始地址  . = ALIGN(4);	@四字节对齐  .text :	{	*(.__image_copy_start)	@映像文件复制起始地址 *(.vectors)	@异常向量表 arch/arm/cpu/armv7/start.o (.text*)	@启动函数 } ...... }   ENTRY(_start)：程序的入口函数，_start在arch/arm/lib/vectors.S中定义.globl _start
   SECTIONS定义了段，包括text文本段、data数据段、bss段等。
   __image_copy_start在System.</description>
+    </item>
+    
+    <item>
+      <title>三、Uboot驱动模型</title>
+      <link>https://uniondong.github.io/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/</link>
+      <pubDate>Wed, 17 Jan 2024 21:28:52 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/</guid>
+      <description>三、Uboot驱动模型 #   全文耗时一周，精心汇总，希望对大家有所帮助，感觉可以的点赞，关注，不迷路，后续还有更多干货！
+看文章前，答应我，静下心来，慢慢品！
+ 3.1、什么是Uboot驱动模型 #  学过Linux的朋友基本都知道Linux的设备驱动模型，Uboot根据Linux的驱动模型架构，也引入了Uboot的驱动模型（driver model ：DM）。
+**这种驱动模型为驱动的定义和访问接口提供了统一的方法。**提高了驱动之间的兼容性以及访问的标准型，uboot驱动模型和kernel中的设备驱动模型类似。
+3.2、为什么要有驱动模型呢 #   无论是Linux还是Uboot，一个新对象的产生必定有其要解决的问题，驱动模型也不例外！
+  提高代码的可重用性：为了能够使代码在不同硬件平台，不同体系架构下运行，必须要最大限度的提高代码的可重用性。 高内聚，低耦合：分层的思想也是为了达到这一目标，低耦合体现在对外提供统一的抽象访问接口，高内聚将相关度紧密的集中抽象实现。 便于管理：在不断发展过程中，硬件设备越来越多，驱动程序也越来越多，为了更好的管理驱动，也需要一套优秀的驱动架构！  3.3、如何使用uboot的DM模型 #   DM模型的使用，可以通过menuconfig来配置。
+make menuconfig
+ ①：menuconfig配置全局DM模型 #  Device Drivers -&amp;gt; Generic Driver Options -&amp;gt; Enable Driver Model 通过上面的路径来打开Driver Model模型，最终配置在.config文件中，CONFIG_DM=y
+②：指定某个驱动的DM模型 #  全局的DM模型打开后，我们对于不通的驱动模块，使能或者失能DM功能。如MMC驱动为例：
+Device Drivers -&amp;gt; MMC Host controller Support -&amp;gt; Enable MMC controllers using Driver Model 最终反映在.config文件中的CONFIG_DM_MMC=y
+在对应的驱动中，可以看到判断#if !CONFIG_IS_ENABLED(DM_MMC)，来判断是否打开DM驱动模型。
+在管理驱动的Makefile文件中，也能看到obj-$(CONFIG_$(SPL_)DM_MMC) += mmc-uclass.</description>
+    </item>
+    
+    <item>
+      <title>四、Uboot命令行模式分析</title>
+      <link>https://uniondong.github.io/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/</link>
+      <pubDate>Wed, 17 Jan 2024 21:31:50 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/</guid>
+      <description>四、Uboot命令行模式分析 #   前几篇文章，我们也了解了Uboot的启动流程，那么这节就主要讲讲Uboot的命令行模式。
+另外，文章末尾还提供eMMC5.1官方标准协议.pdf和eMMC4.51官方标准协议-中文.pdf下载渠道，方便深入了解底层协议。
+正文如下：
+  4.1 如何进入命令行模式 #  我们正常启动流程，默认是直接跳过Uboot命令行模式的，因为Uboot主要的作用是引导Kernel，一般我们不进行uboot开发时，都默认跳过进入命令行模式。
+ 那么，我们要想进入Uboot命令行模式，需要进行哪些配置呢？
+ 打开我们准备好一份Uboot源码，进入menuconfig配置菜单，主要设置下列几个配置信息！
+  CONFIG_CMDLINE：命令行模式开关 CONFIG_SYS_PROMPT：命令行模式提示符 CONFIG_HUSH_PARSER：使用hush shell 来对命令进行解析 BOOTDELAY：设置启动延时   Tip：meneconfig中查找苦难？实时/符号，输入1或2或3，直接查找指定标识。
+   打开之后，重新编译，并将Uboot镜像烧录到开发板中，再次启动，我们就能够看到倒计时。
+[2022-03-02:13:33:47]U-Boot 2020.10-rc1-00043-ge62a6d17c6-dirty (Feb 08 2022 - 10:14:14 +0800) [2022-03-02:13:33:47] [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:47]MMC: mmc1@xxxxxx: 1 [2022-03-02:13:33:47]In: serial [2022-03-02:13:33:47]Out: serial [2022-03-02:13:33:47]Err: serial [2022-03-02:13:33:47]Model: xxxxxx [2022-03-02:13:33:49]Hit any key to stop autoboot: 2 Hit any key to stop autoboot：我们在倒计时结束前，任意键入一个按键，即可进入！
+ 4.2 Uboot基本命令解析 #  进入Uboot命令行模式后，键入help或者?</description>
     </item>
     
   </channel>

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Linux内存管理 | 四、物理地址空间设计模型 #  前面几篇文章，主要讲解了虚拟内存空间的布局和管理，下面同步来聊聊物理内存空间的布局和管理。
+ 1、物理内存 #   什么是物理内存？
+ 我们平时聊的内存，也叫随机访问存储器（random-access memory），也叫RAM。
+RAM分为两类：
+ SRAM：静态RAM，其主要用于CPU高速缓存 L1Cache，L2Cache，L3Cache，其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。   DRAM：动态RAM，其主要用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。  DRAM经过组合起来，就作为我们的计算机内存，也是物理内存。
+ 2、物理内存访问模型 #  上面介绍了物理内存的基本组成，那么CPU是如何访问物理内存的呢？
+对于CPU访问物理内存，Linux提供了两种架构：UMA(Uniform Memory Access)一致内存访问，NUMA(Non-Uniform Memory Access)非一致内存访问。
+2.1 UMA #  在UMA架构下，多核处理器中的多个CPU，位于总线的一侧，所有的内存条组成的物理内存位于总线的另一侧。
+所有的CPU访问内存都要经过总线，并且距离都是一样的，所以在UMA架构下，所有CPU具有相同的访问特性，即对内存的访问具有相同的速度。
+2.2 NUMA #  这种架构，系统中的各个处理器都有本地内存，处理器与处理器之间也通过总线连接，以便于其他处理器对本地内存的访问。
+与UMA不同的是，处理器访问本地内存的速度要快于对其他处理器本地内存的访问。
+3、物理内存组织模型 #  内存页是物理内存管理中最小单位，有时也成为页帧（Page Frame）。
+内核对物理内存划分为一页一页的连续的内存块，每页大小4KB，并且使用struct page结构体来表示页结构，其中封装了每个页的状态信息，包括：组织结构，使用信息，统计信息等。
+ page结构体较为复杂，我们后续再深入了解。
+   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  3.1 FLATMEM平坦内存模型 #   FLATMEM即：flat memory model。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="四、物理地址空间设计模型" />
+<meta property="og:description" content="Linux内存管理 | 四、物理地址空间设计模型 #  前面几篇文章，主要讲解了虚拟内存空间的布局和管理，下面同步来聊聊物理内存空间的布局和管理。
+ 1、物理内存 #   什么是物理内存？
+ 我们平时聊的内存，也叫随机访问存储器（random-access memory），也叫RAM。
+RAM分为两类：
+ SRAM：静态RAM，其主要用于CPU高速缓存 L1Cache，L2Cache，L3Cache，其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。   DRAM：动态RAM，其主要用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。  DRAM经过组合起来，就作为我们的计算机内存，也是物理内存。
+ 2、物理内存访问模型 #  上面介绍了物理内存的基本组成，那么CPU是如何访问物理内存的呢？
+对于CPU访问物理内存，Linux提供了两种架构：UMA(Uniform Memory Access)一致内存访问，NUMA(Non-Uniform Memory Access)非一致内存访问。
+2.1 UMA #  在UMA架构下，多核处理器中的多个CPU，位于总线的一侧，所有的内存条组成的物理内存位于总线的另一侧。
+所有的CPU访问内存都要经过总线，并且距离都是一样的，所以在UMA架构下，所有CPU具有相同的访问特性，即对内存的访问具有相同的速度。
+2.2 NUMA #  这种架构，系统中的各个处理器都有本地内存，处理器与处理器之间也通过总线连接，以便于其他处理器对本地内存的访问。
+与UMA不同的是，处理器访问本地内存的速度要快于对其他处理器本地内存的访问。
+3、物理内存组织模型 #  内存页是物理内存管理中最小单位，有时也成为页帧（Page Frame）。
+内核对物理内存划分为一页一页的连续的内存块，每页大小4KB，并且使用struct page结构体来表示页结构，其中封装了每个页的状态信息，包括：组织结构，使用信息，统计信息等。
+ page结构体较为复杂，我们后续再深入了解。
+   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  3.1 FLATMEM平坦内存模型 #   FLATMEM即：flat memory model。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-17T21:15:48+08:00" />
+<meta property="article:modified_time" content="2024-01-17T21:15:48+08:00" />
+
+<title>四、物理地址空间设计模型 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle" checked />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="active">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>四、物理地址空间设计模型</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--四物理地址空间设计模型">Linux内存管理 | 四、物理地址空间设计模型</a>
+      <ul>
+        <li><a href="#1物理内存">1、物理内存</a></li>
+        <li><a href="#2物理内存访问模型">2、物理内存访问模型</a>
+          <ul>
+            <li><a href="#21-uma">2.1 UMA</a></li>
+            <li><a href="#22-numa">2.2 NUMA</a></li>
+          </ul>
+        </li>
+        <li><a href="#3物理内存组织模型">3、物理内存组织模型</a>
+          <ul>
+            <li><a href="#31-flatmem平坦内存模型">3.1 FLATMEM平坦内存模型</a></li>
+            <li><a href="#32-discontigmem-不连续内存模型">3.2 DISCONTIGMEM 不连续内存模型</a></li>
+            <li><a href="#33-sparsemem稀疏内存模型">3.3 SPARSEMEM稀疏内存模型</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="linux内存管理--四物理地址空间设计模型">
+  Linux内存管理 | 四、物理地址空间设计模型
+  <a class="anchor" href="#linux%e5%86%85%e5%ad%98%e7%ae%a1%e7%90%86--%e5%9b%9b%e7%89%a9%e7%90%86%e5%9c%b0%e5%9d%80%e7%a9%ba%e9%97%b4%e8%ae%be%e8%ae%a1%e6%a8%a1%e5%9e%8b">#</a>
+</h1>
+<p>前面几篇文章，主要讲解了虚拟内存空间的布局和管理，下面同步来聊聊物理内存空间的布局和管理。</p>
+<p> </p>
+<h2 id="1物理内存">
+  1、物理内存
+  <a class="anchor" href="#1%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98">#</a>
+</h2>
+<blockquote>
+<p>什么是物理内存？</p>
+</blockquote>
+<p>我们平时聊的内存，也叫随机访问存储器<code>（random-access memory）</code>，也叫<code>RAM</code>。</p>
+<p><code>RAM</code>分为两类：</p>
+<ul>
+<li><code>SRAM</code>：静态<code>RAM</code>，其主要用于<code>CPU</code>高速缓存 <code>L1Cache</code>，<code>L2Cache</code>，<code>L3Cache</code>，其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/560cee15346204f216f8b144a6c2a18c.png" alt="CPU缓存结构.png" /></p>
+<ul>
+<li><code>DRAM</code>：动态<code>RAM</code>，其主要用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/647cd97d53cb7d2a67067c90996fa4e8.png" alt="image.png" /></p>
+<p><code>DRAM</code>经过组合起来，就作为我们的计算机内存，也是物理内存。</p>
+<p> </p>
+<h2 id="2物理内存访问模型">
+  2、物理内存访问模型
+  <a class="anchor" href="#2%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98%e8%ae%bf%e9%97%ae%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<p>上面介绍了物理内存的基本组成，那么<code>CPU</code>是如何访问物理内存的呢？</p>
+<p>对于<code>CPU</code>访问物理内存，<code>Linux</code>提供了两种架构：<code>UMA(Uniform Memory Access)</code>一致内存访问，<code>NUMA(Non-Uniform Memory Access)</code>非一致内存访问。</p>
+<h3 id="21-uma">
+  2.1 UMA
+  <a class="anchor" href="#21-uma">#</a>
+</h3>
+<p>在<code>UMA</code>架构下，多核处理器中的多个<code>CPU</code>，位于总线的一侧，所有的内存条组成的物理内存位于总线的另一侧。</p>
+<p>所有的<code>CPU</code>访问内存都要经过总线，并且距离都是一样的，所以在<code>UMA</code>架构下，<font color = "red"><strong>所有<code>CPU</code>具有相同的访问特性，即对内存的访问具有相同的速度。</strong></font></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231013075142500.png" alt="image-20231013075142500" /></p>
+<h3 id="22-numa">
+  2.2 NUMA
+  <a class="anchor" href="#22-numa">#</a>
+</h3>
+<p>这种架构，系统中的<strong>各个处理器都有本地内存</strong>，处理器与处理器之间也通过总线连接，以便于其他处理器对本地内存的访问。</p>
+<p><font color = "red"><strong>与<code>UMA</code>不同的是，处理器访问本地内存的速度要快于对其他处理器本地内存的访问。</strong></font></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231013074823586.png" alt="image-20231013074823586" /></p>
+<h2 id="3物理内存组织模型">
+  3、物理内存组织模型
+  <a class="anchor" href="#3%e7%89%a9%e7%90%86%e5%86%85%e5%ad%98%e7%bb%84%e7%bb%87%e6%a8%a1%e5%9e%8b">#</a>
+</h2>
+<p>内存页是物理内存管理中最小单位，有时也成为页帧<code>（Page Frame）</code>。</p>
+<p>内核对物理内存划分为一页一页的连续的内存块，每页大小<code>4KB</code>，并且使用<code>struct page</code>结构体来表示页结构，其中封装了每个页的状态信息，包括：组织结构，使用信息，统计信息等。</p>
+<blockquote>
+<p><code>page</code>结构体较为复杂，我们后续再深入了解。</p>
+</blockquote>
+<p> </p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h3 id="31-flatmem平坦内存模型">
+  3.1 FLATMEM平坦内存模型
+  <a class="anchor" href="#31-flatmem%e5%b9%b3%e5%9d%a6%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b">#</a>
+</h3>
+<blockquote>
+<p><code>FLATMEM</code>即：<code>flat memory model</code>。</p>
+</blockquote>
+<p>我们把物理内存想象成它是由连续的一页一页的块组成的，我们从<code>0</code>开始对物理页编号，这样每个物理页都会有页号。</p>
+<p>由于物理地址是连续的，页也是连续的，每个页大小也是一样的。因而对于任何一个地址，只要直接除一下每页的大小，很容易直接算出在哪一页。</p>
+<p>如果是这样，整个物理内存的布局就非常简单、易管理，这就是最经典的<strong>平坦内存模型</strong><code>（Flat Memory Model）</code>。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/89fe28d0feb1cd31cbaad5352e1f43d9.png" alt="image.png" /></p>
+<p>如上图，平坦内存模型中，内核使用一个<code>mem_map</code>的全局数组，来组织所有划分出来的物理内存页，下标由<code>PFN</code>表示。</p>
+<p>在平坦内存模型下 ，<code>page_to_pfn</code> 与 <code>pfn_to_page</code> 的计算逻辑就非常简单，本质就是基于 <code>mem_map</code> 数组进行偏移操作。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#ifndef ARCH_PFN_OFFSET
+</span><span style="color:#ff79c6">#define ARCH_PFN_OFFSET		(0UL)
+</span><span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#if defined(CONFIG_FLATMEM)
+</span><span style="color:#ff79c6">#define __pfn_to_page(pfn) (mem_map + ((pfn)-ARCH_PFN_OFFSET))
+</span><span style="color:#ff79c6">#define __page_to_pfn(page) ((unsigned long)((page)-mem_map) + ARCH_PFN_OFFSET)
+</span><span style="color:#ff79c6">#endif
+</span></code></pre></div><blockquote>
+<p><code>ARCH_PFN_OFFSET</code> 是 <code>PFN</code> 的起始偏移量。</p>
+</blockquote>
+<p> </p>
+<h3 id="32-discontigmem-不连续内存模型">
+  3.2 DISCONTIGMEM 不连续内存模型
+  <a class="anchor" href="#32-discontigmem-%e4%b8%8d%e8%bf%9e%e7%bb%ad%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b">#</a>
+</h3>
+<blockquote>
+<p><code>DISCONTIGMEM</code>即：<code>discontiguous memory model</code>。</p>
+</blockquote>
+<p>我们早期内核使用的是<code>FLATMEM</code>模型，该模型对于较小的，连续的物理空间是方便使用的，但是当物理内存不连续时，使用<code>mem_map</code>管理，就会出现空洞，这会浪费<code>mem_map</code>数组本身占用的内存空间。</p>
+<p><img src="https://cdn.xiaolincoding.com//mysql/other/e29eec09835747396b91ee363cd8b697.png" alt="image.png" /></p>
+<p><font color = "red"><strong>对于<code>NUMA</code>访问内存模型，物理内存分布就是不连续的，为了有效管理，<code>DISCONTIGMEM</code> 不连续内存模型出现了。</strong></font></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/ae106d5d780328aae34d40560dc0442f.png" alt="image.png" /></p>
+<p>在不连续的物理内存中，<code>DISCONTIGMEM</code>不连续内存模型，将物理内存分成了一个个的<code>node</code>，然后每个<code>node</code>管理一块连续的物理内存，连续的物理内存仍然使用<code>FLATMEM</code>平坦内存模型来管理，从而避免了内存空洞的浪费。</p>
+<blockquote>
+<p>我们可以看出 <code>DISCONTIGMEM</code> 非连续内存模型其实就是 <code>FLATMEM</code> 平坦内存模型的一种扩展。</p>
+</blockquote>
+<p><font color = "red"><strong><code>DISCONTIGMEM</code>是个稍纵即逝的内存模型，在<code>SPARSEMEM</code>出现后即被完全替代</strong>。</font></p>
+<p> </p>
+<h3 id="33-sparsemem稀疏内存模型">
+  3.3 SPARSEMEM稀疏内存模型
+  <a class="anchor" href="#33-sparsemem%e7%a8%80%e7%96%8f%e5%86%85%e5%ad%98%e6%a8%a1%e5%9e%8b">#</a>
+</h3>
+<p>随着内存技术的发展，内核可以支持物理内存的热插拔了（像我们的内存条，可以直接插入拔出），这样不连续物理内存已然称为常态。</p>
+<p><code>SPARSEMEM</code>稀疏内存模型的核心思想就是<font color = "red"><strong>对粒度更小的连续内存块进行精细的管理</strong></font>，用于管理连续内存块的单元被称作 <code>section</code> 。</p>
+<blockquote>
+<p>物理页大小为 <code>4k</code> 的情况下， <code>section</code> 的大小为 <code>128M</code> ，物理页大小为 <code>16k</code> 的情况下， <code>section</code> 的大小为 <code>512M</code>。</p>
+</blockquote>
+<p> </p>
+<p>在内核中，使用<code>struct mem_section</code>结构体表示<code>SPARSEMEM</code>模型中的<code>section</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">struct</span> mem_section {
+	<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> section_mem_map;
+        ...
+}
+</code></pre></div><ul>
+<li>
+<p>每个<code>mem_section</code>管理一片小的，物理内存连续的区域，并且支持对该区域的<code>offline/online</code>状态</p>
+</li>
+<li>
+<p>所有的<code>mem_section</code>都保存在一个全局数组中</p>
+</li>
+</ul>
+<blockquote>
+<p>整体的框架如下：</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/e3956ea9e4dab708d57c7c183c6b91d6.png" alt="image.png" /></p>
+<p>在 <code>SPARSEMEM</code> 稀疏内存模型下 <code>page_to_pfn</code> 与 <code>pfn_to_page</code> 的计算逻辑又发生了变化。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#if defined(CONFIG_SPARSEMEM)
+</span><span style="color:#ff79c6"></span><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * Note: section&#39;s mem_map is encoded to reflect its start_pfn.
+</span><span style="color:#6272a4"> * section[i].section_mem_map == mem_map&#39;s address - start_pfn;
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">#define __page_to_pfn(pg)					\
+</span><span style="color:#ff79c6">({	const struct page *__pg = (pg);				\
+</span><span style="color:#ff79c6">	int __sec = page_to_section(__pg);			\
+</span><span style="color:#ff79c6">	(unsigned long)(__pg - __section_mem_map_addr(__nr_to_section(__sec)));	\
+</span><span style="color:#ff79c6">})
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __pfn_to_page(pfn)				\
+</span><span style="color:#ff79c6">({	unsigned long __pfn = (pfn);			\
+</span><span style="color:#ff79c6">	struct mem_section *__sec = __pfn_to_section(__pfn);	\
+</span><span style="color:#ff79c6">	__section_mem_map_addr(__sec) + __pfn;		\
+</span><span style="color:#ff79c6">})
+</span><span style="color:#ff79c6">#endif
+</span></code></pre></div><ul>
+<li>在 <code>page_to_pfn</code> 的转换中，首先需要通过 <code>page_to_section</code> 根据 <code>struct page</code> 结构定位到 <code>mem_section</code> 数组中具体的 <code>section</code> 结构。然后在通过 <code>section_mem_map</code> 定位到具体的 <code>PFN</code>。</li>
+<li>在 <code>pfn_to_page</code> 的转换中，首先需要通过 <code>__pfn_to_section</code> 根据 <code>PFN</code> 定位到 <code>mem_section</code> 数组中具体的 <code>section</code> 结构。然后在通过 <code>PFN</code> 在 <code>section_mem_map</code> 数组中定位到具体的物理页 <code>Page</code> 。</li>
+</ul>
+<p> </p>
+<h2 id="4总结">
+  4、总结
+  <a class="anchor" href="#4%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>以上，我们先对物理内存空间有一个基础的了解，明白物理内存空间的内存访问模型和组织模型，下面我们再详细介绍物理内存空间的布局和管理。</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#linux内存管理--四物理地址空间设计模型">Linux内存管理 | 四、物理地址空间设计模型</a>
+      <ul>
+        <li><a href="#1物理内存">1、物理内存</a></li>
+        <li><a href="#2物理内存访问模型">2、物理内存访问模型</a>
+          <ul>
+            <li><a href="#21-uma">2.1 UMA</a></li>
+            <li><a href="#22-numa">2.2 NUMA</a></li>
+          </ul>
+        </li>
+        <li><a href="#3物理内存组织模型">3、物理内存组织模型</a>
+          <ul>
+            <li><a href="#31-flatmem平坦内存模型">3.1 FLATMEM平坦内存模型</a></li>
+            <li><a href="#32-discontigmem-不连续内存模型">3.2 DISCONTIGMEM 不连续内存模型</a></li>
+            <li><a href="#33-sparsemem稀疏内存模型">3.3 SPARSEMEM稀疏内存模型</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -3,7 +3,7 @@ title:       "Soc的Bring Up流程"
 date:        2023-11-12
 author:      "Donge"
 image:       "img/post-bg-miui6.jpg"
-tags:        ["嵌入式面经", "嵌入式基础必备知识", "嵌入式Linux"]
+tags:        ["Linux面试指南", "嵌入式基础必备知识", "嵌入式Linux"]
 categories:  ["Tech"]
 weight: 1
 

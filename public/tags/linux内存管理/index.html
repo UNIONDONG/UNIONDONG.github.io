@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="Linux内存管理" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://uniondong.github.io/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" />
+
+<title>Linux内存管理 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.6672030aecaaccd97d33b64b436cba791cf334cb1740994be7ab516a44e79a6d.js" integrity="sha256-ZnIDCuyqzNl9M7ZLQ2y6eRzzNMsXQJlL56tRakTnmm0=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://uniondong.github.io/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.xml" title="Donge Blog" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Linux内存管理</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>18</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/">一、内存管理的由来及思想</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 一、内存管理的由来及思想 #  1、前言 #  《中庸》有：“九层之台，起于垒土” 之说，那么对于我们搞技术的人，同样如此！
+对于Linux内存管理，你可以说没有留意过，但是它存在于我们日常开发的方方面面，你所打开的文件，你所创建的变量，你所运行的程序，无不以此为基础，它可以说是操作系统的基石；只是底层被封装的太好了，以至于我们在做开发的过程中，不需要关心的太多，哪有什么岁月静好，只是有人在负重前行罢了。
+ 虽然日常开发中涉及的比较少，但是作为一个合格的Linux开发者，搞懂内存管理，又显得至关重要，同时也会对嵌入式开发大有脾益，今天我们就来详细聊聊内存管理的那点事。
+ 该方面的文章，网上也有很多写的非常不错，但是100个人有100种理解方式，并且不同的人，基础不同，理解能力也不同，所以我写这系列的文章，也更有了意义。
+ 2、内存管理的由来 #   为什么要有这个概念呢？
+  首先，内存管理，管理的是个什么东西？  管理的其实是我们的物理内存，也就是我们的RAM空间，在电脑上，表现为我们安装的内存条，有的人装个4G的、8G的、甚至64G的，这些就是实打实的物理空间大小，也就是我们的实际的硬件资源。
+ 为什么要进行管理？  做嵌入式的都知道，像我们刚开始玩的C51单片机、STM32单片机，我们将程序烧录到Flash中后，开机启动后，然后CPU会将Flash程序加载到RAM中，也就是我们的物理内存，随后我们的所有操作都是基于这一个物理内存所进行的。
+那么此时：
+ 我们想再次运行一个一模一样的程序怎么办？ 即使运行了，那两个程序同时操作了同一个变量，值被错误修改了怎么办？  这些就是Linux内存管理要做的事情。
+  顺便介绍一下 我的圈子：高级工程师聚集地，期待大家的加入。
+ 3、Linux内存管理思想 #  为了解决上面的一些问题，Linux采用虚拟内存管理技术。
+ Linux操作系统抽象出来一个虚拟地址空间的概念，供上层用户使用，这么做的目的是为了让多个用户进程，都以为自己独享了内存空间。 而虚拟地址空间与物理地址空间的对应关系，就交给了一个MMU(Memory Managerment Unit)的家伙来管理，其主要负责将虚拟内存空间映射到真实的物理地址空间。  这么做的主要目的在于：
+ 让每个进程都拥有相同大小的虚拟地址空间 避免用户直接访问物理内存，导致系统崩溃  这样，我们同时执行多个进程，虽然看起来虚拟地址操作都是相同的，但是通过MMU之后，就被映射到了不同的物理地址空间，这样就解决了以上的问题。
+ 4、总结 #  熟悉了内存管理由来以及其思想，我们可以看出，操作系统的内存管理，主要分为以下几个方面：
+ 虚拟内存空间管理：我们抽象出来的虚拟地址空间，该怎么使用，该怎么管理？ 物理内存空间管理：虚拟地址映射到物理内存空间后，该如何管理，如何分配？ 如何映射：虚拟内存如何映射到物理内存，是怎么操作的，映射方法有哪些？  下面我们来一一详细探究。
+  欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/">二、虚拟地址空间布局</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 二、虚拟地址空间布局 #  上一章，我们了解了内存管理的由来以及核心思想，下面我们按照顺序，先来介绍一下Linux虚拟内存空间的管理。
+ 同样，我们知道Linux内核抽象出来虚拟内存空间，主要是为了让每个进程都独享该空间，那虚拟内存空间是如何布局的呢？
+ 前提：针对于不同位数的CPU，寻址能力不同，抽象出来的虚拟内存空间大小也不同，我们以常见的32位的CPU为例。
+  1、虚拟内存空间布局 #  对于32位的CPU，寻址范围为0~2^32，也就是0x00000000-0xFFFFFFFF，即最多抽象出来4G的虚拟内存空间。
+这4GB的内存空间，在Linux中，又分为用户空间和内核空间，其中0x0000000-0xBFFFFFFF，共3G为用户空间，0xC00000000-0xFFFFFFFF，共1G为内核空间，如下：
+无论内核空间还是用户空间，其仍然是在虚拟内存空间基础之上进行划分的，其直接访问的依旧都是虚拟地址，而非物理地址！
+我们编写代码后，所生成的可执行程序，运行之后就成为一个系统进程，我们在&quot;虚&quot;的角度来看，每个进程都是独享这4G虚拟地址空间的，
+ 2、用户态空间布局 #  如上所述，用户空间在虚拟内存中分布在0x0000000-0xBFFFFFFF，大小为3G。
+每一个用户进程，按照访问属性一致的地址空间存放在一起的原则，划分成5个不同的内存区域（访问属性一致指的是：可读，可写，可执行）：
+ 代码段：Text Segment，也就是我们的二进制程序，代码段需要防止在运行时被非法修改，所以该段为只读。 数据段：Data Segment，主要存放初始化了的变量，主要包括：静态变量和全局变量，该段为读写。 BSS段：BSS Segment，主要存放未初始化的全局变量，在内存中 bss 段全部置零，该段为读写。 堆段：Heap Segment，主要存放进程运行过程中动态分配的内存段，大小不固定，可动态扩张和缩减，通常使用malloc和free来分配释放，并且堆的增长方向是向上的。 文件映射和匿名映射段：Memory Mapping Segment，主要存放进程使用到的文件或者依赖的动态库，从低地址向上增长。 栈段：Stack Segment，主要存放进程临时创建的局部变量，函数调用上下文信息等，栈向下增长。  一个可执行程序，可以通过size命令，查看编译出来的可执行文件大小，其中包括了代码段，数据段等数据信息，如下:
+donge@Donge:$ size Donge-Demo text data bss dec hex filename 12538 1916 43632 58086 e2e6 Donge-Demo  text：代码段大小 data：数据段大小 bss：bss段大小 dec：十进制表示的可执行文件大小 hex：十六进制表示的可执行文件大小   运行该程序后，可以通过cat /proc/PID/maps命令，或者pmap PID命令，来查看该进程在虚拟内存空间中的分配情况，其中PID为进程的PID号，如下:
+donge@Donge:$ cat /proc/16508/maps 55976ff9e000-55976ffa0000 r--p 00000000 08:10 184922 /home/donge/WorkSpace/Program/Donge_Programs/Donge_Demo/build/Donge-Demo 55976ffa0000-55976ffa2000 r-xp 00002000 08:10 184922 /home/donge/WorkSpace/Program/Donge_Programs/Donge_Demo/build/Donge-Demo 55976ffa2000-55976ffa3000 r--p 00004000 08:10 184922 /home/donge/WorkSpace/Program/Donge_Programs/Donge_Demo/build/Donge-Demo 55976ffa3000-55976ffa4000 r--p 00004000 08:10 184922 /home/donge/WorkSpace/Program/Donge_Programs/Donge_Demo/build/Donge-Demo 55976ffa4000-55976ffa5000 rw-p 00005000 08:10 184922 /home/donge/WorkSpace/Program/Donge_Programs/Donge_Demo/build/Donge-Demo 55976ffa5000-55976ffaf000 rw-p 00000000 00:00 0 559771d91000-559771db2000 rw-p 00000000 00:00 0 [heap] 7fec1ad84000-7fec1ad87000 rw-p 00000000 00:00 0 7fec1ad87000-7fec1adaf000 r--p 00000000 08:10 22282 /usr/lib/x86_64-linux-gnu/libc.
+        <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/">三、虚拟地址空间管理</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 三、虚拟地址空间管理 #  上一节，我们主要了解了虚拟内存空间的布局情况，趁热打铁，我们直接从源代码的视角，来看一下Linux内核是如何管理虚拟内存空间的。
+废话不多说，直接开始！
+1、用户态空间管理 #  读完上一节我们知道，用户态的布局情况如下：
+我们运行的可执行程序，被加载进内存后，会作为一个进程存在，这个进程Linux内核会将其抽象成一个结构体。没错，它就是task_struct。
+1.1 task_struct结构体 #  task_struct结构体是进程的抽象，进程所涉及到的内容非常多，下面只列举出一些重要的数据结构，方面理解。
+// include/linux/sched.h struct task_struct { ... pid_t	pid;	//	进程PID  pid_t	tgid;	//	线程PID  struct files_struct	*files;	// 进程打开的文件信息  struct mm_struct	*mm;	//	进程虚拟内存空间的内存描述符  ... } 如上，进程抽象为task_struct结构体，通过mm_struct结构体来管理虚拟内存空间。
+1.2 mm_struct结构体 #  每个进程都有唯一的 mm_struct 结构体，也就是前边提到的每个进程的虚拟地址空间都是独立，互不干扰的。
+mm_struct的结构体如下：
+//	include/linux/mm_types.h struct mm_struct { ... struct { ... unsigned long task_size;	/* size of task vm space */ .
+        <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/">四、物理地址空间设计模型</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 四、物理地址空间设计模型 #  前面几篇文章，主要讲解了虚拟内存空间的布局和管理，下面同步来聊聊物理内存空间的布局和管理。
+ 1、物理内存 #   什么是物理内存？
+ 我们平时聊的内存，也叫随机访问存储器（random-access memory），也叫RAM。
+RAM分为两类：
+ SRAM：静态RAM，其主要用于CPU高速缓存 L1Cache，L2Cache，L3Cache，其特点是访问速度快，访问速度为 1 - 30 个时钟周期，但是容量小，造价高。   DRAM：动态RAM，其主要用于我们常说的主存上，其特点的是访问速度慢（相对高速缓存），访问速度为 50 - 200 个时钟周期，但是容量大，造价便宜些（相对高速缓存）。  DRAM经过组合起来，就作为我们的计算机内存，也是物理内存。
+ 2、物理内存访问模型 #  上面介绍了物理内存的基本组成，那么CPU是如何访问物理内存的呢？
+对于CPU访问物理内存，Linux提供了两种架构：UMA(Uniform Memory Access)一致内存访问，NUMA(Non-Uniform Memory Access)非一致内存访问。
+2.1 UMA #  在UMA架构下，多核处理器中的多个CPU，位于总线的一侧，所有的内存条组成的物理内存位于总线的另一侧。
+所有的CPU访问内存都要经过总线，并且距离都是一样的，所以在UMA架构下，所有CPU具有相同的访问特性，即对内存的访问具有相同的速度。
+2.2 NUMA #  这种架构，系统中的各个处理器都有本地内存，处理器与处理器之间也通过总线连接，以便于其他处理器对本地内存的访问。
+与UMA不同的是，处理器访问本地内存的速度要快于对其他处理器本地内存的访问。
+3、物理内存组织模型 #  内存页是物理内存管理中最小单位，有时也成为页帧（Page Frame）。
+内核对物理内存划分为一页一页的连续的内存块，每页大小4KB，并且使用struct page结构体来表示页结构，其中封装了每个页的状态信息，包括：组织结构，使用信息，统计信息等。
+ page结构体较为复杂，我们后续再深入了解。
+   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  3.1 FLATMEM平坦内存模型 #   FLATMEM即：flat memory model。
+        <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/">五、物理内存空间布局及管理</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 五、物理内存空间布局及管理 #  上章，我们介绍了物理内存的访问内存模型和组织内存模型，我们再来回顾一下：
+物理内存的访问内存模型分为：
+ UMA：一致内存访问 NUMA：非一致内存访问  物理内存的组织模型：
+ FLATMEM：平坦内存模型 DISCONTIGMEM：不连续内存模型 SMARSEMEM：稀疏内存模型  Linux内核为了用统一的代码获取最大程度的兼容性，对物理内存的定义方面，引入了：内存结点（node）、内存区域（zone），内存页（page）的概念，下面我们来一一探究。
+ 更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  1、内存节点node #  内存节点的引入，是Linux为了最大程度的提高兼容性，将UMA和NUMA系统统一起来，对于UMA而言是只有一个节点的系统。
+ 下面的代码部分，我们尽可能的只保留暂时用的到的部分，不涉及太多的体系架相关的细节。
+ 在Linux内核中，我们使用 typedef struct pglist_data pg_data_t表示一个节点
+/* * On NUMA machines, each NUMA node would have a pg_data_t to describe * it&#39;s memory layout. On UMA machines there is a single pglist_data which * describes the whole memory. * * Memory statistics and page replacement data structures are maintained on a * per-zone basis.
+        <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/">六、物理内存分配——伙伴系统</a>
+    </h2>
+    
+  <h5>Jan 17, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+  </div>
+  
+
+
+
+
+    <p>Linux内存管理 | 六、物理内存分配——伙伴系统 #  上一章，我们了解了物理内存的布局以及Linux内核对其的管理方式，页（page）也是物理内存的最小单元，Linux内核对物理内存的分配主要分为两种：一种是整页的分配，采用的是伙伴系统，另一种是小内存块的分配，采用的是slab技术。
+下面我们先来看看什么是伙伴系统！
+ 1、伙伴系统（Buddy System） #  Linux系统中，对物理内存进行分配的核心是建立在页面级的伙伴系统之上。Linux内存管理的页大小为4KB，把所有的空闲页分组为11个页块链表，每个链表分别包含很多个大小的页块，有 1、2、4、8、16、32、64、128、256、512 和 1024 个连续页的页块，最大可以申请 1024 个连续页，对应 4MB 大小的连续内存。每个页块的第一个页的物理地址是该页块大小的整数倍。
+如下图所示：
+ 第 i 个页块链表中，页块中页的数目为 2^i。——仔细理解这个页块的含义。
+  在struct zone结构体中，有下面定义
+struct free_area	free_area[MAX_ORDER]; #define MAX_ORDER 11 free_area：存放不同大小的页块
+MAX_ORDER：就是指数
+ 当向内核请求分配 (2^(i-1)，2^i] 数目的页块时，按照 2^i 页块请求处理。如果对应的页块链表中没有空闲页块，那我们就在更大的页块链表中去找。当分配的页块中有多余的页时，伙伴系统会根据多余的页块大小插入到对应的空闲页块链表中。
+举个例子：
+例如，要请求一个 128 个页的页块时，先检查 128 个页的页块链表是否有空闲块。如果没有，则查 256 个页的页块链表；如果有空闲块的话，则将 256 个页的页块分成两份，一份使用，一份插入 128 个页的页块链表中。如果还是没有，就查 512 个页的页块链表；如果有的话，就分裂为 128、128、256 三个页块，一个 128 的使用，剩余两个插入对应页块链表。
+ 上面的这套机制就是伙伴系统所做的事情，它主要负责对物理内存页面进行跟踪，记录哪些是被内核使用的页面，哪些是空闲页面。
+ 2、页面分配器（Page Allocator） #  由上一章我们知道，物理内存被分为了几个区域：ZONE_DMA、ZONE_NORMAL、ZONE_HIGHMEM，其中前两个区域的物理页面与虚拟地址空间是线性映射的。
+        <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/">...</a>
+      
+    </p>
+  </article>
+  
+
+  
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>18</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
