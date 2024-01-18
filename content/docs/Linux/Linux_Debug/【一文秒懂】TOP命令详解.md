@@ -198,6 +198,5 @@ EiB = exbibyte = 1024 PiB = 1,152,921,504,606,846,976 bytes
 
 
 <center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
-
-<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
 </div>

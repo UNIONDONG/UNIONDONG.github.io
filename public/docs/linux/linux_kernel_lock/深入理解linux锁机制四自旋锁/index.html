@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【深入理解Linux内核锁】四、自旋锁 #   上两节主要讲解了中断屏蔽和原子操作，这两个作为最底层的操作，几乎在Linux内核中都不单独使用，下面我们来带大家了解一下常用的自旋锁！
+ 1、什么是自旋锁？ #  自旋锁是一种典型的对临界资源进行互斥访问的手段。
+它的底层实现逻辑是：原子变量&#43;判断检测。
+原子变量我们可以理解为一把锁，通过操作原子变量（锁）的状态，并对其进行判断，如果锁未被锁定，我们就继续往下执行；如果锁已经被锁定，我们就原地自旋，直到等到锁被打开。
+在ARM平台下，自旋锁的实现使用了ldrex、strex、以及内存屏障指令dmb、dsb、wfe、sev等。
+2、自旋锁思想 #   自旋锁主要针对于SMP或者单CPU但内核可抢占的情况，对于单CPU内核不可抢占的情况时，自旋锁退化为空操作。 自旋锁实际为忙等锁，当锁不可用时，CPU一直处于等待状态，直到该锁被释放。 自旋锁可能会导致内核死锁，当递归使用自旋锁时，则将该CPU锁死。 在多核SMP的情况下，任何一个核拿到了自旋锁，该核上的抢占调度也暂时禁止了，但是没有禁止另外一个核的抢占调度。 在自旋锁锁定期间，不能调用引起进程调度的函数，如copy_from_user()、copy_to_user()、kmalloc()和msleep()，否则会导致内核崩溃  3、自旋锁的定义及实现 #  3.1 API接口 #  //	定义自旋锁 spinlock_t lock; //	初始化自旋锁 spin_lock_init(&amp;lock) //	获得自旋锁 spin_lock(&amp;lock)	//	获取自旋锁，如果立即获得锁，则直接返回，否则，自旋等待，直到锁被释放 spin_trylock(&amp;lock)	//	尝试获取自旋锁，如果立即获得锁，返回true，否则直接返回false，不原地等待  //	释放自旋锁 spin_unlock(&amp;lock) 自旋锁保证了不受其他CPU或者单CPU内的抢占进程的干扰，但是对于临界区代码，仍然有可能会受到中断和底半部的影响。
+为了解决这种问题，我们就要使用自旋锁的衍生。
+spin_lock_irq() = spin_lock() &#43; local_irq_disable()	//	获取自旋锁并关中断 spin_unlock_irq() = spin_unlock() &#43; local_irq_enable()	//	释放自旋锁并开中断 spin_lock_irqsave() = spin_lock() &#43; local_irq_save()	//	获取自旋锁并关中断，保存中断状态 spin_unlock_irqrestore() = spin_unlock() &#43; local_irq_restore()//释放自旋锁，开中断并恢复中断状态 spin_lock_bh() = spin_lock() &#43; local_bh_disable()	//	获取自旋锁并关底半部中断 spin_unlock_bh() = spin_unlock() &#43; local_bh_enable()	//	释放自旋锁并发开底半部中断 当我们的临界区代码，有可能被进程或者中断访问时，就需要在进程上下文中，调用spin_lock_irqsave()、spin_unlock_irqrestore()，在中断上下文中调用spin_lock()、spin_unlock()，如下图：">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【深入理解Linux锁机制】四、自旋锁" />
+<meta property="og:description" content="【深入理解Linux内核锁】四、自旋锁 #   上两节主要讲解了中断屏蔽和原子操作，这两个作为最底层的操作，几乎在Linux内核中都不单独使用，下面我们来带大家了解一下常用的自旋锁！
+ 1、什么是自旋锁？ #  自旋锁是一种典型的对临界资源进行互斥访问的手段。
+它的底层实现逻辑是：原子变量&#43;判断检测。
+原子变量我们可以理解为一把锁，通过操作原子变量（锁）的状态，并对其进行判断，如果锁未被锁定，我们就继续往下执行；如果锁已经被锁定，我们就原地自旋，直到等到锁被打开。
+在ARM平台下，自旋锁的实现使用了ldrex、strex、以及内存屏障指令dmb、dsb、wfe、sev等。
+2、自旋锁思想 #   自旋锁主要针对于SMP或者单CPU但内核可抢占的情况，对于单CPU内核不可抢占的情况时，自旋锁退化为空操作。 自旋锁实际为忙等锁，当锁不可用时，CPU一直处于等待状态，直到该锁被释放。 自旋锁可能会导致内核死锁，当递归使用自旋锁时，则将该CPU锁死。 在多核SMP的情况下，任何一个核拿到了自旋锁，该核上的抢占调度也暂时禁止了，但是没有禁止另外一个核的抢占调度。 在自旋锁锁定期间，不能调用引起进程调度的函数，如copy_from_user()、copy_to_user()、kmalloc()和msleep()，否则会导致内核崩溃  3、自旋锁的定义及实现 #  3.1 API接口 #  //	定义自旋锁 spinlock_t lock; //	初始化自旋锁 spin_lock_init(&amp;lock) //	获得自旋锁 spin_lock(&amp;lock)	//	获取自旋锁，如果立即获得锁，则直接返回，否则，自旋等待，直到锁被释放 spin_trylock(&amp;lock)	//	尝试获取自旋锁，如果立即获得锁，返回true，否则直接返回false，不原地等待  //	释放自旋锁 spin_unlock(&amp;lock) 自旋锁保证了不受其他CPU或者单CPU内的抢占进程的干扰，但是对于临界区代码，仍然有可能会受到中断和底半部的影响。
+为了解决这种问题，我们就要使用自旋锁的衍生。
+spin_lock_irq() = spin_lock() &#43; local_irq_disable()	//	获取自旋锁并关中断 spin_unlock_irq() = spin_unlock() &#43; local_irq_enable()	//	释放自旋锁并开中断 spin_lock_irqsave() = spin_lock() &#43; local_irq_save()	//	获取自旋锁并关中断，保存中断状态 spin_unlock_irqrestore() = spin_unlock() &#43; local_irq_restore()//释放自旋锁，开中断并恢复中断状态 spin_lock_bh() = spin_lock() &#43; local_bh_disable()	//	获取自旋锁并关底半部中断 spin_unlock_bh() = spin_unlock() &#43; local_bh_enable()	//	释放自旋锁并发开底半部中断 当我们的临界区代码，有可能被进程或者中断访问时，就需要在进程上下文中，调用spin_lock_irqsave()、spin_unlock_irqrestore()，在中断上下文中调用spin_lock()、spin_unlock()，如下图：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-18T23:02:41+08:00" />
+<meta property="article:modified_time" content="2024-01-18T23:02:41+08:00" />
+
+<title>【深入理解Linux锁机制】四、自旋锁 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b4994b30da00cde195711ceaee8eafa9408349f5b74d152668b819d660720d7b.js" integrity="sha256-tJlLMNoAzeGVcRzq7o6vqUCDSfW3TRUmaLgZ1mByDXs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle" checked />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="active">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【深入理解Linux锁机制】四、自旋锁</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux内核锁四自旋锁">【深入理解Linux内核锁】四、自旋锁</a>
+      <ul>
+        <li><a href="#1什么是自旋锁">1、什么是自旋锁？</a></li>
+        <li><a href="#2自旋锁思想">2、自旋锁思想</a></li>
+        <li><a href="#3自旋锁的定义及实现">3、自旋锁的定义及实现</a>
+          <ul>
+            <li><a href="#31-api接口">3.1 API接口</a></li>
+            <li><a href="#32-api实现">3.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="深入理解linux内核锁四自旋锁">
+  【深入理解Linux内核锁】四、自旋锁
+  <a class="anchor" href="#%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3linux%e5%86%85%e6%a0%b8%e9%94%81%e5%9b%9b%e8%87%aa%e6%97%8b%e9%94%81">#</a>
+</h1>
+<p><img src="https://img1.baidu.com/it/u=2292345982,2860777693&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=640&amp;h=427" alt="img" /></p>
+<blockquote>
+<p>上两节主要讲解了中断屏蔽和原子操作，这两个作为最底层的操作，几乎在<code>Linux</code>内核中都不单独使用，下面我们来带大家了解一下常用的自旋锁！</p>
+</blockquote>
+<h2 id="1什么是自旋锁">
+  1、什么是自旋锁？
+  <a class="anchor" href="#1%e4%bb%80%e4%b9%88%e6%98%af%e8%87%aa%e6%97%8b%e9%94%81">#</a>
+</h2>
+<p>自旋锁是一种典型的对临界资源进行互斥访问的手段。</p>
+<p><strong>它的底层实现逻辑是：原子变量+判断检测。</strong></p>
+<p>原子变量我们可以理解为一把锁，通过操作原子变量（锁）的状态，并对其进行判断，如果锁未被锁定，我们就继续往下执行；如果锁已经被锁定，我们就原地自旋，直到等到锁被打开。</p>
+<p>在<code>ARM</code>平台下，自旋锁的实现使用了<code>ldrex</code>、<code>strex</code>、以及内存屏障指令<code>dmb</code>、<code>dsb</code>、<code>wfe</code>、<code>sev</code>等。</p>
+<h2 id="2自旋锁思想">
+  2、自旋锁思想
+  <a class="anchor" href="#2%e8%87%aa%e6%97%8b%e9%94%81%e6%80%9d%e6%83%b3">#</a>
+</h2>
+<ul>
+<li><span style="color: red;"><strong>自旋锁主要针对于<code>SMP</code>或者单<code>CPU</code>但内核可抢占的情况</strong></span>，对于单<code>CPU</code>内核不可抢占的情况时，自旋锁退化为空操作。</li>
+<li>自旋锁实际为忙等锁，当锁不可用时，<code>CPU</code>一直处于等待状态，直到该锁被释放。</li>
+<li>自旋锁可能会导致内核死锁，当递归使用自旋锁时，则将该<code>CPU</code>锁死。</li>
+<li>在多核<code>SMP</code>的情况下，任何一个核拿到了自旋锁，该核上的抢占调度也暂时禁止了，但是没有禁止另外一个核的抢占调度。</li>
+<li><span style="color: red;"><strong>在自旋锁锁定期间，不能调用引起进程调度的函数</strong></span>，如<code>copy_from_user()</code>、<code>copy_to_user()</code>、<code>kmalloc()</code>和<code>msleep()</code>，否则会导致内核崩溃</li>
+</ul>
+<h2 id="3自旋锁的定义及实现">
+  3、自旋锁的定义及实现
+  <a class="anchor" href="#3%e8%87%aa%e6%97%8b%e9%94%81%e7%9a%84%e5%ae%9a%e4%b9%89%e5%8f%8a%e5%ae%9e%e7%8e%b0">#</a>
+</h2>
+<h3 id="31-api接口">
+  3.1 API接口
+  <a class="anchor" href="#31-api%e6%8e%a5%e5%8f%a3">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">//	定义自旋锁
+</span><span style="color:#6272a4"></span>spinlock_t lock;
+
+<span style="color:#6272a4">//	初始化自旋锁
+</span><span style="color:#6272a4"></span>spin_lock_init(<span style="color:#ff79c6">&amp;</span>lock)
+
+<span style="color:#6272a4">//	获得自旋锁
+</span><span style="color:#6272a4"></span>spin_lock(<span style="color:#ff79c6">&amp;</span>lock)		<span style="color:#6272a4">//	获取自旋锁，如果立即获得锁，则直接返回，否则，自旋等待，直到锁被释放
+</span><span style="color:#6272a4"></span>spin_trylock(<span style="color:#ff79c6">&amp;</span>lock)		<span style="color:#6272a4">//	尝试获取自旋锁，如果立即获得锁，返回true，否则直接返回false，不原地等待
+</span><span style="color:#6272a4"></span>
+<span style="color:#6272a4">//	释放自旋锁
+</span><span style="color:#6272a4"></span>spin_unlock(<span style="color:#ff79c6">&amp;</span>lock)
+</code></pre></div><p>自旋锁保证了不受其他<code>CPU</code>或者单<code>CPU</code>内的抢占进程的干扰，但是对于临界区代码，仍然有可能会受到中断和底半部的影响。</p>
+<p>为了解决这种问题，我们就要使用自旋锁的衍生。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">spin_lock_irq() <span style="color:#ff79c6">=</span> spin_lock() <span style="color:#ff79c6">+</span> local_irq_disable()			<span style="color:#6272a4">//	获取自旋锁并关中断
+</span><span style="color:#6272a4"></span>spin_unlock_irq() <span style="color:#ff79c6">=</span> spin_unlock() <span style="color:#ff79c6">+</span> local_irq_enable()		<span style="color:#6272a4">//	释放自旋锁并开中断
+</span><span style="color:#6272a4"></span>spin_lock_irqsave() <span style="color:#ff79c6">=</span> spin_lock() <span style="color:#ff79c6">+</span> local_irq_save()		<span style="color:#6272a4">//	获取自旋锁并关中断，保存中断状态
+</span><span style="color:#6272a4"></span>spin_unlock_irqrestore() <span style="color:#ff79c6">=</span> spin_unlock() <span style="color:#ff79c6">+</span> local_irq_restore()<span style="color:#6272a4">//释放自旋锁，开中断并恢复中断状态
+</span><span style="color:#6272a4"></span>spin_lock_bh() <span style="color:#ff79c6">=</span> spin_lock() <span style="color:#ff79c6">+</span> local_bh_disable()			<span style="color:#6272a4">//	获取自旋锁并关底半部中断
+</span><span style="color:#6272a4"></span>spin_unlock_bh() <span style="color:#ff79c6">=</span> spin_unlock() <span style="color:#ff79c6">+</span> local_bh_enable()		<span style="color:#6272a4">//	释放自旋锁并发开底半部中断
+</span></code></pre></div><p>当我们的临界区代码，有可能被进程或者中断访问时，就需要在进程上下文中，调用<code>spin_lock_irqsave()</code>、<code>spin_unlock_irqrestore()</code>，在中断上下文中调用<code>spin_lock()</code>、<code>spin_unlock()</code>，如下图：</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230605140910971.png" alt="image-20230605140910971" /></p>
+<blockquote>
+<p>TODO：替换图片</p>
+</blockquote>
+<h3 id="32-api实现">
+  3.2 API实现
+  <a class="anchor" href="#32-api%e5%ae%9e%e7%8e%b0">#</a>
+</h3>
+<h4 id="321-结构体spinlock_traw_spinlockarch_spinlock_t">
+  3.2.1 结构体spinlock_t、raw_spinlock、arch_spinlock_t
+  <a class="anchor" href="#321-%e7%bb%93%e6%9e%84%e4%bd%93spinlock_traw_spinlockarch_spinlock_t">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> spinlock {
+    <span style="color:#ff79c6">union</span> {
+        <span style="color:#ff79c6">struct</span> raw_spinlock rlock;
+
+<span style="color:#ff79c6">#ifdef CONFIG_DEBUG_LOCK_ALLOC
+</span><span style="color:#ff79c6"># define LOCK_PADSIZE (offsetof(struct raw_spinlock, dep_map))
+</span><span style="color:#ff79c6"></span>        <span style="color:#ff79c6">struct</span> {
+            u6 __padding[LOCK_PADSIZE];
+            <span style="color:#ff79c6">struct</span> lockdep_map dep_map;
+        };
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>    };
+} spinlock_t;
+
+<span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> raw_spinlock {
+    arch_spinlock_t raw_lock;
+<span style="color:#ff79c6">#ifdef CONFIG_DEBUG_SPINLOCK
+</span><span style="color:#ff79c6"></span>    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> magic, owner_cpu;
+    <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>owner;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6">#ifdef CONFIG_DEBUG_LOCK_ALLOC
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> lockdep_map dep_map;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>} raw_spinlock_t;
+
+<span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> {
+    <span style="color:#ff79c6">union</span> {
+        u32 slock;
+        <span style="color:#ff79c6">struct</span> __raw_tickets {
+<span style="color:#ff79c6">#ifdef __ARMEB__
+</span><span style="color:#ff79c6"></span>            u16 next;
+            u16 owner;
+<span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6"></span>            u16 owner;
+            u16 next;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>        } tickets;
+    };
+} arch_spinlock_t;
+</code></pre></div><p><strong>结构体名称</strong>：<code>spinlock_t</code>、<code>raw_spinlock</code>、<code>arch_spinlock_t</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/spinlock.h</code>、<code>arch/arm/include/asm/spinlock_types.h</code></p>
+<p><strong>主要作用</strong>：结构体层层嵌套，用于定义一个自旋锁。</p>
+<ul>
+<li>
+<p><code>slock</code>：32位无符号整形数据，用于锁的控制</p>
+</li>
+<li>
+<p><code>__raw_tickets</code>：<code>union</code>类型，用于基于票证锁算法的自旋锁。</p>
+<ul>
+<li><code>owner</code> ：表示当前持有自旋锁的线程的索引</li>
+<li><code>next</code> ：表示下一个等待获取自旋锁的线程的索引</li>
+</ul>
+<blockquote>
+<p>每个线程进入代码段时，会尝试获取自旋锁，如果获取失败，它们会在锁的等待队列中排队。然后，等待队列中的线程会按照优先级顺序依次抢占锁的拥有权，直到某个线程成功获取自旋锁并执行完关键代码，释放锁资源为止。</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>这里使用的<code>union</code>联合体，其共享内存空间，其具体区别可看下面：</p>
+<p><code>struct</code>与<code>union</code>区别：https://blog.csdn.net/lishuo0204/article/details/118957959</p>
+</blockquote>
+<h4 id="322-spin_lock_init">
+  3.2.2 spin_lock_init
+  <a class="anchor" href="#322-spin_lock_init">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">#define spin_lock_init(_lock)				\
+</span><span style="color:#ff79c6">do {							\
+</span><span style="color:#ff79c6">    spinlock_check(_lock);				\
+</span><span style="color:#ff79c6">    raw_spin_lock_init(&amp;(_lock)-&gt;rlock);		\
+</span><span style="color:#ff79c6">} while (0)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">static</span> __always_inline raw_spinlock_t <span style="color:#ff79c6">*</span><span style="color:#50fa7b">spinlock_check</span>(spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>rlock;
+}}
+
+<span style="color:#ff79c6"># define raw_spin_lock_init(lock)				\
+</span><span style="color:#ff79c6">    do { *(lock) = __RAW_SPIN_LOCK_UNLOCKED(lock); } while (0)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __RAW_SPIN_LOCK_UNLOCKED(lockname)	\
+</span><span style="color:#ff79c6">    (raw_spinlock_t) __RAW_SPIN_LOCK_INITIALIZER(lockname)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __RAW_SPIN_LOCK_INITIALIZER(lockname)	\
+</span><span style="color:#ff79c6">    {					\
+</span><span style="color:#ff79c6">    .raw_lock = __ARCH_SPIN_LOCK_UNLOCKED,	\
+</span><span style="color:#ff79c6">    SPIN_DEBUG_INIT(lockname)		\
+</span><span style="color:#ff79c6">    SPIN_DEP_MAP_INIT(lockname) }
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define __ARCH_SPIN_LOCK_UNLOCKED	{ { 0 } }
+</span></code></pre></div><p><strong>函数名称</strong>：<code>spin_lock_init</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/spinlock.h</code></p>
+<p><strong>主要作用</strong>：初始化自旋锁</p>
+<p><strong>函数调用流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">//  spin_lock_init
+</span><span style="color:#6272a4"></span>spin_lock_init(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock.h)
+    <span style="color:#ff79c6">|--&gt;</span> spinlock_check         <span style="color:#6272a4">//  对锁进行检查，判断是否存在
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">|--&gt;</span> raw_spin_lock_init     <span style="color:#6272a4">//  初始化锁
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">|--&gt;</span> __RAW_SPIN_LOCK_UNLOCKED(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock_types.h)
+            <span style="color:#ff79c6">|--&gt;</span> __RAW_SPIN_LOCK_INITIALIZER    <span style="color:#6272a4">//  将锁初始为__ARCH_SPIN_LOCK_UNLOCKED未上锁状态
+</span></code></pre></div><p>上述函数主要通过宏定义给变量<code>.raw_lock = __ARCH_SPIN_LOCK_UNLOCKED</code>赋值，初始化为<code>0</code>，即为未上锁的状态；并且提供了两个调试接口：<code>CONFIG_DEBUG_SPINLOCK</code>、<code>CONFIG_DEBUG_LOCK_ALLOC</code>，默认为关闭。</p>
+<p>这里面有个关于<code>spinlock_check</code>存在的意义的讨论，感兴趣的可以看一下：https://stackoverflow.com/questions/52551594/spinlock-initialization-function</p>
+<h4 id="323-spin_lock">
+  3.2.3 spin_lock
+  <a class="anchor" href="#323-spin_lock">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> __always_inline <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">spin_lock</span>(spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    raw_spin_lock(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>rlock);
+}
+
+<span style="color:#ff79c6">#define raw_spin_lock(lock)	_raw_spin_lock(lock)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#ifndef CONFIG_INLINE_SPIN_LOCK
+</span><span style="color:#ff79c6"></span><span style="color:#8be9fd">void</span> __lockfunc <span style="color:#50fa7b">_raw_spin_lock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    __raw_spin_lock(lock);
+}
+EXPORT_SYMBOL(_raw_spin_lock);
+
+<span style="color:#ff79c6">#ifndef CONFIG_INLINE_SPIN_LOCK
+</span><span style="color:#ff79c6"></span><span style="color:#8be9fd">void</span> __lockfunc <span style="color:#50fa7b">_raw_spin_lock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    __raw_spin_lock(lock);
+}
+EXPORT_SYMBOL(_raw_spin_lock);
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">__raw_spin_lock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    preempt_disable();
+    spin_acquire(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>dep_map, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">0</span>, _RET_IP_);
+    LOCK_CONTENDED(lock, do_raw_spin_trylock, do_raw_spin_lock);
+}
+
+<span style="color:#ff79c6">#define preempt_disable() \
+</span><span style="color:#ff79c6">do { \
+</span><span style="color:#ff79c6">    preempt_count_inc(); \
+</span><span style="color:#ff79c6">    barrier(); \
+</span><span style="color:#ff79c6">} while (0)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define LOCK_CONTENDED(_lock, try, lock) \
+</span><span style="color:#ff79c6">    lock(_lock)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">do_raw_spin_lock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock) __acquires(lock)
+{
+    __acquire(lock);
+    arch_spin_lock(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>raw_lock);
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">arch_spin_lock</span>(arch_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> tmp;
+    u32 newval;
+    arch_spinlock_t lockval;
+
+    prefetchw(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>slock);
+    __asm__ __volatile__(
+<span style="color:#f1fa8c">&#34;1:	ldrex	%0, [%3]</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+<span style="color:#f1fa8c">&#34;	add	%1, %0, %4</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+<span style="color:#f1fa8c">&#34;	strex	%2, %1, [%3]</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+<span style="color:#f1fa8c">&#34;	teq	%2, #0</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+<span style="color:#f1fa8c">&#34;	bne	1b&#34;</span>
+    <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (lockval), <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (newval), <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (tmp)
+    <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;r&#34;</span> (<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>slock), <span style="color:#f1fa8c">&#34;I&#34;</span> (<span style="color:#bd93f9">1</span> <span style="color:#ff79c6">&lt;&lt;</span> TICKET_SHIFT)
+    <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;cc&#34;</span>);
+
+    <span style="color:#ff79c6">while</span> (lockval.tickets.next <span style="color:#ff79c6">!=</span> lockval.tickets.owner) {
+        wfe();
+        lockval.tickets.owner <span style="color:#ff79c6">=</span> READ_ONCE(lock<span style="color:#ff79c6">-&gt;</span>tickets.owner);
+    }
+
+    smp_mb();
+}
+
+</code></pre></div><p><strong>函数名称</strong>：<code>spin_lock</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/spinlock.h</code></p>
+<p><strong>主要作用</strong>：用于在进程或线程首次尝试获取锁的时候进行自旋，不停地检查锁的状态，如果锁已经被其他进程或线程占用，则自旋等待，直到锁被释放。</p>
+<p><strong>函数调用流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">//  spin_lock
+</span><span style="color:#6272a4"></span>spin_lock(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock.h)
+    <span style="color:#ff79c6">|--&gt;</span> raw_spin_lock
+        <span style="color:#ff79c6">|--&gt;</span> _raw_spin_lock(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock_api_smp.h)
+            <span style="color:#ff79c6">|--&gt;</span> __raw_spin_lock
+                <span style="color:#ff79c6">|--&gt;</span> __raw_spin_lock
+                    <span style="color:#ff79c6">|--&gt;</span> preempt_disable
+    					 <span style="color:#ff79c6">|--&gt;</span> preempt_count_inc
+    					 <span style="color:#ff79c6">|--&gt;</span> barrier
+                    <span style="color:#ff79c6">|--&gt;</span> spin_acquire
+                    <span style="color:#ff79c6">|--&gt;</span> LOCK_CONTENDED
+                        <span style="color:#ff79c6">|--&gt;</span> do_raw_spin_lock
+                            <span style="color:#ff79c6">|--&gt;</span> arch_spin_lock(arch<span style="color:#ff79c6">/</span>arm<span style="color:#ff79c6">/</span>include<span style="color:#ff79c6">/</span><span style="color:#ff79c6">asm</span><span style="color:#ff79c6">/</span>spinlock.h)
+</code></pre></div><p><strong>实现流程</strong>：</p>
+<ol>
+<li>
+<p><code>preempt_disable();</code> 禁用内核抢占，确保当前 CPU 执行该代码时不会被其他进程或线程抢占。</p>
+<ul>
+<li>其通过<code>preempt_count_inc</code>增加抢占计数器的值，通过抢占计数器来实现对任务的执行顺序进行管理。</li>
+<li>通过内存屏障<code>barrier</code>来确保前面的操作完成后再继续执行后面的代码。</li>
+</ul>
+</li>
+<li>
+<p><code>spin_acquire(&amp;lock-&gt;dep_map, 0, 0, _RET_IP_);</code> 通过调用 <code>spin_acquire()</code> 函数获取自旋锁，用于保护共享资源不被两个、或者多个线程所修改。</p>
+<ul>
+<li><code>spin_acquire</code>是<code>lockdep</code>工具的一部分，主要用于动态检测死锁。</li>
+<li><code>lock-&gt;dep_map</code>是锁的依赖地图，<code>_RET_IP_</code>是调用者的返回地址。这两个参数都是用于<code>lockdep</code>的调试信息。</li>
+<li><code>lockdep</code>是一个强大的锁调试工具，它可以跟踪锁的所有获取和释放，并动态地检测可能的死锁情况。</li>
+</ul>
+</li>
+<li>
+<p><code>LOCK_CONTENDED(lock, do_raw_spin_trylock, do_raw_spin_lock);</code> 实际为调用<code>do_raw_spin_lock</code>函数来实现获取锁并自旋的操作。</p>
+</li>
+</ol>
+<p><strong>下面为<code>arch_spin_lock</code>汇编代码分析</strong>：</p>
+<ol>
+<li>
+<p><code>prefetchw(&amp;lock-&gt;slock)</code> 函数用于提前加载锁的地址到处理器缓存中，从而提高锁的获取效率。</p>
+</li>
+<li>
+<p><code>ldrex %0, [%3]</code> 用于以原子方式读取锁的值到寄存器 <code>%0</code> 中，<code>%3</code> 为锁的地址。</p>
+</li>
+<li>
+<p><code>add %1, %0, %4</code>用于将当前获取锁的 CPU 分配的新值加上原锁值 <code>%0</code> 以及<code>%4</code> 固定常量，结果存放在<code>%1</code>新值中。</p>
+</li>
+<li>
+<p><code>strex %2, %1, [%3]</code> 用于以原子方式将更新的值 <code>%1</code> 写入锁的地址所指定的内存位置，<code>%2</code> 为写入结果。</p>
+<blockquote>
+<p><strong>这里解释一下为什么要做<code>add</code>处理</strong>：</p>
+<p>由<code>spinlock_t</code>的结构体可知，是由联合体组成，并且可以通过<code>owner</code>和<code>next</code>两个字段访问，<code>next</code>在高16位，<code>owner</code>在低16位。</p>
+<p>这里上锁的操作，是将其值设置为<code>1 &lt;&lt; TICKET_SHIFT</code>，也就是高16位，即<code>next</code>字段设置为1，表示下一个等待获取自旋锁的线程的索引。</p>
+</blockquote>
+</li>
+<li>
+<p><code>teq %2, #0</code>：用于测试写入结果 <code>%2</code> 是否为0，如果为0，表示锁获取成功，反之则跳转到标签<code>1b</code>处执行。</p>
+</li>
+<li>
+<p>当获取锁成功之后，程序会执行 <code>while</code> 循环，不断等待锁的所有权被赋予当前 <code>CPU</code>, 直到锁的所有权的拥有者持有锁为止。</p>
+</li>
+<li>
+<p><code>smp_mb()</code> 函数执行一条内存屏障，确保所有关键数据的顺序性已经刷新到内存中。</p>
+</li>
+</ol>
+<p><span style="color: red;"><strong>综上，<code>spin_lock</code>代码的作用是获取自旋锁，让当前线程获得临界资源的控制权，避免多个线程同时修改共享资源而造成数据冲突。同时，通过禁用内核抢占和使用内联函数优化的方式，保证了原子操作的执行效率和可靠性。</strong></span></p>
+<h4 id="324-spin_unlock">
+  3.2.4 spin_unlock
+  <a class="anchor" href="#324-spin_unlock">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">static</span> __always_inline <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">spin_unlock</span>(spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    raw_spin_unlock(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>rlock);
+}
+
+<span style="color:#ff79c6">#define raw_spin_unlock(lock)		_raw_spin_unlock(lock)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#8be9fd">void</span> __lockfunc <span style="color:#50fa7b">_raw_spin_unlock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    __raw_spin_unlock(lock);
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">__raw_spin_unlock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    spin_release(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>dep_map, <span style="color:#bd93f9">1</span>, _RET_IP_);
+    do_raw_spin_unlock(lock);
+    preempt_enable();
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">do_raw_spin_unlock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock) __releases(lock)
+{
+    arch_spin_unlock(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>raw_lock);
+    __release(lock);
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">arch_spin_unlock</span>(arch_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    smp_mb();
+    lock<span style="color:#ff79c6">-&gt;</span>tickets.owner<span style="color:#ff79c6">++</span>;
+    dsb_sev();
+}
+</code></pre></div><p><strong>函数名称</strong>：<code>spin_unlock</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/spinlock.h</code></p>
+<p><strong>主要作用</strong>：该宏释放自旋锁lock，它与<code>spin_trylock</code>或<code>spin_lock</code>配对使用。</p>
+<p><strong>函数调用流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">//  spin_unlock
+</span><span style="color:#6272a4"></span>spin_unlock(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock.h)
+    <span style="color:#ff79c6">|--&gt;</span> raw_spin_unlock
+        <span style="color:#ff79c6">|--&gt;</span> _raw_spin_unlock(kernel<span style="color:#ff79c6">/</span>locking<span style="color:#ff79c6">/</span>spinlock.c)
+            <span style="color:#ff79c6">|--&gt;</span> __raw_spin_unlock(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock_api_smp.h)
+                <span style="color:#ff79c6">|--&gt;</span> spin_release
+                <span style="color:#ff79c6">|--&gt;</span> do_raw_spin_unlock
+                    <span style="color:#ff79c6">|--&gt;</span> arch_spin_unlock(arch<span style="color:#ff79c6">/</span>arm<span style="color:#ff79c6">/</span>include<span style="color:#ff79c6">/</span><span style="color:#ff79c6">asm</span><span style="color:#ff79c6">/</span>spinlock.h)
+                <span style="color:#ff79c6">|--&gt;</span> preempt_enable
+</code></pre></div><p><strong>下面为<code>arch_spin_unlock</code>代码分析</strong>：</p>
+<ol>
+<li>
+<p><code>smp_mb()</code> 函数执行一条内存屏障，确保所有关键数据的顺序性已经刷新到内存中。</p>
+</li>
+<li>
+<p><code>lock-&gt;tickets.owner++</code>：递增自旋锁的锁拥有者(<code>Ower</code>)计数器，这个计数器的作用是向其他任务表明自旋锁已经被释放。</p>
+<blockquote>
+<p>通过上述两个接口可知：</p>
+<ul>
+<li><code>spin_lock</code>：将<code>next</code>值加1，表示下一个等待获取自旋锁的线程</li>
+<li><code>spin_unlock</code>：将<code>owner</code>的值加1，指向下一个获取自旋锁的线程。</li>
+</ul>
+</blockquote>
+</li>
+<li>
+<p><code>dsb_sev()</code> 则用于内存同步，强制发射缓存条 (FLUSH操作)，确保数据在多个核之间进行同步，以避免潜在的错误和问题。</p>
+</li>
+</ol>
+<h4 id="325-spin_trylock">
+  3.2.5 spin_trylock
+  <a class="anchor" href="#325-spin_trylock">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">static</span> __always_inline <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">spin_trylock</span>(spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    <span style="color:#ff79c6">return</span> raw_spin_trylock(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>rlock);
+}
+
+<span style="color:#ff79c6">#define raw_spin_trylock(lock)	__cond_lock(lock, _raw_spin_trylock(lock))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">__raw_spin_trylock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    preempt_disable();
+    <span style="color:#ff79c6">if</span> (do_raw_spin_trylock(lock)) {
+        spin_acquire(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>dep_map, <span style="color:#bd93f9">0</span>, <span style="color:#bd93f9">1</span>, _RET_IP_);
+        <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>;
+    }
+    preempt_enable();
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">do_raw_spin_trylock</span>(raw_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    <span style="color:#ff79c6">return</span> arch_spin_trylock(<span style="color:#ff79c6">&amp;</span>(lock)<span style="color:#ff79c6">-&gt;</span>raw_lock);
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">arch_spin_trylock</span>(arch_spinlock_t <span style="color:#ff79c6">*</span>lock)
+{
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> contended, res;
+    u32 slock;
+
+    prefetchw(<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>slock);
+    <span style="color:#ff79c6">do</span> {
+        __asm__ __volatile__(
+        <span style="color:#f1fa8c">&#34;	ldrex	%0, [%3]</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+        <span style="color:#f1fa8c">&#34;	mov	%2, #0</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+        <span style="color:#f1fa8c">&#34;	subs	%1, %0, %0, ror #16</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+        <span style="color:#f1fa8c">&#34;	addeq	%0, %0, %4</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>
+        <span style="color:#f1fa8c">&#34;	strexeq	%2, %0, [%3]&#34;</span>
+        <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (slock), <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (contended), <span style="color:#f1fa8c">&#34;=&amp;r&#34;</span> (res)
+        <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;r&#34;</span> (<span style="color:#ff79c6">&amp;</span>lock<span style="color:#ff79c6">-&gt;</span>slock), <span style="color:#f1fa8c">&#34;I&#34;</span> (<span style="color:#bd93f9">1</span> <span style="color:#ff79c6">&lt;&lt;</span> TICKET_SHIFT)
+        <span style="color:#ff79c6">:</span> <span style="color:#f1fa8c">&#34;cc&#34;</span>);
+    } <span style="color:#ff79c6">while</span> (res);
+
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>contended) {
+        smp_mb();
+        <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">1</span>;
+    } <span style="color:#ff79c6">else</span> {
+        <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+    }
+}
+</code></pre></div><p><strong>函数名称</strong>：<code>spin_trylock</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/spinlock.h</code></p>
+<p><strong>主要作用</strong>：该宏尝试获得自旋锁<code>lock</code>，如果能立即获得锁，它获得锁并返回true，否则立即返回false，<span style="color: red;"><strong>实际上不再“在原地打转”，也就是去掉了<code>while</code>循环的操作！</strong></span></p>
+<p><strong>函数调用流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">//  spin_trylock
+</span><span style="color:#6272a4"></span>spin_trylock(include<span style="color:#ff79c6">/</span>linux<span style="color:#ff79c6">/</span>spinlock.h)
+    <span style="color:#ff79c6">|--&gt;</span> raw_spin_trylock
+        <span style="color:#ff79c6">|--&gt;</span> __raw_spin_trylock(include\linux\spinlock_api_smp.h)
+            <span style="color:#ff79c6">|--&gt;</span> preempt_disable                <span style="color:#6272a4">//  禁止调度
+</span><span style="color:#6272a4"></span>            <span style="color:#ff79c6">|--&gt;</span> do_raw_spin_trylock
+                <span style="color:#ff79c6">|--&gt;</span> arch_spin_trylock(arch<span style="color:#ff79c6">/</span>arm<span style="color:#ff79c6">/</span>include<span style="color:#ff79c6">/</span><span style="color:#ff79c6">asm</span><span style="color:#ff79c6">/</span>spinlock.h)
+            <span style="color:#ff79c6">|--&gt;</span> preempt_enable                 <span style="color:#6272a4">//  打开调度
+</span></code></pre></div><p><strong>下面为<code>arch_spin_trylock</code>汇编代码分析</strong>：</p>
+<ol>
+<li>
+<p><code>prefetchw(&amp;lock-&gt;slock)</code> 函数用于提前加载锁的地址到处理器缓存中，从而提高锁的获取效率。</p>
+</li>
+<li>
+<p><code>ldrex %0, [%3]</code> 用于以原子方式读取锁的值到寄存器 <code>%0</code> 中，<code>%3</code> 为锁的地址。</p>
+</li>
+<li>
+<p><code>mov %2, #0</code>：将变量<code>res</code>置为0</p>
+</li>
+<li>
+<p><code>subs %1, %0, %0, ror #16</code>：在这行代码中，<code>%0</code> 表示 <code>slock</code> 寄存器，<code>%1</code> 表示 <code>contended</code> 寄存器。该语句的作用是：将锁变量的值存储在<code>slock</code>中，然后将slock右旋16位，获得低16位的值，并将结果存储到 <code>contended</code> 中。接着将 <code>slock</code> 和 <code>slock</code> 旋转后的值相减，并将结果存储到 <code>contended</code> 中。</p>
+<blockquote>
+<p><strong>同上，这里解释一下为什么执行<code>sub</code>操作</strong>：</p>
+<p>这里的核心思想是：一个32位的值，其高16位为<code>next</code>，低16位为<code>owner</code>，将其右旋16位后，得到的值高16位变成了<code>owner</code>，低16位变成了<code>next</code>，这时候执行相减操作，如果结果为0，则表示<code>owner</code>与<code>next</code>两个字段相等！</p>
+</blockquote>
+</li>
+<li>
+<p><code>addeq %0, %0, %4</code>：将<code>%0</code>寄存器的值加上<code>%4</code>的值，结果存放于<code>%0</code>寄存器中</p>
+</li>
+<li>
+<p><code>strexeq %2, %0, [%3]</code>：用于以原子方式将更新的值 <code>%0</code> 写入锁的地址所指定的内存位置，<code>%2</code> 为写入结果。</p>
+</li>
+<li>
+<p>然后，代码会检查<code>contended</code>的值。如果<code>contended</code>的值为0，表示进程已经成功获取了锁，函数返回1；否则，表示锁已经被其他进程持有，函数返回0。</p>
+</li>
+<li>
+<p><code>smp_mb()</code> 函数执行一条内存屏障，确保所有关键数据的顺序性已经刷新到内存中。</p>
+</li>
+</ol>
+<h2 id="4总结">
+  4、总结
+  <a class="anchor" href="#4%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230805201219657.png" alt="image-20230805201219657" /></p>
+<p>自旋锁在我们编写内核代码时会较多涉及，其底层实现主要依赖于前面所提到的：<strong>内存屏障、中断屏蔽、原子操作！</strong></p>
+<blockquote>
+<p>最后，自旋锁使用的方法如下：</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">/* 定义一个自旋锁*/</span>
+
+spinlock_t lock;
+spin_lock_init(<span style="color:#ff79c6">&amp;</span>lock);
+
+spin_lock (<span style="color:#ff79c6">&amp;</span>lock) ;    <span style="color:#6272a4">/* 获取自旋锁，保护临界区 */</span>
+
+. . .
+
+<span style="color:#6272a4">/* 临界区*/</span>
+    
+spin_unlock (<span style="color:#ff79c6">&amp;</span>lock) ;  <span style="color:#6272a4">/* 解锁 */</span>
+</code></pre></div><p>相信通过上面详细的拆解，到这里我们就能够对自旋锁有一个较深的认识了吧！</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux内核锁四自旋锁">【深入理解Linux内核锁】四、自旋锁</a>
+      <ul>
+        <li><a href="#1什么是自旋锁">1、什么是自旋锁？</a></li>
+        <li><a href="#2自旋锁思想">2、自旋锁思想</a></li>
+        <li><a href="#3自旋锁的定义及实现">3、自旋锁的定义及实现</a>
+          <ul>
+            <li><a href="#31-api接口">3.1 API接口</a></li>
+            <li><a href="#32-api实现">3.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

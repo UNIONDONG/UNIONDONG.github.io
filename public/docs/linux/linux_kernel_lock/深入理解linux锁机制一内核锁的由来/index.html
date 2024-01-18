@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【深入理解Linux锁机制】一、内核锁的由来 #  在Linux设备驱动中，我们必须要解决的一个问题是：多个进程对共享资源的并发访问，并发的访问会导致竞态。
+1、并发和竞态 #  并发（Concurrency）：指的是多个执行单元同时、并行的被执行。
+竞态（RaceConditions）：并发执行的单元对共享资源的访问，容易导致竞态。
+共享资源：硬件资源和软件上的全局变量、静态变量等。
+解决竞态的途径是：保证对共享资源的互斥访问。
+互斥访问：一个执行单元在访问共享资源的时候，其他执行单元被禁止访问。
+临界区（Critical Sections）：访问共享资源的代码区域成为临界区。临界区需要以某种互斥机制加以保护。
+常见的互斥机制包括：中断屏蔽，原子操作，自旋锁，信号量，互斥体等。
+ 2、竞态发生的场合 #  2.1 多对称处理器（SMP）的多个CPU之间 #  多个CPU使用共同的系统总线，可以访问共同的外设和存储器。在SMP的情况下，多核（CPU0、CPU1）的竞态可能发生于：
+ CPU0的进程和CPU1的进程之间 CPU0的进程和CPU1的中断之间 CPU0的中断和CPU1的中断之间   2.2 单CPU内，该进程与抢占它的进程之间 #  在单CPU内，多个进程并发执行，当一个进程执行的时间片耗尽，也有可能被另一个高优先级进程打断，会发生竞态，即所谓的调度引发竞态。
+ 2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间 #  当一个进程正在执行，一个外部/内部中断（软中断、硬中断、Tasklet等）将其打断，会导致竞态发生。
+ 3、编译乱序和执行乱序 #  除了并发访问导致的竞态外，还需要了解编译器和处理器的一些特点所引发的一些问题。
+3.1 编译乱序 #   现代的高性能编译器，为了提高Cache命中率以及CPU的Load/Store工作效率，会对目标代码进行乱序优化，减少逻辑上不必要的访存！
+因此，在打开编译器优化后，生成的汇编码并没有严格按照代码的逻辑顺序执行，这是正常的。
+ 为了解决编译乱序的问题，可以加入barrier()编译屏障。
+顾名思义，编译屏障，也就是为了阻挡编译器的编译优化，加入barrier()编译屏障，即可保证正确的执行顺序。
+编译屏障代码实现如下：
+#define barrier() __asm__ __volatile__(&#34;&#34;: : :&#34;memory&#34;) 这里详细解释一下barrier的汇编实现：
+ __asm__：向编译器说明在此插入汇编代码 __volatile__：用于告诉编译器，严禁将此处的汇编语句与其它的语句重组合优化。 (&quot;&quot;: : :&quot;memory&quot;)：一条汇编语句，第一个:前为汇编指令，这里是空操作；第二个:前表示输出操作数，为空；第三个冒号前为输入操作数，也是要修改的寄存器；最后memory表示该指令对内存进行访问，该指令确保了命令之前的内存操作需要完全执行，不被优化。   使用案例：">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【深入理解Linux锁机制】一、内核锁的由来" />
+<meta property="og:description" content="【深入理解Linux锁机制】一、内核锁的由来 #  在Linux设备驱动中，我们必须要解决的一个问题是：多个进程对共享资源的并发访问，并发的访问会导致竞态。
+1、并发和竞态 #  并发（Concurrency）：指的是多个执行单元同时、并行的被执行。
+竞态（RaceConditions）：并发执行的单元对共享资源的访问，容易导致竞态。
+共享资源：硬件资源和软件上的全局变量、静态变量等。
+解决竞态的途径是：保证对共享资源的互斥访问。
+互斥访问：一个执行单元在访问共享资源的时候，其他执行单元被禁止访问。
+临界区（Critical Sections）：访问共享资源的代码区域成为临界区。临界区需要以某种互斥机制加以保护。
+常见的互斥机制包括：中断屏蔽，原子操作，自旋锁，信号量，互斥体等。
+ 2、竞态发生的场合 #  2.1 多对称处理器（SMP）的多个CPU之间 #  多个CPU使用共同的系统总线，可以访问共同的外设和存储器。在SMP的情况下，多核（CPU0、CPU1）的竞态可能发生于：
+ CPU0的进程和CPU1的进程之间 CPU0的进程和CPU1的中断之间 CPU0的中断和CPU1的中断之间   2.2 单CPU内，该进程与抢占它的进程之间 #  在单CPU内，多个进程并发执行，当一个进程执行的时间片耗尽，也有可能被另一个高优先级进程打断，会发生竞态，即所谓的调度引发竞态。
+ 2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间 #  当一个进程正在执行，一个外部/内部中断（软中断、硬中断、Tasklet等）将其打断，会导致竞态发生。
+ 3、编译乱序和执行乱序 #  除了并发访问导致的竞态外，还需要了解编译器和处理器的一些特点所引发的一些问题。
+3.1 编译乱序 #   现代的高性能编译器，为了提高Cache命中率以及CPU的Load/Store工作效率，会对目标代码进行乱序优化，减少逻辑上不必要的访存！
+因此，在打开编译器优化后，生成的汇编码并没有严格按照代码的逻辑顺序执行，这是正常的。
+ 为了解决编译乱序的问题，可以加入barrier()编译屏障。
+顾名思义，编译屏障，也就是为了阻挡编译器的编译优化，加入barrier()编译屏障，即可保证正确的执行顺序。
+编译屏障代码实现如下：
+#define barrier() __asm__ __volatile__(&#34;&#34;: : :&#34;memory&#34;) 这里详细解释一下barrier的汇编实现：
+ __asm__：向编译器说明在此插入汇编代码 __volatile__：用于告诉编译器，严禁将此处的汇编语句与其它的语句重组合优化。 (&quot;&quot;: : :&quot;memory&quot;)：一条汇编语句，第一个:前为汇编指令，这里是空操作；第二个:前表示输出操作数，为空；第三个冒号前为输入操作数，也是要修改的寄存器；最后memory表示该指令对内存进行访问，该指令确保了命令之前的内存操作需要完全执行，不被优化。   使用案例：" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-18T23:01:55+08:00" />
+<meta property="article:modified_time" content="2024-01-18T23:01:55+08:00" />
+
+<title>【深入理解Linux锁机制】一、内核锁的由来 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b4994b30da00cde195711ceaee8eafa9408349f5b74d152668b819d660720d7b.js" integrity="sha256-tJlLMNoAzeGVcRzq7o6vqUCDSfW3TRUmaLgZ1mByDXs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle" checked />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="active">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【深入理解Linux锁机制】一、内核锁的由来</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux锁机制一内核锁的由来">【深入理解Linux锁机制】一、内核锁的由来</a>
+      <ul>
+        <li><a href="#1并发和竞态">1、并发和竞态</a></li>
+        <li><a href="#2竞态发生的场合">2、竞态发生的场合</a>
+          <ul>
+            <li><a href="#21-多对称处理器smp的多个cpu之间">2.1 多对称处理器（SMP）的多个CPU之间</a></li>
+            <li><a href="#22-单cpu内该进程与抢占它的进程之间">2.2 单CPU内，该进程与抢占它的进程之间</a></li>
+            <li><a href="#23-中断软中断硬中断tasklet底半部与进程之间">2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间</a></li>
+          </ul>
+        </li>
+        <li><a href="#3编译乱序和执行乱序">3、编译乱序和执行乱序</a>
+          <ul>
+            <li><a href="#31-编译乱序">3.1 编译乱序</a></li>
+            <li><a href="#32-执行乱序">3.2 执行乱序</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="深入理解linux锁机制一内核锁的由来">
+  【深入理解Linux锁机制】一、内核锁的由来
+  <a class="anchor" href="#%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3linux%e9%94%81%e6%9c%ba%e5%88%b6%e4%b8%80%e5%86%85%e6%a0%b8%e9%94%81%e7%9a%84%e7%94%b1%e6%9d%a5">#</a>
+</h1>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/11385343fbf2b2115357580754c47b340dd78ecb.jpeg@f_auto" alt="img" /></p>
+<p>在<code>Linux</code>设备驱动中，我们必须要解决的一个问题是：<strong>多个进程对共享资源的并发访问，并发的访问会导致竞态。</strong></p>
+<h2 id="1并发和竞态">
+  1、并发和竞态
+  <a class="anchor" href="#1%e5%b9%b6%e5%8f%91%e5%92%8c%e7%ab%9e%e6%80%81">#</a>
+</h2>
+<p>并发<code>（Concurrency）</code>：指的是多个执行单元同时、并行的被执行。</p>
+<p>竞态<code>（RaceConditions）</code>：并发执行的单元对共享资源的访问，容易导致竞态。</p>
+<p>共享资源：硬件资源和软件上的全局变量、静态变量等。</p>
+<p><span style="color: red;"><strong>解决竞态的途径是：保证对共享资源的互斥访问。</strong></span></p>
+<p>互斥访问：一个执行单元在访问共享资源的时候，其他执行单元被禁止访问。</p>
+<p>临界区<code>（Critical Sections）</code>：访问共享资源的代码区域成为临界区。临界区需要以某种互斥机制加以保护。</p>
+<p><strong>常见的互斥机制包括</strong>：中断屏蔽，原子操作，自旋锁，信号量，互斥体等。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230718074758776.png" alt="image-20230718074758776" /></p>
+<p> </p>
+<h2 id="2竞态发生的场合">
+  2、竞态发生的场合
+  <a class="anchor" href="#2%e7%ab%9e%e6%80%81%e5%8f%91%e7%94%9f%e7%9a%84%e5%9c%ba%e5%90%88">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230721075844712.png" alt="image-20230721075844712" /></p>
+<h3 id="21-多对称处理器smp的多个cpu之间">
+  2.1 多对称处理器（SMP）的多个CPU之间
+  <a class="anchor" href="#21-%e5%a4%9a%e5%af%b9%e7%a7%b0%e5%a4%84%e7%90%86%e5%99%a8smp%e7%9a%84%e5%a4%9a%e4%b8%aacpu%e4%b9%8b%e9%97%b4">#</a>
+</h3>
+<p>多个CPU使用共同的系统总线，可以访问共同的外设和存储器。在<code>SMP</code>的情况下，多核<code>（CPU0、CPU1）</code>的竞态可能发生于：</p>
+<ul>
+<li><code>CPU0</code>的进程和<code>CPU1</code>的进程之间</li>
+<li><code>CPU0</code>的进程和<code>CPU1</code>的中断之间</li>
+<li><code>CPU0</code>的中断和<code>CPU1</code>的中断之间</li>
+</ul>
+<p> </p>
+<h3 id="22-单cpu内该进程与抢占它的进程之间">
+  2.2 单CPU内，该进程与抢占它的进程之间
+  <a class="anchor" href="#22-%e5%8d%95cpu%e5%86%85%e8%af%a5%e8%bf%9b%e7%a8%8b%e4%b8%8e%e6%8a%a2%e5%8d%a0%e5%ae%83%e7%9a%84%e8%bf%9b%e7%a8%8b%e4%b9%8b%e9%97%b4">#</a>
+</h3>
+<p>在单CPU内，多个进程并发执行，当一个进程执行的时间片耗尽，也有可能被另一个高优先级进程打断，会发生竞态，即所谓的调度引发竞态。</p>
+<p> </p>
+<h3 id="23-中断软中断硬中断tasklet底半部与进程之间">
+  2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间
+  <a class="anchor" href="#23-%e4%b8%ad%e6%96%ad%e8%bd%af%e4%b8%ad%e6%96%ad%e7%a1%ac%e4%b8%ad%e6%96%adtasklet%e5%ba%95%e5%8d%8a%e9%83%a8%e4%b8%8e%e8%bf%9b%e7%a8%8b%e4%b9%8b%e9%97%b4">#</a>
+</h3>
+<p>当一个进程正在执行，一个外部/内部中断（软中断、硬中断、Tasklet等）将其打断，会导致竞态发生。</p>
+<p> </p>
+<h2 id="3编译乱序和执行乱序">
+  3、编译乱序和执行乱序
+  <a class="anchor" href="#3%e7%bc%96%e8%af%91%e4%b9%b1%e5%ba%8f%e5%92%8c%e6%89%a7%e8%a1%8c%e4%b9%b1%e5%ba%8f">#</a>
+</h2>
+<p>除了并发访问导致的竞态外，还需要了解编译器和处理器的一些特点所引发的一些问题。</p>
+<h3 id="31-编译乱序">
+  3.1 编译乱序
+  <a class="anchor" href="#31-%e7%bc%96%e8%af%91%e4%b9%b1%e5%ba%8f">#</a>
+</h3>
+<blockquote>
+<p><strong>现代的高性能编译器，为了提高Cache命中率以及CPU的Load/Store工作效率，会对目标代码进行乱序优化，减少逻辑上不必要的访存！</strong></p>
+<p>因此，在打开编译器优化后，生成的汇编码并没有严格按照代码的逻辑顺序执行，这是正常的。</p>
+</blockquote>
+<p><strong>为了解决编译乱序的问题，可以加入<code>barrier()</code>编译屏障</strong>。</p>
+<p>顾名思义，编译屏障，也就是为了阻挡编译器的编译优化，加入<code>barrier()</code>编译屏障，即可保证正确的执行顺序。</p>
+<p>编译屏障代码实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define barrier() __asm__ __volatile__(&#34;&#34;: : :&#34;memory&#34;)
+</span></code></pre></div><p>这里详细解释一下<code>barrier</code>的汇编实现：</p>
+<ul>
+<li><code>__asm__</code>：向编译器说明在此插入汇编代码</li>
+<li><code>__volatile__</code>：用于告诉编译器，严禁将此处的汇编语句与其它的语句重组合优化。</li>
+<li><code>(&quot;&quot;: : :&quot;memory&quot;)</code>：一条汇编语句，第一个<code>:</code>前为汇编指令，这里是空操作；第二个<code>:</code>前表示输出操作数，为空；第三个冒号前为输入操作数，也是要修改的寄存器；最后<code>memory</code>表示该指令对内存进行访问，该指令确保了命令之前的内存操作需要完全执行，不被优化。</li>
+</ul>
+<p> </p>
+<p><strong>使用案例</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">main</span>(<span style="color:#8be9fd">int</span> argc,<span style="color:#8be9fd">char</span> <span style="color:#ff79c6">*</span>argv[])
+{
+    <span style="color:#8be9fd">int</span> a <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>,b,c,d[<span style="color:#bd93f9">4096</span>],e;
+    e <span style="color:#ff79c6">=</span> d[<span style="color:#bd93f9">4095</span>];
+    barrier();
+    b <span style="color:#ff79c6">=</span> a;
+    c <span style="color:#ff79c6">=</span> a;
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+</code></pre></div><p> </p>
+<h3 id="32-执行乱序">
+  3.2 执行乱序
+  <a class="anchor" href="#32-%e6%89%a7%e8%a1%8c%e4%b9%b1%e5%ba%8f">#</a>
+</h3>
+<p><span style="color: red;"><strong>编译乱序是编译器的行为，而执行乱序就是处理器运行时的行为。</strong></span></p>
+<p>**高级的<code>CPU</code>往往会根据自身的缓存特性，将访存指令重新排序执行！**这样就导致了多个顺序的指令，后发的指令仍有可能先执行完毕。</p>
+<blockquote>
+<p>这种执行乱序，在多个<code>CPU</code>之间，以及单个<code>CPU</code>内部，都是非常常见的。</p>
+</blockquote>
+<p> </p>
+<h4 id="321-多cpu之间">
+  3.2.1 多CPU之间
+  <a class="anchor" href="#321-%e5%a4%9acpu%e4%b9%8b%e9%97%b4">#</a>
+</h4>
+<p>处理器为了解决多核之间执行乱序的问题，一个<code>CPU</code>的行为对另一个<code>CPU</code>可见的情况，<code>ARM</code>处理器引入了内存屏障指令：</p>
+<ul>
+<li>DMB（数据内存屏障），保证在该指令前的所有指令，内存访问完成，再去访问该指令之后的访存动作</li>
+<li>DSB（数据同步屏障），保证在该指令前的所有访存指令执行完毕（访存，缓存，跳转预测，TLB维护等）完成</li>
+<li>ISB（指令同步屏障），<code>Flush</code>流水线，保证所有<strong>在ISB之后执行</strong>的指令都是从缓存或者内存中获得。</li>
+</ul>
+<p> </p>
+<h4 id="322-单cpu内部">
+  3.2.2 单CPU内部
+  <a class="anchor" href="#322-%e5%8d%95cpu%e5%86%85%e9%83%a8">#</a>
+</h4>
+<blockquote>
+<p>在单<code>CPU</code>中，我们常遇到访问外设寄存器时，某些外设寄存器就对读写顺序有很高的要求，为了避免执行乱序的发生，这时候就需要<code>CPU</code>的一些内存屏障指令了。</p>
+</blockquote>
+<p><code>CPU</code>内部，为了解决这种问题，<code>CPU</code>提供了一些内存屏障指令：</p>
+<blockquote>
+<p>可以参考<code>Documentation/memory-devices.txt</code>和<code>Documentation/io_ordering.txt</code></p>
+</blockquote>
+<ul>
+<li>读写屏障：<code>mb()</code></li>
+<li>读屏障：<code>rmb()</code></li>
+<li>写屏障：<code>wmb()</code></li>
+<li>寄存器读屏障<code>__iormb()__</code></li>
+<li>寄存器写屏障<code>__iowmb()__</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">#define writeb_relaxed(v,c)	__raw_writeb(v,c)
+</span><span style="color:#ff79c6">#define writew_relaxed(v,c)	__raw_writew((__force u16) cpu_to_le16(v),c)
+</span><span style="color:#ff79c6">#define writel_relaxed(v,c)	__raw_writel((__force u32) cpu_to_le32(v),c)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define readb(c)		({ u8  __v = readb_relaxed(c); __iormb(); __v; })
+</span><span style="color:#ff79c6">#define readw(c)		({ u16 __v = readw_relaxed(c); __iormb(); __v; })
+</span><span style="color:#ff79c6">#define readl(c)		({ u32 __v = readl_relaxed(c); __iormb(); __v; })
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define writeb(v,c)		({ __iowmb(); writeb_relaxed(v,c); })
+</span><span style="color:#ff79c6">#define writew(v,c)		({ __iowmb(); writew_relaxed(v,c); })
+</span><span style="color:#ff79c6">#define writel(v,c)		({ __iowmb(); writel_relaxed(v,c); })
+</span></code></pre></div><blockquote>
+<p><code>writel</code>与<code>writel_relaxed</code>的区别就在于有无屏障。</p>
+</blockquote>
+<p> </p>
+<h2 id="4总结">
+  4、总结
+  <a class="anchor" href="#4%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230725073439417.png" alt="image-20230725073439417" /></p>
+<p>由上文可知，发生竞态的场合，主要发生在</p>
+<ol>
+<li>多对称处理器的多<code>CPU</code>之间</li>
+<li>单CPU的进程调度、抢占引发的竞态</li>
+<li>单CPU的中断与进程之间引发的竞态</li>
+<li>高性能的编译器编译乱序问题</li>
+<li>高性能的<code>CPU</code>带来的执行乱序问题</li>
+</ol>
+<p>为了解决竞态的发生，<code>CPU</code>和<code>ARM</code>处理器提供的内存屏障指令等，同时也提供了中断屏蔽、原子操作、自旋锁、互斥锁、信号量等机制，下面我们来深入了解这些机制吧。</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux锁机制一内核锁的由来">【深入理解Linux锁机制】一、内核锁的由来</a>
+      <ul>
+        <li><a href="#1并发和竞态">1、并发和竞态</a></li>
+        <li><a href="#2竞态发生的场合">2、竞态发生的场合</a>
+          <ul>
+            <li><a href="#21-多对称处理器smp的多个cpu之间">2.1 多对称处理器（SMP）的多个CPU之间</a></li>
+            <li><a href="#22-单cpu内该进程与抢占它的进程之间">2.2 单CPU内，该进程与抢占它的进程之间</a></li>
+            <li><a href="#23-中断软中断硬中断tasklet底半部与进程之间">2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间</a></li>
+          </ul>
+        </li>
+        <li><a href="#3编译乱序和执行乱序">3、编译乱序和执行乱序</a>
+          <ul>
+            <li><a href="#31-编译乱序">3.1 编译乱序</a></li>
+            <li><a href="#32-执行乱序">3.2 执行乱序</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

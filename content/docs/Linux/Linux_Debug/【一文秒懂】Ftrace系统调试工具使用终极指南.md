@@ -441,6 +441,5 @@ Usage: /root/common_trace.sh {module|funcs|funcs_stack|command|clear}
 以上，介绍了`Ftrace`的由来，实现原理，以及如何使用`Ftrace`，并最终提供了自动化测试脚本，希望对大家有所帮助。
 
 <center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
-
-<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
-</div>&nbsp;
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>

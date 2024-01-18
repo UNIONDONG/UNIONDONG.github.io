@@ -76,5 +76,5 @@ alpha  arc  arm  arm64  c6x  h8300  hexagon  ia64  Kconfig  m68k  microblaze  mi
 
 <center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
 
-<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
 </div>

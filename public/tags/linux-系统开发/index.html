@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content=" Linux 系统开发" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://uniondong.github.io/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/" />
+
+<title> Linux 系统开发 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b4994b30da00cde195711ceaee8eafa9408349f5b74d152668b819d660720d7b.js" integrity="sha256-tJlLMNoAzeGVcRzq7o6vqUCDSfW3TRUmaLgZ1mByDXs=" crossorigin="anonymous"></script>
+<link rel="alternate" type="application/rss+xml" href="https://uniondong.github.io/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/index.xml" title="Donge Blog" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong> Linux 系统开发</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>30</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/efuse/">Efuse</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F/">NVMEM子系统</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90/">NVMEM子系统深入剖析</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8/">安全启动</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/">【深入理解Linux锁机制】一、内核锁的由来</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p>【深入理解Linux锁机制】一、内核锁的由来 #  在Linux设备驱动中，我们必须要解决的一个问题是：多个进程对共享资源的并发访问，并发的访问会导致竞态。
+1、并发和竞态 #  并发（Concurrency）：指的是多个执行单元同时、并行的被执行。
+竞态（RaceConditions）：并发执行的单元对共享资源的访问，容易导致竞态。
+共享资源：硬件资源和软件上的全局变量、静态变量等。
+解决竞态的途径是：保证对共享资源的互斥访问。
+互斥访问：一个执行单元在访问共享资源的时候，其他执行单元被禁止访问。
+临界区（Critical Sections）：访问共享资源的代码区域成为临界区。临界区需要以某种互斥机制加以保护。
+常见的互斥机制包括：中断屏蔽，原子操作，自旋锁，信号量，互斥体等。
+ 2、竞态发生的场合 #  2.1 多对称处理器（SMP）的多个CPU之间 #  多个CPU使用共同的系统总线，可以访问共同的外设和存储器。在SMP的情况下，多核（CPU0、CPU1）的竞态可能发生于：
+ CPU0的进程和CPU1的进程之间 CPU0的进程和CPU1的中断之间 CPU0的中断和CPU1的中断之间   2.2 单CPU内，该进程与抢占它的进程之间 #  在单CPU内，多个进程并发执行，当一个进程执行的时间片耗尽，也有可能被另一个高优先级进程打断，会发生竞态，即所谓的调度引发竞态。
+ 2.3 中断（软中断、硬中断、Tasklet、底半部）与进程之间 #  当一个进程正在执行，一个外部/内部中断（软中断、硬中断、Tasklet等）将其打断，会导致竞态发生。
+ 3、编译乱序和执行乱序 #  除了并发访问导致的竞态外，还需要了解编译器和处理器的一些特点所引发的一些问题。
+3.1 编译乱序 #   现代的高性能编译器，为了提高Cache命中率以及CPU的Load/Store工作效率，会对目标代码进行乱序优化，减少逻辑上不必要的访存！
+因此，在打开编译器优化后，生成的汇编码并没有严格按照代码的逻辑顺序执行，这是正常的。
+ 为了解决编译乱序的问题，可以加入barrier()编译屏障。
+顾名思义，编译屏障，也就是为了阻挡编译器的编译优化，加入barrier()编译屏障，即可保证正确的执行顺序。
+编译屏障代码实现如下：
+#define barrier() __asm__ __volatile__(&#34;&#34;: : :&#34;memory&#34;) 这里详细解释一下barrier的汇编实现：
+ __asm__：向编译器说明在此插入汇编代码 __volatile__：用于告诉编译器，严禁将此处的汇编语句与其它的语句重组合优化。 (&quot;&quot;: : :&quot;memory&quot;)：一条汇编语句，第一个:前为汇编指令，这里是空操作；第二个:前表示输出操作数，为空；第三个冒号前为输入操作数，也是要修改的寄存器；最后memory表示该指令对内存进行访问，该指令确保了命令之前的内存操作需要完全执行，不被优化。   使用案例：
+        <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/">【深入理解Linux锁机制】二、中断屏蔽</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p>【深入理解Linux内核锁】二、中断屏蔽 #   上一篇了解了内核锁的由来，本篇文章主要来讲一下中断屏蔽的底层实现以及原理。
+  1、中断屏蔽思想 #  中断屏蔽，正如其名，屏蔽掉CPU的中断响应功能，解决并发引起的竞态问题。
+ 在进入临界区前屏蔽中断，这么做有什么好处，以及有什么弊端？
+ 好处在于：
+ 解决了进程与中断之间的并发：保证在执行临界区代码时，不被中断所打断。 解决了进程与进程之间调度的并发：系统的进程调度与中断息息相关，同时也限制了系统进程的并发，解决了系统进程并发带来的竞态问题。  弊端在于：
+ 各类中断类型较多，一棒子打死影响大：Linux内核中，除了系统进程调度依赖中断，还有一些异步I/O等众多操作都依赖中断，因此长时间屏蔽中断是很危险的，会对系统造成严重影响，因此也要求临界区代码要简短。 解决的不够完善：关闭中断能够解决进程调度、中断引发的竞态，但是这些都是单CPU内部的，对于SMP对称多处理器，仍然不可避免的会收到其他CPU的中断。因此，并不能解决SMP多CPU引发的竞态。  因此，单独使用中断屏蔽通常不是一种值得推荐的避免竞态的方法
+ 2、Linux内核中断屏蔽的实现 #  2.1 Linux内核提供的API接口 #   关于中断屏蔽，Linux内核所提供的接口如下：
+ local_irq_enable()	//	使能本CPU的中断 local_irq_disable()	//	禁止本CPU的中断 local_irq_save(flags)	//	禁止本CPU的中断，并保存CPU中断位的信息 local_irq_restore(flags)	//	使能本CPU的中断，并恢复CPU中断位的信息 local_bh_disable(void)	//	禁止本CPU底半部中断 local_bh_enable(void) //	使能本CPU底半部中断 文件位置：kernel/include/linux/irqflags.h
+ local_irq_enable与local_irq_disable：直接打开/关闭本CPU内的中断，包括了顶半部和底半部中断的打开和关闭。 local_irq_save与local_irq_restore：直接打开/关闭本CPU中断，并且保存中断屏蔽前的状态，便于后续恢复 local_bh_enable与local_bh_disable：直接打开/关闭本CPU内的底半部中断   2.2 API接口实现分析 #   因为中断屏蔽与底层芯片架构有关，不同架构处理方式不同，我们以ARM为例
+ 2.2.1 local_irq_enable #  #define local_irq_enable()	do { raw_local_irq_enable(); } while (0)  #define raw_local_irq_enable()	arch_local_irq_enable()  #define arch_local_irq_enable arch_local_irq_enable static inline void arch_local_irq_enable(void) { asm volatile( &#34;	cpsie i	@ arch_local_irq_enable&#34; : : : &#34;memory&#34;, &#34;cc&#34;); } 函数介绍：local_irq_enable函数用于将CPSR寄存器中的中断使能位设为1，从而使得CPU能够响应中断。
+        <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/">【深入理解Linux锁机制】三、原子操作</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p>【深入理解Linux内核锁】三、原子操作 #  1、原子操作思想 #  原子操作（atomic operation），不可分割的操作。其通过原子变量来实现，以保证单个CPU周期内，读写该变量不能被打断，进而判断该变量的值，来解决并发引起的互斥。
+Atomic类型的变量可以在执行期间禁止中断，并保证在访问变量时的原子性。
+ 简单来说，我们可以把原子变量看作为一个标志位，然后再来检测该标志位的值。
+其原子性表现在：操作该标志位的值，不可被打断。
+ 在Linux内核中，提供了两类原子操作的接口，分别是针对位和整型变量的原子操作。
+2、整型变量原子操作 #  2.1 API接口 #   对于整形变量的原子操作，内核提供了一系列的 API接口
+ /*设置原子变量的值*/ atomic_t v = ATOMIC_INIT(0); /* 定义原子变量v并初始化为0 */ void atomic_set(atomic_t *v, int i); /* 设置原子变量的值为i */ /*获取原子变量的值*/ atomic_read(atomic_t *v); /* 返回原子变量的值*/ /*原子变量的加减*/ void atomic_add(int i, atomic_t *v); /* 原子变量增加i */ void atomic_sub(int i, atomic_t *v); /* 原子变量减少i */ /*原子变量的自增，自减*/ void atomic_inc(atomic_t *v);	/* 原子变量增加1 */ void atomic_dec(atomic_t *v); /* 原子变量减少1 */ /*原子变量的操作并测试*/ int atomic_inc_and_test(atomic_t *v);	/*进行对应操作后，测试原子变量值是否为0*/ int atomic_dec_and_test(atomic_t *v); int atomic_sub_and_test(int i, atomic_t *v); /*原子变量的操作并返回*/ int atomic_add_return(int i, atomic_t *v);	/*进行对应操作后，返回新的值*/ int atomic_sub_return(int i, atomic_t *v); int atomic_inc_return(atomic_t *v); int atomic_dec_return(atomic_t *v); 2.
+        <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/">【深入理解Linux锁机制】四、自旋锁</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p>【深入理解Linux内核锁】四、自旋锁 #   上两节主要讲解了中断屏蔽和原子操作，这两个作为最底层的操作，几乎在Linux内核中都不单独使用，下面我们来带大家了解一下常用的自旋锁！
+ 1、什么是自旋锁？ #  自旋锁是一种典型的对临界资源进行互斥访问的手段。
+它的底层实现逻辑是：原子变量+判断检测。
+原子变量我们可以理解为一把锁，通过操作原子变量（锁）的状态，并对其进行判断，如果锁未被锁定，我们就继续往下执行；如果锁已经被锁定，我们就原地自旋，直到等到锁被打开。
+在ARM平台下，自旋锁的实现使用了ldrex、strex、以及内存屏障指令dmb、dsb、wfe、sev等。
+2、自旋锁思想 #   自旋锁主要针对于SMP或者单CPU但内核可抢占的情况，对于单CPU内核不可抢占的情况时，自旋锁退化为空操作。 自旋锁实际为忙等锁，当锁不可用时，CPU一直处于等待状态，直到该锁被释放。 自旋锁可能会导致内核死锁，当递归使用自旋锁时，则将该CPU锁死。 在多核SMP的情况下，任何一个核拿到了自旋锁，该核上的抢占调度也暂时禁止了，但是没有禁止另外一个核的抢占调度。 在自旋锁锁定期间，不能调用引起进程调度的函数，如copy_from_user()、copy_to_user()、kmalloc()和msleep()，否则会导致内核崩溃  3、自旋锁的定义及实现 #  3.1 API接口 #  //	定义自旋锁 spinlock_t lock; //	初始化自旋锁 spin_lock_init(&amp;lock) //	获得自旋锁 spin_lock(&amp;lock)	//	获取自旋锁，如果立即获得锁，则直接返回，否则，自旋等待，直到锁被释放 spin_trylock(&amp;lock)	//	尝试获取自旋锁，如果立即获得锁，返回true，否则直接返回false，不原地等待  //	释放自旋锁 spin_unlock(&amp;lock) 自旋锁保证了不受其他CPU或者单CPU内的抢占进程的干扰，但是对于临界区代码，仍然有可能会受到中断和底半部的影响。
+为了解决这种问题，我们就要使用自旋锁的衍生。
+spin_lock_irq() = spin_lock() + local_irq_disable()	//	获取自旋锁并关中断 spin_unlock_irq() = spin_unlock() + local_irq_enable()	//	释放自旋锁并开中断 spin_lock_irqsave() = spin_lock() + local_irq_save()	//	获取自旋锁并关中断，保存中断状态 spin_unlock_irqrestore() = spin_unlock() + local_irq_restore()//释放自旋锁，开中断并恢复中断状态 spin_lock_bh() = spin_lock() + local_bh_disable()	//	获取自旋锁并关底半部中断 spin_unlock_bh() = spin_unlock() + local_bh_enable()	//	释放自旋锁并发开底半部中断 当我们的临界区代码，有可能被进程或者中断访问时，就需要在进程上下文中，调用spin_lock_irqsave()、spin_unlock_irqrestore()，在中断上下文中调用spin_lock()、spin_unlock()，如下图：
+        <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/">...</a>
+      
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/">【深入理解Linux锁机制】五、衍生自旋锁</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/">【深入理解Linux锁机制】六、信号量</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/">【深入理解Linux锁机制】七、互斥体</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+  <article class="markdown book-post">
+    <h2>
+      <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/">【深入理解Linux锁机制】八、完成量</a>
+    </h2>
+    
+  <h5>Jan 18, 2024</h5>
+
+
+
+  
+  <div>
+    
+      <a href="/categories/tech/">Tech</a>
+  </div>
+  
+
+  
+  <div>
+    
+      <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>, 
+      <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>, 
+      <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>, 
+      <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>, 
+      <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+  </div>
+  
+
+
+
+
+    <p> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  
+    </p>
+  </article>
+  
+
+  
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  <nav>
+  <ul>
+  
+    
+    <li class="book-section-flat">
+      <strong>Categories</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/categories/tech/">Tech</a>
+          <span>30</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+    
+    <li class="book-section-flat">
+      <strong>Tags</strong>
+      <ul>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91/"> Linux 系统开发</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E5%86%85%E6%A0%B8/">Linux 内核</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-%E9%94%81%E6%9C%BA%E5%88%B6/">Linux 锁机制</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%86%85%E6%A0%B8%E9%94%81/">内核锁</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E9%94%81/">操作系统锁</a>
+          <span>8</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/efuse/">Efuse</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F/">NVMEM子系统</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90/">NVMEM子系统深入剖析</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8/">安全启动</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E9%9D%A2%E8%AF%95%E6%8C%87%E5%8D%97/">Linux面试指南</a>
+          <span>3</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7/">Linux调试工具</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/uboot%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/">Uboot开发详解</a>
+          <span>4</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Linux内存管理</a>
+          <span>6</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/linux-api-%E6%8F%AD%E7%A7%98/">Linux API 揭秘</a>
+          <span>2</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8Flinux/">嵌入式Linux</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%9F%BA%E7%A1%80%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86/">嵌入式基础必备知识</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/embeded-technology/">Embeded Technology</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">嵌入式学习路线</a>
+          <span>1</span>
+        </li>
+      
+        <li class="flex justify-between">
+          <a href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%B7%A5%E7%A8%8B%E5%B8%88%E5%85%BB%E6%88%90%E8%AE%B0/">嵌入式工程师养成记</a>
+          <span>1</span>
+        </li>
+      
+      </ul>
+    </li>
+    
+  
+  </ul>
+</nav>
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -489,6 +489,5 @@ void cli_loop(void)
 另外，如果有同学想了解`Emmc`协议的，可以【[戳这里](https://t.zsxq.com/0eUcTOhdO)】下载`eMMC5.1官方标准协议.pdf`和`eMMC4.51官方标准协议-中文.pdf`
 
 <center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
-
-<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/Embeded_Art.gif" alt="img" width = "60%" height ="10%"/>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
 </div>

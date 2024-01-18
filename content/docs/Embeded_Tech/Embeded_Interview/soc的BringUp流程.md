@@ -62,7 +62,7 @@ weight: 1
 3.  使用快速启动模式：一些`SOC`支持快速启动模式，这种模式下，`SOC`会跳过一些不必要的硬件初始化和自检过程，从而更快地启动。
 4.  使用休眠和唤醒技术：一些`SOC`还支持休眠和唤醒技术，这种技术可以将系统的状态保存到非易失性存储器中，然后关闭系统。当系统再次启动时，可以直接从非易失性存储器中恢复系统的状态，从而更快地启动。
 
-![image-20231112221408132](https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231112221408132.png)
-
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
 &nbsp;
 

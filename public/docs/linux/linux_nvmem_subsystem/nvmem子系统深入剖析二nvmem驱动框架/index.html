@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【NVMEM子系统深入剖析】二、NVMEM驱动框架 #  1、前言 #   NVMEM SUBSYSTEM，该子系统整体架构不算太大，还是比较容易去理解的，下面我们一起去一探究竟！
+ NVMEM（Non Volatile Memory），该子系统主要用于实现EEPROM、Efuse等非易失存储器的统一管理。
+在早期，像EEPROM驱动是存放于/drivers/misc目录下，由于没有做到好的抽象，每次需要去访问相应内存空间，都需要去复制几乎一样的代码，去注册sysfs，这是一个相当大的抽象泄露。
+NVMEM子系统就是为了解决以往的抽象泄露问题。
+ 2、驱动框架 #   该驱动框架较为简单，也适合初学者去熟悉基本的驱动框架。
+ 应用层：可以通过用户空间所提供的文件节点，来读取或者修改nvmem存储器的数据。
+NVMEM 核心层：统一管理NVMEM设备，向上实现文件系统接口数据的传递，向下提供统一的注册，注销nvmem设备接口。
+NVMEM 总线驱动：注册NVMEM总线，实现NVMEM控制器的底层代码实现。
+TIP：
+nvmem子系统提供读写存储器的接口有两种，一种是通过文件系统读写，一种是在内核驱动直接读写。
+对于EEPROM，其可以进行读写操作，而对于efuse，更多用于读取密钥信息，进而判断镜像是否被篡改，在用户空间是不允许被更改的。
+这种是通过驱动提供的开放接口，直接获取指定位置的数据，详细的后面展开来说。
+ 3、源码目录结构 #  ketnel │ └── driver │ │ └── nvmem │ │ │ ├──	core.c	# NVMEM核心层 │ │ │ ├──	rockchip-efuse.c	# NVMEM总线驱动  4、用户空间下的目录结构 #  我们可以在用户空间去读取/写入数据，其所在的目录：/sys/bus/nvmem/devices/dev-name/nvmem
+hexdump /sys/bus/nvmem/devices/qfprom0/nvmem 0000000 0000 0000 0000 0000 0000 0000 0000 0000 * 00000a0 db10 2240 0000 e000 0c00 0c00 0000 0c00 0000000 0000 0000 0000 0000 0000 0000 0000 0000 .">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【NVMEM子系统深入剖析】二、NVMEM驱动框架" />
+<meta property="og:description" content="【NVMEM子系统深入剖析】二、NVMEM驱动框架 #  1、前言 #   NVMEM SUBSYSTEM，该子系统整体架构不算太大，还是比较容易去理解的，下面我们一起去一探究竟！
+ NVMEM（Non Volatile Memory），该子系统主要用于实现EEPROM、Efuse等非易失存储器的统一管理。
+在早期，像EEPROM驱动是存放于/drivers/misc目录下，由于没有做到好的抽象，每次需要去访问相应内存空间，都需要去复制几乎一样的代码，去注册sysfs，这是一个相当大的抽象泄露。
+NVMEM子系统就是为了解决以往的抽象泄露问题。
+ 2、驱动框架 #   该驱动框架较为简单，也适合初学者去熟悉基本的驱动框架。
+ 应用层：可以通过用户空间所提供的文件节点，来读取或者修改nvmem存储器的数据。
+NVMEM 核心层：统一管理NVMEM设备，向上实现文件系统接口数据的传递，向下提供统一的注册，注销nvmem设备接口。
+NVMEM 总线驱动：注册NVMEM总线，实现NVMEM控制器的底层代码实现。
+TIP：
+nvmem子系统提供读写存储器的接口有两种，一种是通过文件系统读写，一种是在内核驱动直接读写。
+对于EEPROM，其可以进行读写操作，而对于efuse，更多用于读取密钥信息，进而判断镜像是否被篡改，在用户空间是不允许被更改的。
+这种是通过驱动提供的开放接口，直接获取指定位置的数据，详细的后面展开来说。
+ 3、源码目录结构 #  ketnel │ └── driver │ │ └── nvmem │ │ │ ├──	core.c	# NVMEM核心层 │ │ │ ├──	rockchip-efuse.c	# NVMEM总线驱动  4、用户空间下的目录结构 #  我们可以在用户空间去读取/写入数据，其所在的目录：/sys/bus/nvmem/devices/dev-name/nvmem
+hexdump /sys/bus/nvmem/devices/qfprom0/nvmem 0000000 0000 0000 0000 0000 0000 0000 0000 0000 * 00000a0 db10 2240 0000 e000 0c00 0c00 0000 0c00 0000000 0000 0000 0000 0000 0000 0000 0000 0000 ." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-18T22:27:58+08:00" />
+<meta property="article:modified_time" content="2024-01-18T22:27:58+08:00" />
+
+<title>【NVMEM子系统深入剖析】二、NVMEM驱动框架 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b4994b30da00cde195711ceaee8eafa9408349f5b74d152668b819d660720d7b.js" integrity="sha256-tJlLMNoAzeGVcRzq7o6vqUCDSfW3TRUmaLgZ1mByDXs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle" checked />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="active">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【NVMEM子系统深入剖析】二、NVMEM驱动框架</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#nvmem子系统深入剖析二nvmem驱动框架">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2驱动框架">2、驱动框架</a></li>
+        <li><a href="#3源码目录结构">3、源码目录结构</a></li>
+        <li><a href="#4用户空间下的目录结构">4、用户空间下的目录结构</a></li>
+        <li><a href="#5参考文章">5、参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="nvmem子系统深入剖析二nvmem驱动框架">
+  【NVMEM子系统深入剖析】二、NVMEM驱动框架
+  <a class="anchor" href="#nvmem%e5%ad%90%e7%b3%bb%e7%bb%9f%e6%b7%b1%e5%85%a5%e5%89%96%e6%9e%90%e4%ba%8cnvmem%e9%a9%b1%e5%8a%a8%e6%a1%86%e6%9e%b6">#</a>
+</h1>
+<h2 id="1前言">
+  1、前言
+  <a class="anchor" href="#1%e5%89%8d%e8%a8%80">#</a>
+</h2>
+<blockquote>
+<p><code>NVMEM SUBSYSTEM</code>，该子系统整体架构不算太大，还是比较容易去理解的，下面我们一起去一探究竟！</p>
+</blockquote>
+<p><code>NVMEM（Non Volatile Memory）</code>，该子系统主要用于实现<code>EEPROM</code>、<code>Efuse</code>等非易失存储器的统一管理。</p>
+<p>在早期，像<code>EEPROM</code>驱动是存放于<code>/drivers/misc</code>目录下，由于没有做到好的抽象，每次需要去访问相应内存空间，都需要去复制几乎一样的代码，去注册<code>sysfs</code>，这是一个相当大的抽象泄露。</p>
+<p><code>NVMEM</code>子系统就是为了解决以往的抽象泄露问题。</p>
+<p> </p>
+<h2 id="2驱动框架">
+  2、驱动框架
+  <a class="anchor" href="#2%e9%a9%b1%e5%8a%a8%e6%a1%86%e6%9e%b6">#</a>
+</h2>
+<blockquote>
+<p>该驱动框架较为简单，也适合初学者去熟悉基本的驱动框架。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230210071204144.png" alt="image-20230210071204144" /></p>
+<p><strong>应用层</strong>：可以通过用户空间所提供的文件节点，来读取或者修改<code>nvmem</code>存储器的数据。</p>
+<p><strong>NVMEM 核心层</strong>：统一管理<code>NVMEM</code>设备，向上实现文件系统接口数据的传递，向下提供统一的注册，注销<code>nvmem</code>设备接口。</p>
+<p><strong>NVMEM 总线驱动</strong>：注册<code>NVMEM</code>总线，实现<code>NVMEM</code>控制器的底层代码实现。</p>
+<p><strong>TIP</strong>：</p>
+<p><code>nvmem</code>子系统提供读写存储器的接口有两种，一种是通过文件系统读写，一种是在内核驱动直接读写。</p>
+<p>对于<code>EEPROM</code>，其可以进行读写操作，而对于<code>efuse</code>，更多用于读取密钥信息，进而判断镜像是否被篡改，在用户空间是不允许被更改的。</p>
+<p>这种是通过驱动提供的开放接口，直接获取指定位置的数据，详细的后面展开来说。</p>
+<p> </p>
+<h2 id="3源码目录结构">
+  3、源码目录结构
+  <a class="anchor" href="#3%e6%ba%90%e7%a0%81%e7%9b%ae%e5%bd%95%e7%bb%93%e6%9e%84">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ketnel
+│   └── driver
+│   │   └── nvmem
+│   │   │   ├──	core.c					<span style="color:#6272a4"># NVMEM核心层</span>
+│   │   │   ├──	rockchip-efuse.c		<span style="color:#6272a4"># NVMEM总线驱动</span>
+</code></pre></div><p> </p>
+<h2 id="4用户空间下的目录结构">
+  4、用户空间下的目录结构
+  <a class="anchor" href="#4%e7%94%a8%e6%88%b7%e7%a9%ba%e9%97%b4%e4%b8%8b%e7%9a%84%e7%9b%ae%e5%bd%95%e7%bb%93%e6%9e%84">#</a>
+</h2>
+<p>我们可以在用户空间去读取/写入数据，其所在的目录：<code>/sys/bus/nvmem/devices/dev-name/nvmem</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hexdump /sys/bus/nvmem/devices/qfprom0/nvmem
+
+<span style="color:#bd93f9">0000000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span>
+*
+00000a0 db10 <span style="color:#bd93f9">2240</span> <span style="color:#bd93f9">0000</span> e000 0c00 0c00 <span style="color:#bd93f9">0000</span> 0c00
+<span style="color:#bd93f9">0000000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span> <span style="color:#bd93f9">0000</span>
+...
+*
+<span style="color:#bd93f9">0001000</span>
+</code></pre></div><p> </p>
+<h2 id="5参考文章">
+  5、参考文章
+  <a class="anchor" href="#5%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">#</a>
+</h2>
+<p>[1]：https://blog.csdn.net/qq_33160790/article/details/87836614</p>
+<p>[2]：https://blog.csdn.net/tiantao2012/article/details/72284862</p>
+<p> </p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#nvmem子系统深入剖析二nvmem驱动框架">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2驱动框架">2、驱动框架</a></li>
+        <li><a href="#3源码目录结构">3、源码目录结构</a></li>
+        <li><a href="#4用户空间下的目录结构">4、用户空间下的目录结构</a></li>
+        <li><a href="#5参考文章">5、参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

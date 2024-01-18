@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>安全启动 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8/</link>
+    <description>Recent content in 安全启动 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 18 Jan 2024 22:28:56 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</title>
+      <link>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/</link>
+      <pubDate>Thu, 18 Jan 2024 22:27:35 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/</guid>
+      <description>【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析 #  1、Efuse是什么 #  eFuse(electronic fuse)：电子保险丝，熔丝性的一种器件，属于一次性可编程存储器。
+之所以成为eFuse，因为其原理像电子保险丝一样，CPU出厂后，这片eFuse空间内所有比特全为1，如果向一位比特写入0，那么就彻底烧死这个比特了，再也无法改变它的值，也就是再也回不去 1 了。
+ 一般OEM从CPU厂商购买芯片后，一般都要烧写eFuse，用于标识自己公司的版本信息，运行模式等相关信息。
+同时，由于其一次性编程的特性，我们又将其用在Secure Boot安全启动中。
+  2、OTP是什么 #   了解完eFuse后，我们就顺便了解一下OTP
+ OTP(One Time Programmable)是反熔丝的一种器件，就是说，当OTP存储单元未击穿时，它的逻辑状态为0；当击穿时，它的逻辑状态为1，也属于一次性可编程存储器。
+它的物理状态和逻辑状态正好和eFuse相反！
+两者区别如下：
+  从成本上讲，eFuse器件基本上是各个Foundry厂自己提供，因此通常意味着免费或者很少的费用，而OTP器件则通常是第三方IP厂家提供，这就要收费。
+  从器件面积上讲，eFuse的cell的面积更大，所以仅仅有小容量的器件可以考虑。当然如果需要大容量的，也可以多个eFuse Macro拼接，但是这意味着芯片面积的增加，成本也会增加；OTP的cell面积很小，所有相对来讲，可以提供更大容量的Macro可供使用。
+  OTP 比 eFuse 安全性更好，eFuse的编程位可以通过电子显微镜看到，因此其存储的内容可以被轻易破解，但OTP在显微镜下无法区分编程位和未编程位，因此无法读取数据。
+  eFuse默认导通，存储的是&amp;quot;1&amp;quot;，而OTP默认是断开，存储的是&amp;quot;0&amp;quot;，因此OTP的功耗也较eFuse小，面积也较eFuse小。
+   3、什么是Secure Boot #   上面我们也了解过了，efuse主要用于记录一些OEM的产品信息，并且也会用于安全启动，那么安全启动是什么，为什么要做安全启动？
+ 安全启动Secure Boot，其主要目的是：以限制消费者能力，防止消费者从软硬件层面，对产品的部分关键系统进行读写，调试等高级权限，达到对产品的商业保密，知识产权的保护。
+安全启动的安全模型是建立在消费者是攻击者的假设之上，一般常见的操作有：
+ 刷机安装自定义的操作系统 绕过厂家封闭的支付平台 绕过系统保护，复制厂家保护的数字产品。  除此之外呢，有的比较专业的消费者，还可以：
+ 使用数字示波器监听 CPU 和 RAM 、eMMC 之间的数据传输来读取非常底层的数据传输 而且像 eMMC 这种芯片通常都是业界标准化的，攻击者甚至可以把芯片拆下来，然后用市面上现成的通用 eMMC 编程工具来读写上面的内容。  安全启动等级也有一个上限：这个上限通常是认为攻击者不至于能够剥离芯片的封装，然后用电子显微镜等纳米级别精度的显像设备来逆向芯片的内部结构。</description>
+    </item>
+    
+    <item>
+      <title>【NVMEM子系统深入剖析】二、NVMEM驱动框架</title>
+      <link>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/</link>
+      <pubDate>Thu, 18 Jan 2024 22:27:58 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/</guid>
+      <description>【NVMEM子系统深入剖析】二、NVMEM驱动框架 #  1、前言 #   NVMEM SUBSYSTEM，该子系统整体架构不算太大，还是比较容易去理解的，下面我们一起去一探究竟！
+ NVMEM（Non Volatile Memory），该子系统主要用于实现EEPROM、Efuse等非易失存储器的统一管理。
+在早期，像EEPROM驱动是存放于/drivers/misc目录下，由于没有做到好的抽象，每次需要去访问相应内存空间，都需要去复制几乎一样的代码，去注册sysfs，这是一个相当大的抽象泄露。
+NVMEM子系统就是为了解决以往的抽象泄露问题。
+ 2、驱动框架 #   该驱动框架较为简单，也适合初学者去熟悉基本的驱动框架。
+ 应用层：可以通过用户空间所提供的文件节点，来读取或者修改nvmem存储器的数据。
+NVMEM 核心层：统一管理NVMEM设备，向上实现文件系统接口数据的传递，向下提供统一的注册，注销nvmem设备接口。
+NVMEM 总线驱动：注册NVMEM总线，实现NVMEM控制器的底层代码实现。
+TIP：
+nvmem子系统提供读写存储器的接口有两种，一种是通过文件系统读写，一种是在内核驱动直接读写。
+对于EEPROM，其可以进行读写操作，而对于efuse，更多用于读取密钥信息，进而判断镜像是否被篡改，在用户空间是不允许被更改的。
+这种是通过驱动提供的开放接口，直接获取指定位置的数据，详细的后面展开来说。
+ 3、源码目录结构 #  ketnel │ └── driver │ │ └── nvmem │ │ │ ├──	core.c	# NVMEM核心层 │ │ │ ├──	rockchip-efuse.c	# NVMEM总线驱动  4、用户空间下的目录结构 #  我们可以在用户空间去读取/写入数据，其所在的目录：/sys/bus/nvmem/devices/dev-name/nvmem
+hexdump /sys/bus/nvmem/devices/qfprom0/nvmem 0000000 0000 0000 0000 0000 0000 0000 0000 0000 * 00000a0 db10 2240 0000 e000 0c00 0c00 0000 0c00 0000000 0000 0000 0000 0000 0000 0000 0000 0000 .</description>
+    </item>
+    
+    <item>
+      <title>【NVMEM子系统深入剖析】三、核心数据结构及内在关联</title>
+      <link>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/</link>
+      <pubDate>Thu, 18 Jan 2024 22:28:56 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【NVMEM子系统深入剖析】四、efuse驱动实现流程</title>
+      <link>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/</link>
+      <pubDate>Thu, 18 Jan 2024 22:28:17 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+  </channel>
+</rss>

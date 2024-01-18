@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【深入理解Linux内核锁】三、原子操作 #  1、原子操作思想 #  原子操作（atomic operation），不可分割的操作。其通过原子变量来实现，以保证单个CPU周期内，读写该变量不能被打断，进而判断该变量的值，来解决并发引起的互斥。
+Atomic类型的变量可以在执行期间禁止中断，并保证在访问变量时的原子性。
+ 简单来说，我们可以把原子变量看作为一个标志位，然后再来检测该标志位的值。
+其原子性表现在：操作该标志位的值，不可被打断。
+ 在Linux内核中，提供了两类原子操作的接口，分别是针对位和整型变量的原子操作。
+2、整型变量原子操作 #  2.1 API接口 #   对于整形变量的原子操作，内核提供了一系列的 API接口
+ /*设置原子变量的值*/ atomic_t v = ATOMIC_INIT(0); /* 定义原子变量v并初始化为0 */ void atomic_set(atomic_t *v, int i); /* 设置原子变量的值为i */ /*获取原子变量的值*/ atomic_read(atomic_t *v); /* 返回原子变量的值*/ /*原子变量的加减*/ void atomic_add(int i, atomic_t *v); /* 原子变量增加i */ void atomic_sub(int i, atomic_t *v); /* 原子变量减少i */ /*原子变量的自增，自减*/ void atomic_inc(atomic_t *v);	/* 原子变量增加1 */ void atomic_dec(atomic_t *v); /* 原子变量减少1 */ /*原子变量的操作并测试*/ int atomic_inc_and_test(atomic_t *v);	/*进行对应操作后，测试原子变量值是否为0*/ int atomic_dec_and_test(atomic_t *v); int atomic_sub_and_test(int i, atomic_t *v); /*原子变量的操作并返回*/ int atomic_add_return(int i, atomic_t *v);	/*进行对应操作后，返回新的值*/ int atomic_sub_return(int i, atomic_t *v); int atomic_inc_return(atomic_t *v); int atomic_dec_return(atomic_t *v); 2.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【深入理解Linux锁机制】三、原子操作" />
+<meta property="og:description" content="【深入理解Linux内核锁】三、原子操作 #  1、原子操作思想 #  原子操作（atomic operation），不可分割的操作。其通过原子变量来实现，以保证单个CPU周期内，读写该变量不能被打断，进而判断该变量的值，来解决并发引起的互斥。
+Atomic类型的变量可以在执行期间禁止中断，并保证在访问变量时的原子性。
+ 简单来说，我们可以把原子变量看作为一个标志位，然后再来检测该标志位的值。
+其原子性表现在：操作该标志位的值，不可被打断。
+ 在Linux内核中，提供了两类原子操作的接口，分别是针对位和整型变量的原子操作。
+2、整型变量原子操作 #  2.1 API接口 #   对于整形变量的原子操作，内核提供了一系列的 API接口
+ /*设置原子变量的值*/ atomic_t v = ATOMIC_INIT(0); /* 定义原子变量v并初始化为0 */ void atomic_set(atomic_t *v, int i); /* 设置原子变量的值为i */ /*获取原子变量的值*/ atomic_read(atomic_t *v); /* 返回原子变量的值*/ /*原子变量的加减*/ void atomic_add(int i, atomic_t *v); /* 原子变量增加i */ void atomic_sub(int i, atomic_t *v); /* 原子变量减少i */ /*原子变量的自增，自减*/ void atomic_inc(atomic_t *v);	/* 原子变量增加1 */ void atomic_dec(atomic_t *v); /* 原子变量减少1 */ /*原子变量的操作并测试*/ int atomic_inc_and_test(atomic_t *v);	/*进行对应操作后，测试原子变量值是否为0*/ int atomic_dec_and_test(atomic_t *v); int atomic_sub_and_test(int i, atomic_t *v); /*原子变量的操作并返回*/ int atomic_add_return(int i, atomic_t *v);	/*进行对应操作后，返回新的值*/ int atomic_sub_return(int i, atomic_t *v); int atomic_inc_return(atomic_t *v); int atomic_dec_return(atomic_t *v); 2." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-18T23:02:13+08:00" />
+<meta property="article:modified_time" content="2024-01-18T23:02:13+08:00" />
+
+<title>【深入理解Linux锁机制】三、原子操作 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b4994b30da00cde195711ceaee8eafa9408349f5b74d152668b819d660720d7b.js" integrity="sha256-tJlLMNoAzeGVcRzq7o6vqUCDSfW3TRUmaLgZ1mByDXs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a href="/docs/embeded_tech/self_improve/" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a href="/docs/embeded_tech/embeded_interview/" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a href="/docs/linux/linux_api/" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle" checked />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="active">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【深入理解Linux锁机制】三、原子操作</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux内核锁三原子操作">【深入理解Linux内核锁】三、原子操作</a>
+      <ul>
+        <li><a href="#1原子操作思想">1、原子操作思想</a></li>
+        <li><a href="#2整型变量原子操作">2、整型变量原子操作</a>
+          <ul>
+            <li><a href="#21-api接口">2.1 API接口</a></li>
+            <li><a href="#22-api实现">2.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#3位原子操作">3、位原子操作</a>
+          <ul>
+            <li><a href="#31-api接口">3.1 API接口</a></li>
+            <li><a href="#32-api实现">3.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="深入理解linux内核锁三原子操作">
+  【深入理解Linux内核锁】三、原子操作
+  <a class="anchor" href="#%e6%b7%b1%e5%85%a5%e7%90%86%e8%a7%a3linux%e5%86%85%e6%a0%b8%e9%94%81%e4%b8%89%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c">#</a>
+</h1>
+<p><img src="https://pics6.baidu.com/feed/a044ad345982b2b73288e884305a63e977099b5d.jpeg?token=534118da5c3201a68dadb33ea815373b" alt="img" /></p>
+<h2 id="1原子操作思想">
+  1、原子操作思想
+  <a class="anchor" href="#1%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c%e6%80%9d%e6%83%b3">#</a>
+</h2>
+<p>原子操作<code>（atomic operation）</code>，不可分割的操作。其通过原子变量来实现，以保证单个<code>CPU</code>周期内，读写该变量不能被打断，进而判断该变量的值，来解决并发引起的互斥。</p>
+<p><strong><code>Atomic</code>类型的变量可以在执行期间禁止中断，并保证在访问变量时的原子性。</strong></p>
+<blockquote>
+<p>简单来说，我们可以把原子变量看作为一个标志位，然后再来检测该标志位的值。</p>
+<p>其原子性表现在：操作该标志位的值，不可被打断。</p>
+</blockquote>
+<p>在<code>Linux</code>内核中，提供了两类原子操作的接口，分别是针对<strong>位</strong>和<strong>整型变量</strong>的原子操作。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230730171728090.png" alt="image-20230730171728090" /></p>
+<h2 id="2整型变量原子操作">
+  2、整型变量原子操作
+  <a class="anchor" href="#2%e6%95%b4%e5%9e%8b%e5%8f%98%e9%87%8f%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c">#</a>
+</h2>
+<h3 id="21-api接口">
+  2.1 API接口
+  <a class="anchor" href="#21-api%e6%8e%a5%e5%8f%a3">#</a>
+</h3>
+<blockquote>
+<p>对于整形变量的原子操作，内核提供了一系列的 <code>API</code>接口</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#6272a4">/*设置原子变量的值*/</span>
+atomic_t v <span style="color:#ff79c6">=</span> ATOMIC_INIT(<span style="color:#bd93f9">0</span>);            <span style="color:#6272a4">/* 定义原子变量v并初始化为0 */</span>
+<span style="color:#8be9fd">void</span> <span style="color:#50fa7b">atomic_set</span>(atomic_t <span style="color:#ff79c6">*</span>v, <span style="color:#8be9fd">int</span> i);    <span style="color:#6272a4">/* 设置原子变量的值为i */</span>
+
+<span style="color:#6272a4">/*获取原子变量的值*/</span>
+atomic_read(atomic_t <span style="color:#ff79c6">*</span>v);        		<span style="color:#6272a4">/* 返回原子变量的值*/</span>
+
+<span style="color:#6272a4">/*原子变量的加减*/</span>
+<span style="color:#8be9fd">void</span> <span style="color:#50fa7b">atomic_add</span>(<span style="color:#8be9fd">int</span> i, atomic_t <span style="color:#ff79c6">*</span>v);      <span style="color:#6272a4">/* 原子变量增加i */</span>
+<span style="color:#8be9fd">void</span> <span style="color:#50fa7b">atomic_sub</span>(<span style="color:#8be9fd">int</span> i, atomic_t <span style="color:#ff79c6">*</span>v);      <span style="color:#6272a4">/* 原子变量减少i */</span>
+
+<span style="color:#6272a4">/*原子变量的自增，自减*/</span>
+<span style="color:#8be9fd">void</span> <span style="color:#50fa7b">atomic_inc</span>(atomic_t <span style="color:#ff79c6">*</span>v);				<span style="color:#6272a4">/* 原子变量增加1 */</span>
+<span style="color:#8be9fd">void</span> <span style="color:#50fa7b">atomic_dec</span>(atomic_t <span style="color:#ff79c6">*</span>v);     			<span style="color:#6272a4">/* 原子变量减少1 */</span>
+
+<span style="color:#6272a4">/*原子变量的操作并测试*/</span>
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_inc_and_test</span>(atomic_t <span style="color:#ff79c6">*</span>v);		<span style="color:#6272a4">/*进行对应操作后，测试原子变量值是否为0*/</span>
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_dec_and_test</span>(atomic_t <span style="color:#ff79c6">*</span>v);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_sub_and_test</span>(<span style="color:#8be9fd">int</span> i, atomic_t <span style="color:#ff79c6">*</span>v);
+
+<span style="color:#6272a4">/*原子变量的操作并返回*/</span>
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_add_return</span>(<span style="color:#8be9fd">int</span> i, atomic_t <span style="color:#ff79c6">*</span>v);	<span style="color:#6272a4">/*进行对应操作后，返回新的值*/</span>
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_sub_return</span>(<span style="color:#8be9fd">int</span> i, atomic_t <span style="color:#ff79c6">*</span>v);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_inc_return</span>(atomic_t <span style="color:#ff79c6">*</span>v);
+<span style="color:#8be9fd">int</span> <span style="color:#50fa7b">atomic_dec_return</span>(atomic_t <span style="color:#ff79c6">*</span>v);
+</code></pre></div><h3 id="22-api实现">
+  2.2 API实现
+  <a class="anchor" href="#22-api%e5%ae%9e%e7%8e%b0">#</a>
+</h3>
+<blockquote>
+<p>我们下面就介绍几个稍微有代表性的接口实现</p>
+<p>以下基于<code>Linux</code>内核源码<code>4.19</code>，刚看是看的时候，有点摸不着头脑，因为定义的地方和引用的地方较多，不太容易找到，后来才慢慢得窥门径。</p>
+</blockquote>
+<h4 id="221-原子变量结构体">
+  2.2.1 原子变量结构体
+  <a class="anchor" href="#221-%e5%8e%9f%e5%ad%90%e5%8f%98%e9%87%8f%e7%bb%93%e6%9e%84%e4%bd%93">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">typedef</span> <span style="color:#ff79c6">struct</span> {
+    <span style="color:#8be9fd">int</span> counter;
+} atomic_t;
+</code></pre></div><p><strong>结构体名称</strong>：<code>atomic_t</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/types.h</code></p>
+<p><strong>主要作用</strong>：原子变量结构体，该结构体只包含一个整型成员变量<code>counter</code>，用于存储原子变量的值。</p>
+<h4 id="222-设置原子变量操作">
+  2.2.2 设置原子变量操作
+  <a class="anchor" href="#222-%e8%ae%be%e7%bd%ae%e5%8e%9f%e5%ad%90%e5%8f%98%e9%87%8f%e6%93%8d%e4%bd%9c">#</a>
+</h4>
+<blockquote>
+<p>设置原子变量的值的方式有两种：</p>
+<ol>
+<li>通过<code>ATOMIC_INIT</code>宏定义来设置</li>
+<li>通过<code>atomic_set</code>函数来定义</li>
+</ol>
+</blockquote>
+<h5 id="2221-atomic_init">
+  2.2.2.1 ATOMIC_INIT
+  <a class="anchor" href="#2221-atomic_init">#</a>
+</h5>
+<pre tabindex="0"><code>#define ATOMIC_INIT(i)	{ (i) }
+</code></pre><p><strong>函数介绍</strong>：定义了一个ATOMIC类型的变量，并初始化为给定的值。</p>
+<p><strong>文件位置</strong>：<code>arch/arm/include/asm/atomic.h</code></p>
+<p><strong>实现方法</strong>：这个宏定义比较简单，通过大括号将值包裹起来作为一个结构体，结构体的第一个成员就是给定的该值。</p>
+<h5 id="2222-atomic_set">
+  2.2.2.2 atomic_set
+  <a class="anchor" href="#2222-atomic_set">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">// arch/arm/include/asm/atomic.h
+</span><span style="color:#6272a4"></span><span style="color:#ff79c6">#define atomic_set(v,i)	WRITE_ONCE(((v)-&gt;counter), (i))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">// include/linux/compiler.h
+</span><span style="color:#6272a4"></span><span style="color:#ff79c6">#define WRITE_ONCE(x, val) \
+</span><span style="color:#ff79c6">({							\
+</span><span style="color:#ff79c6">    union { typeof(x) __val; char __c[1]; } __u =	\
+</span><span style="color:#ff79c6">        { .__val = (__force typeof(x)) (val) }; \
+</span><span style="color:#ff79c6">    __write_once_size(&amp;(x), __u.__c, sizeof(x));	\
+</span><span style="color:#ff79c6">    __u.__val;					\
+</span><span style="color:#ff79c6">})
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">static</span> __always_inline <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">__write_once_size</span>(<span style="color:#ff79c6">volatile</span> <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>p, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>res, <span style="color:#8be9fd">int</span> size)
+{
+    <span style="color:#ff79c6">switch</span> (size) {
+    <span style="color:#ff79c6">case</span> <span style="color:#bd93f9">1</span><span style="color:#ff79c6">:</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">volatile</span> __u8 <span style="color:#ff79c6">*</span>)p <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(__u8 <span style="color:#ff79c6">*</span>)res; <span style="color:#ff79c6">break</span>;
+    <span style="color:#ff79c6">case</span> <span style="color:#bd93f9">2</span><span style="color:#ff79c6">:</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">volatile</span> __u16 <span style="color:#ff79c6">*</span>)p <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(__u16 <span style="color:#ff79c6">*</span>)res; <span style="color:#ff79c6">break</span>;
+    <span style="color:#ff79c6">case</span> <span style="color:#bd93f9">4</span><span style="color:#ff79c6">:</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">volatile</span> __u32 <span style="color:#ff79c6">*</span>)p <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(__u32 <span style="color:#ff79c6">*</span>)res; <span style="color:#ff79c6">break</span>;
+    <span style="color:#ff79c6">case</span> <span style="color:#bd93f9">8</span><span style="color:#ff79c6">:</span> <span style="color:#ff79c6">*</span>(<span style="color:#ff79c6">volatile</span> __u64 <span style="color:#ff79c6">*</span>)p <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">*</span>(__u64 <span style="color:#ff79c6">*</span>)res; <span style="color:#ff79c6">break</span>;
+    <span style="color:#ff79c6">default</span><span style="color:#ff79c6">:</span>
+        barrier();
+        __builtin_memcpy((<span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>)p, (<span style="color:#ff79c6">const</span> <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>)res, size);
+        barrier();
+    }
+}
+</code></pre></div><p><strong>函数介绍</strong>：该函数也用作初始化原子变量</p>
+<p><strong>文件位置</strong>：<code>arch/arm/include/asm/atomic.h</code></p>
+<p><strong>实现方式</strong>：通过调用<code>WRITE_ONCE</code>来实现，其中<code>WRITE_ONCE</code>宏实现了一些屏蔽编译器优化的技巧，确保写入操作是原子的。</p>
+<ol>
+<li><code>atomic_set</code>调用<code>WRITE_ONCE</code>将<code>i</code>的值写入原子变量<code>(v)-&gt;counter</code>中，<code>WRITE_ONCE</code>以保证操作的原子性</li>
+<li><code>WRITE_ONCE</code>用来保证操作的原子性，它是怎么实现的呢？
+<ol>
+<li>创建<code>union</code>联合体，包括<code>__val</code>和<code>__C</code>成员变量</li>
+<li>定义一个<code>__U</code>变量，使用强制转换将参数<code>__val</code>转换为<code>typeof(x)</code>类型，传递给联合体变量<code>__u.__val</code></li>
+<li>调用<code>__write_once_size</code>函数，将<code>__u.__c</code>指向的内存块的内容写入到变量<code>x</code>的内存空间中，大小为<code>sizeof(x)</code>。</li>
+<li>函数返回<code>__u.__val</code>，也就是写入的值</li>
+</ol>
+</li>
+<li><code>union</code>联合体
+<ol>
+<li>它的特点是存储多种数据类型的值，但是所有成员共享同一个内存空间，这样可以节省内存空间。</li>
+<li>主要作用是将一个非字符类型的数据<code>x</code>强制转换为一个字符类型的数据，以字符类型数据来访问该区块的内存单元。</li>
+</ol>
+</li>
+<li><code>__write_once_size</code>函数实现了操作的原子性，核心有以下几点：
+<ol>
+<li>该函数在向内存写入数据时使用了<code>volatile</code>关键字，告诉编译器不要进行优化，每次操作都从内存中读取最新的值。</li>
+<li>函数中的<code>switch</code>语句保证了对不同大小的数据类型使用不同的存储方式，可以保证内存访问的原子性。</li>
+<li>对于默认情况，则使用了<code>__builtin_memcpy</code>函数进行复制，而这个函数具有原子性。</li>
+<li><code>barrier()</code>函数指示<code>CPU</code>要完成所有之前的内存操作，以及确保执行顺序与其他指令不发生重排。</li>
+</ol>
+</li>
+</ol>
+<h4 id="223-原子变量的加减">
+  2.2.3 原子变量的加减
+  <a class="anchor" href="#223-%e5%8e%9f%e5%ad%90%e5%8f%98%e9%87%8f%e7%9a%84%e5%8a%a0%e5%87%8f">#</a>
+</h4>
+<h5 id="2231-atomic_ops">
+  2.2.3.1 ATOMIC_OPS
+  <a class="anchor" href="#2231-atomic_ops">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * ARMv6 UP and SMP safe atomic ops.  We use load exclusive and
+</span><span style="color:#6272a4"> * store exclusive to ensure that these are atomic.  We may loop
+</span><span style="color:#6272a4"> * to ensure that the update happens.
+</span><span style="color:#6272a4"> */</span>
+
+<span style="color:#ff79c6">#define ATOMIC_OP(op, c_op, asm_op)					\
+</span><span style="color:#ff79c6">static inline void atomic_##op(int i, atomic_t *v)			\
+</span><span style="color:#ff79c6">{									\
+</span><span style="color:#ff79c6">    unsigned long tmp;						\
+</span><span style="color:#ff79c6">    int result;							\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    prefetchw(&amp;v-&gt;counter);						\
+</span><span style="color:#ff79c6">    __asm__ __volatile__(&#34;@ atomic_&#34; #op &#34;\n&#34;			\
+</span><span style="color:#ff79c6">&#34;1:	ldrex	%0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	&#34; #asm_op &#34;	%0, %0, %4\n&#34;					\
+</span><span style="color:#ff79c6">&#34;	strex	%1, %0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	teq	%1, #0\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	bne	1b&#34;							\
+</span><span style="color:#ff79c6">    : &#34;=&amp;r&#34; (result), &#34;=&amp;r&#34; (tmp), &#34;+Qo&#34; (v-&gt;counter)		\
+</span><span style="color:#ff79c6">    : &#34;r&#34; (&amp;v-&gt;counter), &#34;Ir&#34; (i)					\
+</span><span style="color:#ff79c6">    : &#34;cc&#34;);							\
+</span><span style="color:#ff79c6">}									\
+</span><span style="color:#ff79c6">
+</span><span style="color:#ff79c6">#define ATOMIC_OP_RETURN(op, c_op, asm_op)				\
+</span><span style="color:#ff79c6">static inline int atomic_##op##_return_relaxed(int i, atomic_t *v)	\
+</span><span style="color:#ff79c6">{									\
+</span><span style="color:#ff79c6">    unsigned long tmp;						\
+</span><span style="color:#ff79c6">    int result;							\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    prefetchw(&amp;v-&gt;counter);						\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    __asm__ __volatile__(&#34;@ atomic_&#34; #op &#34;_return\n&#34;		\
+</span><span style="color:#ff79c6">&#34;1:	ldrex	%0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	&#34; #asm_op &#34;	%0, %0, %4\n&#34;					\
+</span><span style="color:#ff79c6">&#34;	strex	%1, %0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	teq	%1, #0\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	bne	1b&#34;							\
+</span><span style="color:#ff79c6">    : &#34;=&amp;r&#34; (result), &#34;=&amp;r&#34; (tmp), &#34;+Qo&#34; (v-&gt;counter)		\
+</span><span style="color:#ff79c6">    : &#34;r&#34; (&amp;v-&gt;counter), &#34;Ir&#34; (i)					\
+</span><span style="color:#ff79c6">    : &#34;cc&#34;);							\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    return result;							\
+</span><span style="color:#ff79c6">}
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ATOMIC_FETCH_OP(op, c_op, asm_op)				\
+</span><span style="color:#ff79c6">static inline int atomic_fetch_##op##_relaxed(int i, atomic_t *v)	\
+</span><span style="color:#ff79c6">{									\
+</span><span style="color:#ff79c6">    unsigned long tmp;						\
+</span><span style="color:#ff79c6">    int result, val;						\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    prefetchw(&amp;v-&gt;counter);						\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    __asm__ __volatile__(&#34;@ atomic_fetch_&#34; #op &#34;\n&#34;			\
+</span><span style="color:#ff79c6">&#34;1:	ldrex	%0, [%4]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	&#34; #asm_op &#34;	%1, %0, %5\n&#34;					\
+</span><span style="color:#ff79c6">&#34;	strex	%2, %1, [%4]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	teq	%2, #0\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	bne	1b&#34;							\
+</span><span style="color:#ff79c6">    : &#34;=&amp;r&#34; (result), &#34;=&amp;r&#34; (val), &#34;=&amp;r&#34; (tmp), &#34;+Qo&#34; (v-&gt;counter)	\
+</span><span style="color:#ff79c6">    : &#34;r&#34; (&amp;v-&gt;counter), &#34;Ir&#34; (i)					\
+</span><span style="color:#ff79c6">    : &#34;cc&#34;);							\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    return result;							\
+</span><span style="color:#ff79c6">}
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ATOMIC_OPS(op, c_op, asm_op)					\
+</span><span style="color:#ff79c6">    ATOMIC_OP(op, c_op, asm_op)					\
+</span><span style="color:#ff79c6">    ATOMIC_OP_RETURN(op, c_op, asm_op)				\
+</span><span style="color:#ff79c6">    ATOMIC_FETCH_OP(op, c_op, asm_op)
+</span><span style="color:#ff79c6"></span>    
+ATOMIC_OPS(add, <span style="color:#ff79c6">+=</span>, add)
+ATOMIC_OPS(sub, <span style="color:#ff79c6">-=</span>, sub)
+</code></pre></div><blockquote>
+<p>找<code>atomic_add</code>找半天，还找到了不同的架构下面。:(</p>
+<p>原来内核通过各种宏定义将其操作全部管理起来，宏定义在内核中的使用也是非常广泛了。</p>
+</blockquote>
+<p><strong>函数作用</strong>：通过一些列宏定义，来实现原子变量的<code>add</code>、<code>sub</code>、<code>and</code>、<code>or</code>等原子变量操作</p>
+<p><strong>文件位置</strong>：<code>arch/arm/include/asm/atomic.h</code></p>
+<p><strong>实现方式</strong>：</p>
+<blockquote>
+<p>我们以<code>atomic_##op</code>为例来介绍，其他大同小异！</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">#define ATOMIC_OP(op, c_op, asm_op)					\
+</span><span style="color:#ff79c6">static inline void atomic_##op(int i, atomic_t *v)			\
+</span><span style="color:#ff79c6">{									\
+</span><span style="color:#ff79c6">    unsigned long tmp;						\
+</span><span style="color:#ff79c6">    int result;							\
+</span><span style="color:#ff79c6">                                    \
+</span><span style="color:#ff79c6">    prefetchw(&amp;v-&gt;counter);						\
+</span><span style="color:#ff79c6">    __asm__ __volatile__(&#34;@ atomic_&#34; #op &#34;\n&#34;			\
+</span><span style="color:#ff79c6">&#34;1:	ldrex	%0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	&#34; #asm_op &#34;	%0, %0, %4\n&#34;					\
+</span><span style="color:#ff79c6">&#34;	strex	%1, %0, [%3]\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	teq	%1, #0\n&#34;						\
+</span><span style="color:#ff79c6">&#34;	bne	1b&#34;							\
+</span><span style="color:#ff79c6">    : &#34;=&amp;r&#34; (result), &#34;=&amp;r&#34; (tmp), &#34;+Qo&#34; (v-&gt;counter)		\
+</span><span style="color:#ff79c6">    : &#34;r&#34; (&amp;v-&gt;counter), &#34;Ir&#34; (i)					\
+</span><span style="color:#ff79c6">    : &#34;cc&#34;);							\
+</span><span style="color:#ff79c6">}		
+</span></code></pre></div><ol>
+<li>首先是函数名称<code>atomic_##op</code>，通过<code>##</code>来实现字符串的拼接，使函数名称可变，如<code>atomic_add</code>、<code>atomic_sub</code>等</li>
+<li>调用<code>prefetchw</code>函数，预取数据到<code>L1</code>缓存，方便操作，提高程序性能，但是不要滥用。</li>
+<li><code>__asm__ __volatile__</code>：表示汇编指令</li>
+<li><code>&quot;@ atomic_&quot; #op &quot;\n&quot;</code>：添加汇编注释，也就是我们的函数名字，如：<code>atomic_add</code>、<code>atomic_sub</code></li>
+<li><code>&quot;1: ldrex %0, [%3]\n&quot;</code>：将<code>%3</code>存储地址的数据，读入到<code>%0</code>地址中，<code>ldrex</code>为独占式的读取操作。</li>
+<li><code>&quot; &quot; #asm_op &quot; %0, %0, %4\n&quot;</code>：<code>&quot; #asm_op &quot;</code>表示作为宏定义传进来的参数，表示不同的操作码<code>add</code>、<code>sub</code>等，操作<code>%0</code>和<code>%4</code>对应的地址的值，并将结果返回到<code>%0</code>地址处</li>
+<li><code>&quot; strex %1, %0, [%3]\n&quot;</code> ：表示将<code>%0</code>地址处的值写入<code>%3</code>地址处，<code>strex</code>为独占式的写操作，写入的结果会返回到<code>%1</code>地址中</li>
+<li><code>&quot; teq %1, #0\n&quot;</code>：测试<code>%1</code>寄存器的值是否为0，如果不等于0，则执行下面的<code>&quot; bne 1b&quot;</code> 操作，跳转到<code>1</code>代码标签的位置，也就是<code>ldrex</code>前面的<code>1</code>的位置</li>
+<li><code>: &quot;=&amp;r&quot; (result), &quot;=&amp;r&quot; (tmp), &quot;+Qo&quot; (v-&gt;counter)</code>：根据汇编语法，前两个为输出操作数，第三个为输入输出操作数</li>
+<li><code>: &quot;r&quot; (&amp;v-&gt;counter), &quot;Ir&quot; (i)</code>：根据汇编语法，这两个为输入操作数</li>
+<li><code>: &quot;cc&quot;</code>：表示可能会修改条件码寄存器，编译期间需要优化。</li>
+</ol>
+<p><span style="color: red;"><strong>总结：上述原子操作，通过<code>ldrex</code>和<code>strex</code>也就是我们说的<code>load</code>和<code>store</code>指令，来完成数据的读写，同时也保证了其原子性！</strong></span></p>
+<blockquote>
+<p>这一部分，牵涉到汇编的语法，需要提前了解下基础的汇编指令。</p>
+</blockquote>
+<h5 id="2232-atomic_add和atomic_sub定义">
+  2.2.3.2 atomic_add和atomic_sub定义
+  <a class="anchor" href="#2232-atomic_add%e5%92%8catomic_sub%e5%ae%9a%e4%b9%89">#</a>
+</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">ATOMIC_OPS(add, <span style="color:#ff79c6">+=</span>, add)
+ATOMIC_OPS(sub, <span style="color:#ff79c6">-=</span>, sub)
+</code></pre></div><blockquote>
+<p>通过宏定义来实现<code>atomic_add</code>和<code>atomic_sub</code>的定义，下面我们就不一一分析了，原理都是通过<code>ARM</code>提供的<code>ldrex</code> <code>strex</code>也就是我们常说的<code>Load</code>和<code>Store</code>指令实现读取操作，确保操作的原子性。</p>
+</blockquote>
+<h2 id="3位原子操作">
+  3、位原子操作
+  <a class="anchor" href="#3%e4%bd%8d%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c">#</a>
+</h2>
+<blockquote>
+<p>对于位原子操作，内核也提供了一系列的 <code>API</code>接口</p>
+</blockquote>
+<h3 id="31-api接口">
+  3.1 API接口
+  <a class="anchor" href="#31-api%e6%8e%a5%e5%8f%a3">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">set_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);		<span style="color:#6272a4">//	设置位：设置addr地址的第nr位，所谓设置位即是将位写为1
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">clear_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);		<span style="color:#6272a4">//	清除位：清除addr地址的第nr位，所谓清除位即是将位写为0
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">change_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);	<span style="color:#6272a4">//	改变位：对addr地址的第nr位进行反置。
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">test_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);		<span style="color:#6272a4">//	测试位：返回addr地址的第nr位。
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">test_and_set_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);<span style="color:#6272a4">//	测试并设置位
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">test_and_clear_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);	<span style="color:#6272a4">//	测试并清除位
+</span><span style="color:#6272a4"></span><span style="color:#8be9fd">int</span> <span style="color:#50fa7b">test_and_change_bit</span>(nr, <span style="color:#8be9fd">void</span> <span style="color:#ff79c6">*</span>addr);<span style="color:#6272a4">//	测试并改变位
+</span></code></pre></div><h3 id="32-api实现">
+  3.2 API实现
+  <a class="anchor" href="#32-api%e5%ae%9e%e7%8e%b0">#</a>
+</h3>
+<blockquote>
+<p>同样，我们还是简单介绍几个接口，其他核心实现原理相同</p>
+</blockquote>
+<h4 id="321-set_bit">
+  3.2.1 set_bit
+  <a class="anchor" href="#321-set_bit">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">#define set_bit(nr,p)			ATOMIC_BITOP(set_bit,nr,p)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#define ATOMIC_BITOP(name,nr,p)			\
+</span><span style="color:#ff79c6">    (__builtin_constant_p(nr) ? ____atomic_##name(nr, p) : _##name(nr,p))
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">extern</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">_set_bit</span>(<span style="color:#8be9fd">int</span> nr, <span style="color:#ff79c6">volatile</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> <span style="color:#ff79c6">*</span> p);
+
+<span style="color:#6272a4">/*
+</span><span style="color:#6272a4"> * These functions are the basis of our bit ops.
+</span><span style="color:#6272a4"> *
+</span><span style="color:#6272a4"> * First, the atomic bitops. These use native endian.
+</span><span style="color:#6272a4"> */</span>
+<span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">____atomic_set_bit</span>(<span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">int</span> bit, <span style="color:#ff79c6">volatile</span> <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> <span style="color:#ff79c6">*</span>p)
+{
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> flags;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> mask <span style="color:#ff79c6">=</span> BIT_MASK(bit);
+
+    p <span style="color:#ff79c6">+=</span> BIT_WORD(bit);
+
+    raw_local_irq_save(flags);
+    <span style="color:#ff79c6">*</span>p <span style="color:#ff79c6">|=</span> mask;
+    raw_local_irq_restore(flags);
+}
+
+<span style="color:#ff79c6">#define BIT_MASK(nr)		(1UL &lt;&lt; ((nr) % BITS_PER_LONG))
+</span><span style="color:#ff79c6">#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#ff79c6">#ifdef CONFIG_64BIT
+</span><span style="color:#ff79c6">#define BITS_PER_LONG 64
+</span><span style="color:#ff79c6">#else
+</span><span style="color:#ff79c6">#define BITS_PER_LONG 32
+</span><span style="color:#ff79c6">#endif </span><span style="color:#6272a4">/* CONFIG_64BIT */</span><span style="color:#ff79c6">
+</span></code></pre></div><p><strong>函数介绍</strong>：该函数用于原子操作某个地址的某一位。</p>
+<p><strong>文件位置</strong>：<code>/arch/arm/include/asm/bitops.h</code></p>
+<p><strong>实现方式</strong>：</p>
+<ol>
+<li><code>__builtin_constant_p</code>：<code>GCC</code>的一个内置函数，用来判断表达式是否为常量，如果为常量，则返回值为1</li>
+<li><code>____atomic_set_bit</code>函数中<code>BIT_MASK</code>，用于获取操作位的掩码，将要设置的位设置为1，其他为0</li>
+<li><code>BIT_WORD</code>：确定要操作位的偏移，要偏移多少个字</li>
+<li>最后通过<code>raw_local_irq_save</code>和<code>raw_local_irq_restore</code>中断屏蔽来保证位操作<code>*p |= mask;</code>的原子性</li>
+</ol>
+<h2 id="4总结">
+  4、总结
+  <a class="anchor" href="#4%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>该文章主要详细了解了<code>Linux</code>内核锁的原子操作，原子操作分为两种：整型变量的原子操作和位原子操作。</p>
+<ul>
+<li>整型变量的原子操作：<strong>通过<code>ldrex</code>和<code>strex</code>来实现</strong></li>
+<li>位原子操作：<strong>通过中断屏蔽来实现。</strong></li>
+</ul>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#深入理解linux内核锁三原子操作">【深入理解Linux内核锁】三、原子操作</a>
+      <ul>
+        <li><a href="#1原子操作思想">1、原子操作思想</a></li>
+        <li><a href="#2整型变量原子操作">2、整型变量原子操作</a>
+          <ul>
+            <li><a href="#21-api接口">2.1 API接口</a></li>
+            <li><a href="#22-api实现">2.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#3位原子操作">3、位原子操作</a>
+          <ul>
+            <li><a href="#31-api接口">3.1 API接口</a></li>
+            <li><a href="#32-api实现">3.2 API实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
