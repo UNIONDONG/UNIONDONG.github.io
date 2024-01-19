@@ -13,7 +13,7 @@
       <pubDate>Wed, 22 Nov 2023 22:52:44 +0800</pubDate>
       
       <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/</guid>
-      <description>Linux Version：6.6
+      <description>【Linux API 揭秘】module_init与module_exit #   Linux Version：6.6
 Author：Donge
 Github：linux-api-insides
   1、函数作用 #  module_init和module_exit是驱动中最常用的两个接口，主要用来注册、注销设备驱动程序。
@@ -27,7 +27,7 @@ Github：linux-api-insides
       <pubDate>Wed, 13 Dec 2023 21:56:32 +0800</pubDate>
       
       <guid>https://uniondong.github.io/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/</guid>
-      <description>Linux Version：6.6
+      <description>【Linux API 揭秘】container_of函数详解 #   Linux Version：6.6
 Author：Donge
 Github：linux-api-insides
   1、container_of函数介绍 #  container_of可以说是内核中使用最为频繁的一个函数了，简单来说，它的主要作用就是根据我们结构体中的已知的成员变量的地址，来寻求该结构体的首地址，直接看图，更容易理解。

@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【MMC子系统】 二、EMMC协议 #  1、前言 #  在上一节，我们知道EMMC、SD、SDIO三种规范都是在MMC规范之上发展而来，协议相差不大，所以Linux Kernel才能使用MMC子系统来统一管理！
+下面，我们以MMC协议为例，来了解一下相关协议!
+ 2、EMMC基本了解 #  2.1 物理线路 #     物理接口 接口含义     CLK 时钟线，此信号的每一周期控制命令线上的 1 bit 传输，以及所有数据线上 1 bit（1x） 或 2 bit（2x）传输。   CMD 命令线，此信号是双向命令通道，用于设备初始化和命令传输。CMD信号有两种工 作模式：用于初始化模式开漏模式和快速命令传输推拉模式。   DAT0-7 这些是双向的数据通道。DAT 信号以推拉模式工作。缺省状态，只有DAT0处于推拉模式，DAT1-7处于上拉（内含上拉），进入4bit后，DAT0-3处于推拉     2.2 EMMC相关寄存器了解 #   2.3 其他特性了解 #    读写模式：单块读写，多块读写
+  寻址方式：字节寻址和扇区寻址，字节寻址允许最大2GB，容量超过2GB的，使用扇区（512B）寻址
+  电压模式：支持高电压和双电压模式
+  支持增强分区模式等">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【MMC子系统】二、EMMC协议" />
+<meta property="og:description" content="【MMC子系统】 二、EMMC协议 #  1、前言 #  在上一节，我们知道EMMC、SD、SDIO三种规范都是在MMC规范之上发展而来，协议相差不大，所以Linux Kernel才能使用MMC子系统来统一管理！
+下面，我们以MMC协议为例，来了解一下相关协议!
+ 2、EMMC基本了解 #  2.1 物理线路 #     物理接口 接口含义     CLK 时钟线，此信号的每一周期控制命令线上的 1 bit 传输，以及所有数据线上 1 bit（1x） 或 2 bit（2x）传输。   CMD 命令线，此信号是双向命令通道，用于设备初始化和命令传输。CMD信号有两种工 作模式：用于初始化模式开漏模式和快速命令传输推拉模式。   DAT0-7 这些是双向的数据通道。DAT 信号以推拉模式工作。缺省状态，只有DAT0处于推拉模式，DAT1-7处于上拉（内含上拉），进入4bit后，DAT0-3处于推拉     2.2 EMMC相关寄存器了解 #   2.3 其他特性了解 #    读写模式：单块读写，多块读写
+  寻址方式：字节寻址和扇区寻址，字节寻址允许最大2GB，容量超过2GB的，使用扇区（512B）寻址
+  电压模式：支持高电压和双电压模式
+  支持增强分区模式等" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-19T21:14:30+08:00" />
+<meta property="article:modified_time" content="2024-01-19T21:14:30+08:00" />
+
+<title>【MMC子系统】二、EMMC协议 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.2f45f958bf700fec7580564fe9e5c1a26acc77c4ac9769c7e45f116b05ad1a0b.js" integrity="sha256-L0X5WL9wD&#43;x1gFZP6eXBomrMd8Ssl2nH5F8RawWtGgs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a role="button" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a role="button" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-00ea238a2f9544b32c1424d14ac8d5b7" class="toggle"  />
+    <label for="section-00ea238a2f9544b32c1424d14ac8d5b7" class="flex justify-between">
+      <a role="button" class="">Linux 驱动开发基础</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" class="">【一文秒懂】Linux字符设备驱动</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux设备树详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/" class="">【一文秒懂】为什么Linux内核中不经常使用typedef</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a role="button" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/" class="">【一文秒懂】Linux内核调试工具——Debugfs</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/" class="">【一文秒懂】Linux内核调试工具——devmem</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9ae83851c5fe25a6d227e96b400b1ab9" class="toggle"  />
+    <label for="section-9ae83851c5fe25a6d227e96b400b1ab9" class="flex justify-between">
+      <a role="button" class="">Linux LED子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%80linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%B0%E6%89%8B%E5%BF%85%E8%AF%BB/" class="">【LED子系统深度剖析】一、开篇词|Linux驱动开发新手必读</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%8Cled%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" class="">【LED子系统深度剖析】二、LED子系统框架分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%89%E7%A1%AC%E4%BB%B6%E9%A9%B1%E5%8A%A8%E5%B1%82%E8%AF%A6%E8%A7%A3/" class="">【LED子系统深度剖析】三、硬件驱动层详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%9B%9B%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%80/" class="">【LED子系统深度剖析】四、核心层详解（一）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" class="">【LED子系统深度剖析】五、核心层详解（二）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AD%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%89/" class="">【LED子系统深度剖析】六、核心层详解（三）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%83%E8%A7%A6%E5%8F%91%E5%99%A8%E5%AE%9E%E7%8E%B0/" class="">【LED子系统深度剖析】七、触发器实现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AB%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80/" class="">【LED子系统深度剖析】八、小试牛刀</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】九、数据结构详解（番外篇）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】十、详细实现流程（番外篇）</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf0229851221605a75715f5f9633256a" class="toggle" checked />
+    <label for="section-bf0229851221605a75715f5f9633256a" class="flex justify-between">
+      <a role="button" class="">Linux MMC 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/" class="">【MMC子系统】一、MMC_SD_SDIO介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" class="active">【MMC子系统】二、EMMC协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/" class="">【MMC子系统】三、MMC子系统框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/" class="">【MMC子系统】四、MMC控制器驱动层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/" class="">【MMC子系统】五、MMC核心层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/" class="">【MMC子系统】六、MMC块设备层</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-541874a152001b263009202c99a285c4" class="toggle"  />
+    <label for="section-541874a152001b263009202c99a285c4" class="flex justify-between">
+      <a role="button" class="">Bluetooth蓝牙开发</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%80%E6%89%93%E9%80%A0%E5%85%A8%E7%BD%91%E6%9C%80%E8%AF%A6%E7%BB%86%E7%9A%84bluetooth%E5%BC%80%E5%8F%91%E6%95%99%E7%A8%8B/" class="">【Bluetooth蓝牙开发】一、打造全网最详细的Bluetooth开发教程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%8C%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8/" class="">【Bluetooth蓝牙开发】二、蓝牙开发入门</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" class="">【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%9B%9Bble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E7%89%A9%E7%90%86%E5%B1%82%E6%B5%85%E6%9E%90/" class="">【Bluetooth蓝牙开发】四、BLE协议之物理层浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%94ble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E9%93%BE%E8%B7%AF%E5%B1%82/" class="">【Bluetooth蓝牙开发】五、BLE协议之链路层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ADble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E4%BC%A0%E8%BE%93%E5%B1%82/" class="">【Bluetooth蓝牙开发】六、BLE协议之传输层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/" class="">【Bluetooth蓝牙开发】七、BLE协议之L2CAP</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ABble%E5%8D%8F%E8%AE%AE%E4%B9%8Batt/" class="">【Bluetooth蓝牙开发】八、BLE协议之ATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/" class="">【Bluetooth蓝牙开发】九、BLE协议——GATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81ble%E8%93%9D%E7%89%99%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%B9%BF%E6%92%AD%E6%89%AB%E6%8F%8F%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5/" class="">【Bluetooth蓝牙开发】十、BLE蓝牙通信流程（建立连接，广播，扫描，断开连接）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%B8%80%E8%B6%85%E8%AF%A6%E7%BB%86%E7%9A%84bluez%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" class="">【Bluetooth蓝牙开发】十一、超详细的Bluez交叉编译</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%BA%8C%E8%93%9D%E7%89%99%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88%E6%B1%87%E6%80%BB/" class="">【Bluetooth蓝牙开发】十二、蓝牙调试工具【集合汇总】</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【MMC子系统】二、EMMC协议</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#mmc子系统-二emmc协议">【MMC子系统】 二、EMMC协议</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2emmc基本了解">2、EMMC基本了解</a>
+          <ul>
+            <li><a href="#21-物理线路">2.1 物理线路</a></li>
+            <li><a href="#22-emmc相关寄存器了解">2.2 EMMC相关寄存器了解</a></li>
+            <li><a href="#23-其他特性了解">2.3 其他特性了解</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总线协议">3、总线协议</a>
+          <ul>
+            <li><a href="#31-基础了解">3.1 基础了解</a></li>
+            <li><a href="#32-命令格式">3.2 命令格式</a></li>
+            <li><a href="#33-命令格式">3.3 命令格式</a></li>
+            <li><a href="#34-应答格式">3.4 应答格式</a></li>
+          </ul>
+        </li>
+        <li><a href="#4工作模式">4、工作模式</a>
+          <ul>
+            <li><a href="#41-设备识别模式">4.1 设备识别模式</a></li>
+            <li><a href="#42-数据传输过程">4.2 数据传输过程</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="mmc子系统-二emmc协议">
+  【MMC子系统】 二、EMMC协议
+  <a class="anchor" href="#mmc%e5%ad%90%e7%b3%bb%e7%bb%9f-%e4%ba%8cemmc%e5%8d%8f%e8%ae%ae">#</a>
+</h1>
+<h2 id="1前言">
+  1、前言
+  <a class="anchor" href="#1%e5%89%8d%e8%a8%80">#</a>
+</h2>
+<p>在上一节，我们知道<code>EMMC</code>、<code>SD</code>、<code>SDIO</code>三种规范都是在<code>MMC</code>规范之上发展而来，协议相差不大，所以<code>Linux Kernel</code>才能使用<code>MMC</code>子系统来统一管理！</p>
+<p>下面，我们以<code>MMC</code>协议为例，来了解一下相关协议!</p>
+<p> </p>
+<h2 id="2emmc基本了解">
+  2、EMMC基本了解
+  <a class="anchor" href="#2emmc%e5%9f%ba%e6%9c%ac%e4%ba%86%e8%a7%a3">#</a>
+</h2>
+<h3 id="21-物理线路">
+  2.1 物理线路
+  <a class="anchor" href="#21-%e7%89%a9%e7%90%86%e7%ba%bf%e8%b7%af">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202210312033341.gif" alt="Card Concept(eMMC)" /></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231025163714473.png" alt="image-20231025163714473" /></p>
+<table>
+<thead>
+<tr>
+<th>物理接口</th>
+<th>接口含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLK</td>
+<td>时钟线，此信号的每一周期控制<strong>命令线</strong>上的 1 bit 传输，以及所有<strong>数据线</strong>上 1 bit（1x） 或 2 bit（2x）传输。</td>
+</tr>
+<tr>
+<td>CMD</td>
+<td>命令线，此信号是双向命令通道，用于设备初始化和命令传输。CMD信号有两种工 作模式：用于初始化模式<strong>开漏模式</strong>和快速命令传输<strong>推拉模式</strong>。</td>
+</tr>
+<tr>
+<td>DAT0-7</td>
+<td>这些是双向的数据通道。DAT 信号以<strong>推拉模式</strong>工作。缺省状态，只有DAT0处于推拉模式，DAT1-7处于上拉（内含上拉），进入4bit后，DAT0-3处于推拉</td>
+</tr>
+</tbody>
+</table>
+<p> </p>
+<h3 id="22-emmc相关寄存器了解">
+  2.2 EMMC相关寄存器了解
+  <a class="anchor" href="#22-emmc%e7%9b%b8%e5%85%b3%e5%af%84%e5%ad%98%e5%99%a8%e4%ba%86%e8%a7%a3">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202210312033046.png" alt="image-20220215111031546" /></p>
+<p> </p>
+<h3 id="23-其他特性了解">
+  2.3 其他特性了解
+  <a class="anchor" href="#23-%e5%85%b6%e4%bb%96%e7%89%b9%e6%80%a7%e4%ba%86%e8%a7%a3">#</a>
+</h3>
+<ul>
+<li>
+<p><strong>读写模式</strong>：单块读写，多块读写</p>
+</li>
+<li>
+<p><strong>寻址方式</strong>：字节寻址和扇区寻址，字节寻址允许最大2GB，容量超过2GB的，使用扇区（512B）寻址</p>
+</li>
+<li>
+<p><strong>电压模式</strong>：支持高电压和双电压模式</p>
+</li>
+<li>
+<p><strong>支持增强分区模式等</strong></p>
+</li>
+</ul>
+<p> </p>
+<h2 id="3总线协议">
+  3、总线协议
+  <a class="anchor" href="#3%e6%80%bb%e7%ba%bf%e5%8d%8f%e8%ae%ae">#</a>
+</h2>
+<h3 id="31-基础了解">
+  3.1 基础了解
+  <a class="anchor" href="#31-%e5%9f%ba%e7%a1%80%e4%ba%86%e8%a7%a3">#</a>
+</h3>
+<ul>
+<li><strong>命令</strong>：启动一种操作的Token，命令从主机发往设备，在CMD线路上串行传输。</li>
+<li><strong>应答</strong>：从设备发往主机作为对上一命令的回答的Token，在CMD线路上串行传输。</li>
+<li><strong>数据</strong>：在主从机之间双向传输，总线宽度可以是1-bit（缺省）、4-bit 和 8-bit</li>
+</ul>
+<p> </p>
+<h3 id="32-命令格式">
+  3.2 命令格式
+  <a class="anchor" href="#32-%e5%91%bd%e4%bb%a4%e6%a0%bc%e5%bc%8f">#</a>
+</h3>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/e4f540b09494fc3b1f185ab8d34d09a1.png" alt="image-20220215112109330" /></p>
+<p>每一个Token，都是由一个<strong>起始位</strong>（’0’）前导，以一个停止位（’1’）终止。<strong>总长度是 48 比特</strong>。每一个 Token 都用<strong>CRC</strong>保护，因此可以检测到传输错误，可重复操作。</p>
+<p><img src="https://img-blog.csdnimg.cn/e4a7558a097f4e9286a51dcd9f39c7d7.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5Y2Q5LiA5Y2B5LqM55S75Y2Q,size_20,color_FFFFFF,t_70,g_se,x_16" alt="在这里插入图片描述" /></p>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/a1f0da4989de074a495183edc43f1b8b.png" alt="image-20220215114113034" /></p>
+<p><code>命令索引</code>：也就是前面CMDX的0，1，2，3等命令编号。</p>
+<p><code>命令参数</code>：有些命令需要参数，例如地址信息等。</p>
+<p> </p>
+<h3 id="33-命令格式">
+  3.3 命令格式
+  <a class="anchor" href="#33-%e5%91%bd%e4%bb%a4%e6%a0%bc%e5%bc%8f">#</a>
+</h3>
+<p>① 无应答广播命令（bc）</p>
+<p>② 有应答广播命令（bcr）</p>
+<p>③ 点对点寻址命令（ac），无DAT数据</p>
+<p>④ 寻址数据传输命令（adtc），有DAT数据</p>
+<p> </p>
+<h3 id="34-应答格式">
+  3.4 应答格式
+  <a class="anchor" href="#34-%e5%ba%94%e7%ad%94%e6%a0%bc%e5%bc%8f">#</a>
+</h3>
+<p>所有的应答均通过命令线CMD发送，编码的长度取决于应答类型，应答<code>Token</code>类型有有 5 种编码方案，分别为R1、R2、R3、R4、R5。<code>Token</code> 长度是 48 或 136 比特。</p>
+<h4 id="-r1正常应答类型">
+  ① R1（正常应答类型）
+  <a class="anchor" href="#-r1%e6%ad%a3%e5%b8%b8%e5%ba%94%e7%ad%94%e7%b1%bb%e5%9e%8b">#</a>
+</h4>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/a04c2a4f1c93ae92cda56f0a68d9d03d.png" alt="image-20220221104224360" /></p>
+<p>编码长度<code>48bit</code>，<code>bits 45:40</code> 表示应答相对的命令索引，<code>bit 8:39</code>表示欲发送设备的状态信息。</p>
+<p> </p>
+<h4 id="-r2cid-csd寄存器">
+  ② R2（CID CSD寄存器）
+  <a class="anchor" href="#-r2cid-csd%e5%af%84%e5%ad%98%e5%99%a8">#</a>
+</h4>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/d25af5c7e2b89cd59bd3ed5bc411ed05.png" alt="image-20220221104552038" /></p>
+<p>编码长度<code>136bit</code>，<code>CID</code>寄存器的内容，作为对<code>CMD2</code>和<code>CMD10</code>的应答发送。<code>CSD</code>寄存器内容作为对<code>CMD9</code>应答发送。并且<code>CID</code>和<code>CSD</code>寄存器只有<code>bit 127:1</code>被发送。</p>
+<p> </p>
+<h4 id="-r3ocr寄存器">
+  ③ R3（OCR寄存器）
+  <a class="anchor" href="#-r3ocr%e5%af%84%e5%ad%98%e5%99%a8">#</a>
+</h4>
+<p><img src="https://img-blog.csdnimg.cn/img_convert/187795d916f52eb48be00c8d1798e9fa.png" alt="image-20220221104728934" /></p>
+<p>编码长度<code>48bit</code>，<code>OCR</code>寄存器作为对<code>CMD1</code>的应答发送。</p>
+<p> </p>
+<h4 id="-r4快速io">
+  ④ R4（快速I/O）
+  <a class="anchor" href="#-r4%e5%bf%ab%e9%80%9fio">#</a>
+</h4>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202210312035968.png" alt="image-20220221104846382" /></p>
+<p>编码长度<code>48bit</code>，参数域包含了被寻址设备的<code>RCA</code>、要读写的寄存器地址和内容。</p>
+<p> </p>
+<h4 id="-r5中断请求">
+  ⑤ R5（中断请求）
+  <a class="anchor" href="#-r5%e4%b8%ad%e6%96%ad%e8%af%b7%e6%b1%82">#</a>
+</h4>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202210312035064.png" alt="image-20220221105026759" /></p>
+<p>编码长度<code>48bit</code>，如果应答是主机生成的，参数的RCA应为0。</p>
+<p> </p>
+<h2 id="4工作模式">
+  4、工作模式
+  <a class="anchor" href="#4%e5%b7%a5%e4%bd%9c%e6%a8%a1%e5%bc%8f">#</a>
+</h2>
+<blockquote>
+<p>主机和设备之间的通信，都由主机控制发起，主机发送命令，引起设备的应答。</p>
+</blockquote>
+<p><strong>EMMC工作模式也定义了5种</strong>：</p>
+<ul>
+<li><strong>引导模式</strong>：使设备处于引导状态</li>
+<li><strong>设备识别模式</strong>：引导模式结束，设备再次模式下，接受<code>SET_RCA</code>命令，进行识别设备。</li>
+<li><strong>数据传输模式</strong>：分配<code>RCA</code>后，设备进入数据传输模式，准备数据通信</li>
+<li><strong>中断模式</strong>：主机与设备同时进入，无数据传输，只允许消息来自主机或从机的中断请求</li>
+<li><strong>非活动模式</strong>：如果设备工作电压范围和访问模式无效，则进入非活动模式。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231025164858180.png" alt="image-20231025164858180" /></p>
+<blockquote>
+<p>每一种模式，都有其各自的特点，我们主要来了解一下设备识别过程和数据传输过程。</p>
+</blockquote>
+<p> </p>
+<blockquote>
+<p>更多干货可见：<a href="https://t.zsxq.com/0eUcTOhdO">高级工程师聚集地</a>，助力大家更上一层楼！</p>
+</blockquote>
+<p> </p>
+<h3 id="41-设备识别模式">
+  4.1 设备识别模式
+  <a class="anchor" href="#41-%e8%ae%be%e5%a4%87%e8%af%86%e5%88%ab%e6%a8%a1%e5%bc%8f">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/6292e9b455574f80e056b1e1fbd345c6.png" alt="image-20220222110331024" /></p>
+<blockquote>
+<p>乍一看图，肯定大家都一脸懵逼，不仔细分析协议，单看图还是有一定理解难度的。</p>
+</blockquote>
+<p>总体来说，设备识别模式下，主机要想识别到卡，主要步骤有如下几步：</p>
+<ul>
+<li>
+<p><strong>复位设备</strong></p>
+</li>
+<li>
+<p><strong>验证工作电压及访问模式</strong></p>
+</li>
+<li>
+<p><strong>识别设备并分配相对设备地址<code>RCA</code></strong></p>
+</li>
+<li>
+<p><strong>使设备进入数据传输模式</strong></p>
+</li>
+</ul>
+<p> </p>
+<h4 id="411-复位">
+  4.1.1 复位
+  <a class="anchor" href="#411-%e5%a4%8d%e4%bd%8d">#</a>
+</h4>
+<p><strong>EMMC控制器</strong>通过发送<code>CMD0</code>，参数为<code>0x00000000</code>，使设备进入<code>Idle</code>状态。</p>
+<p>同时，为了向后兼容，在除<code>Inactive</code>的任何状态，接收 非<code>0XFFFFFFFA</code>或<code>0XF0F0F0F0</code>的参数，都作为<code>CMD0</code>。</p>
+<h4 id="412-验证工作电压及访问模式">
+  4.1.2 验证工作电压及访问模式
+  <a class="anchor" href="#412-%e9%aa%8c%e8%af%81%e5%b7%a5%e4%bd%9c%e7%94%b5%e5%8e%8b%e5%8f%8a%e8%ae%bf%e9%97%ae%e6%a8%a1%e5%bc%8f">#</a>
+</h4>
+<p><strong>EMMC控制器</strong>通过发送<code>CMD1</code>，参数为<code>OCR寄存器</code>，该寄存器种包含了<code>2bit</code>的存储器访问模式。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20231025164950622.png" alt="image-20231025164950622" /></p>
+<p>如上，<code>bit[30：29]</code>表示访问模式，通过<code>CMD1</code>发送该数据目的是向存储器同步寻址类型。</p>
+<p><strong>EMMC设备</strong>同时也应以固定模式<code>0x00FF8080</code> 或 <code>0x40FF8080</code>（如果设备忙）、<code>0x80FF8080</code>（容量小于等于 2GB）或 <code>0xC0FF8080</code>（容量大于 2GB）应答。</p>
+<p>同时，<code>bit31</code>用来判忙，如果为1，说明<strong>EMMC设备</strong>仍然处于复位过程中，主机也同时重复发送<code>CMD1</code>来确保该忙位清除。</p>
+<h4 id="413-识别设备分配rca">
+  4.1.3 识别设备分配RCA
+  <a class="anchor" href="#413-%e8%af%86%e5%88%ab%e8%ae%be%e5%a4%87%e5%88%86%e9%85%8drca">#</a>
+</h4>
+<p>通过<code>CMD1</code>进行检查后，不符合的设备就进入了<code>Inactive</code>状态。而符合的设备就进入了<code>Ready</code>状态。</p>
+<p>进而，<strong>EMMC控制器</strong>发送<code>CMD2</code>，请求符合要求的设备发送<strong>唯一设备标识</strong><code>CID</code>号。<code>CID</code>号对于每一张卡，都是唯一的。</p>
+<p>发送<code>CID</code>成功的设备，就进入到了<code>Identification</code>状态。</p>
+<p>进而，<strong>EMMC控制器</strong>发送<code>CMD3</code>，赋予设备一个相对设备地址<code>RCA</code>，从设备一旦接收到<code>RCA</code>，设备就变为<code>Stand-by</code>状态，即<strong>空闲态</strong>。</p>
+<p> </p>
+<h3 id="42-数据传输过程">
+  4.2 数据传输过程
+  <a class="anchor" href="#42-%e6%95%b0%e6%8d%ae%e4%bc%a0%e8%be%93%e8%bf%87%e7%a8%8b">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/99b99dc63ff70034ecf65be946033cf0.png" alt="image-20220222113633761" /></p>
+<p>分配完<code>RCA</code>后，从设备接收到<code>RCA</code>，立即处于<code>stand-by</code>状态时，<code>CMD</code>和<code>DAT</code>线路，均变为推拉模式。</p>
+<p> </p>
+<h4 id="421-获取csd寄存器信息">
+  4.2.1 获取CSD寄存器信息
+  <a class="anchor" href="#421-%e8%8e%b7%e5%8f%96csd%e5%af%84%e5%ad%98%e5%99%a8%e4%bf%a1%e6%81%af">#</a>
+</h4>
+<p><code>CMD9</code>：主机发送该命令，以获取设备专用寄存器<code>CSD</code>的数据，如块长度，存储容量，最大时钟速率等。</p>
+<p> </p>
+<h4 id="422-获取cid寄存器信息">
+  4.2.2 获取CID寄存器信息
+  <a class="anchor" href="#422-%e8%8e%b7%e5%8f%96cid%e5%af%84%e5%ad%98%e5%99%a8%e4%bf%a1%e6%81%af">#</a>
+</h4>
+<p><code>CMD10</code>：主机发送该命令，以获取设备专用寄存器<code>CID</code>的数据，获取设备识别号。</p>
+<p> </p>
+<h4 id="423-切换为transfer状态">
+  4.2.3 切换为Transfer状态
+  <a class="anchor" href="#423-%e5%88%87%e6%8d%a2%e4%b8%batransfer%e7%8a%b6%e6%80%81">#</a>
+</h4>
+<p><code>CMD7</code>：主机发送该命令，选定该设备，使其切换到发送数据状态。</p>
+<p> </p>
+<h4 id="424-查看ext_csd扩展寄存器">
+  4.2.4 查看EXT_CSD扩展寄存器
+  <a class="anchor" href="#424-%e6%9f%a5%e7%9c%8bext_csd%e6%89%a9%e5%b1%95%e5%af%84%e5%ad%98%e5%99%a8">#</a>
+</h4>
+<p><code>CMD8</code>：主机发送该命令，设备作为数据块发送其 <code>EXT_CSD</code>寄存器的数据，设备将数据作为一个512字节的数据块发送。</p>
+<p> </p>
+<h4 id="425-修改ext_csd扩展寄存器的值">
+  4.2.5 修改EXT_CSD扩展寄存器的值
+  <a class="anchor" href="#425-%e4%bf%ae%e6%94%b9ext_csd%e6%89%a9%e5%b1%95%e5%af%84%e5%ad%98%e5%99%a8%e7%9a%84%e5%80%bc">#</a>
+</h4>
+<p><code>CMD6</code>：主机发送该命令，用于切换工作模式，或者修改<code>EXT_CSD</code>寄存器。</p>
+<p><code>CMD6</code>，这个命令，参数的设置有很大讲究呢！</p>
+<p> </p>
+<p><code>[31:26]</code>：正如手册所写，直接设置为0</p>
+<p><code>[25:24]</code>：访问模式选择，那么访问模式有哪几种呢？</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/32918843a9efb0a9ccb91ef0fc7fd9e8.png" alt="image-20220224133752283" /></p>
+<p>如果 <code>SWITCH</code> 命令用于更换命令集（<code>[25:24]为00</code>），Index 和 Value 域被忽略（<code>[23:16]、[15:8]忽略</code>），且 EXT_CSD 不会被写。</p>
+<p>如果 <code>SWITCH</code>命令用于写 EXT_CSD寄存器，Cmd Set 域被忽略<code>[2:0] 忽略</code>，命令集保持不变。</p>
+<p><code>[23:16]</code>：索引，指的是<code>EXT_CSD</code>寄存器中，所要修改字节的索引。</p>
+<p><code>[15:8]</code>：要写入的值</p>
+<p><code>[2:0]</code>：命令集选择，命令集有如下几种类别，相关手册可以查阅。</p>
+<p> </p>
+<p><strong>举个栗子</strong>：</p>
+<p>如果我们想要操作总线长度，我们该怎么修改呢？</p>
+<p><code>CMD6</code>命令，发送<code>args=03B70200</code>，即可修改。</p>
+<p><code>03</code>：代表访问模式为<code>写字节</code></p>
+<p><code>B7</code>：转换为十进制183，对应<code>EXT_CSD</code>总线宽度模式的字节。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/9e1df24065cc170eee8fc74698f8f21d.png" alt="image-20220224135045096" /></p>
+<p><code>02</code>：设置该字节的值为02，即<code>8位数据总线</code></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/496db308a84e8e5ba2eae14e094e6382.png" alt="image-20220224135119903" /></p>
+<p><code>00</code>：写字节访问模式下，该位无效。</p>
+<p> </p>
+<h4 id="426-读数据">
+  4.2.6 读数据
+  <a class="anchor" href="#426-%e8%af%bb%e6%95%b0%e6%8d%ae">#</a>
+</h4>
+<ul>
+<li><strong>单块读</strong></li>
+</ul>
+<p><code>CMD17</code>：直接发送读命令，参数为要写入的<strong>数据地址信息</strong>，只读一个块。</p>
+<ul>
+<li><strong>多块读</strong></li>
+</ul>
+<p><code>CMD18</code>：直接发送读命令，参数为要写入的<strong>数据地址信息</strong>，并且一直读下去。</p>
+<p><code>CMD12</code>：停止命令，停止传输。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/f7007507ceeb03b2a906c96793a5e4b2.png" alt="image-20220224140703465" /></p>
+<h4 id="427-写数据">
+  4.2.7 写数据
+  <a class="anchor" href="#427-%e5%86%99%e6%95%b0%e6%8d%ae">#</a>
+</h4>
+<blockquote>
+<p>确保设备处于发送状态，即主机发送<code>CMD7</code>命令</p>
+</blockquote>
+<ul>
+<li><strong>单块写</strong></li>
+</ul>
+<p><code>CMD24</code>：直接发送写命令，参数为要写入的<strong>数据地址信息</strong>，只写一个块。</p>
+<ul>
+<li><strong>多块写</strong></li>
+</ul>
+<p>多块写的模式有两种：</p>
+<p><strong>① 一种是</strong>：设置要传输的数据块的个数，达到个数后，自动停止</p>
+<p><code>CMD16</code>：设置要传输的块长度</p>
+<p><code>CMD25</code>：开始发送<code>CMD16</code>指定长度的数据块，直到达到设置的数据块写入完成。</p>
+<p><strong>②另一种是</strong>：一直传输数据，直到接收停止数据的命令</p>
+<p><code>CMD25</code>：开始发送数据块，一直等待数据发送完全</p>
+<p><code>CMD12</code>：停止命令，停止传输。</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/0c1ba6acbca3da4cd7adecb5002db0a9.png" alt="image-20220224140713849" /></p>
+<p>好啦，到这里我们基本了解了<code>MMC</code>的协议，这也有助于我们去分析<code>EMMC</code>的框架。</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#mmc子系统-二emmc协议">【MMC子系统】 二、EMMC协议</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2emmc基本了解">2、EMMC基本了解</a>
+          <ul>
+            <li><a href="#21-物理线路">2.1 物理线路</a></li>
+            <li><a href="#22-emmc相关寄存器了解">2.2 EMMC相关寄存器了解</a></li>
+            <li><a href="#23-其他特性了解">2.3 其他特性了解</a></li>
+          </ul>
+        </li>
+        <li><a href="#3总线协议">3、总线协议</a>
+          <ul>
+            <li><a href="#31-基础了解">3.1 基础了解</a></li>
+            <li><a href="#32-命令格式">3.2 命令格式</a></li>
+            <li><a href="#33-命令格式">3.3 命令格式</a></li>
+            <li><a href="#34-应答格式">3.4 应答格式</a></li>
+          </ul>
+        </li>
+        <li><a href="#4工作模式">4、工作模式</a>
+          <ul>
+            <li><a href="#41-设备识别模式">4.1 设备识别模式</a></li>
+            <li><a href="#42-数据传输过程">4.2 数据传输过程</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

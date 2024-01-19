@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux 驱动开发基础 on Donge Blog</title>
+    <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/</link>
+    <description>Recent content in Linux 驱动开发基础 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 19 Jan 2024 21:45:04 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/linux/linux_driver_develop_basic/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【一文秒懂】Linux字符设备驱动</title>
+      <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</link>
+      <pubDate>Fri, 19 Jan 2024 21:40:08 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</guid>
+      <description>【一文秒懂】Linux字符设备驱动 #  1、前言 #  众所周知，Linux内核主要包括三种驱动模型，字符设备驱动，块设备驱动以及网络设备驱动。
+其中，Linux字符设备驱动，可以说是Linux驱动开发中最常见的一种驱动模型。
+我们该系列文章，主要为了帮助大家快速入门Linux驱动开发，该篇主要来了解一些字符设备驱动的框架和机制。
+ 系列文章基于Kernel 4.19
+  2、关键数据结构 #  2.1 cdev #  struct cdev { struct kobject kobj; struct module *owner; const struct file_operations *ops; struct list_head list; dev_t dev; unsigned int count; } __randomize_layout; 结构体名称：cdev
+文件位置：include/linux/cdev.h
+主要作用：cdev可以理解为char device，用来抽象一个字符设备。
+核心成员及含义：
+ kobj：表示一个内核对象。 owner：指向该模块的指针 ops：指向文件操作的指针，包括open、read、write等操作接口 list：用于将该设备加入到内核模块链表中 dev：设备号，由主设备号和次设备号构成 count：表示有多少个同类型设备，也间接表示设备号的范围 __randomize_layout：一个编译器指令，用于随机化结构体的布局，以增加安全性。   2.2 file_operations #  struct file_operations { struct module *owner; loff_t (*llseek) (struct file *, loff_t, int); ssize_t (*read) (struct file *, char __user *, size_t, loff_t *); ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *); ssize_t (*read_iter) (struct kiocb *, struct iov_iter *); ssize_t (*write_iter) (struct kiocb *, struct iov_iter *); int (*iterate) (struct file *, struct dir_context *); int (*iterate_shared) (struct file *, struct dir_context *); __poll_t (*poll) (struct file *, struct poll_table_struct *); long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long); long (*compat_ioctl) (struct file *, unsigned int, unsigned long); int (*mmap) (struct file *, struct vm_area_struct *); unsigned long mmap_supported_flags; int (*open) (struct inode *, struct file *); int (*flush) (struct file *, fl_owner_t id); int (*release) (struct inode *, struct file *); int (*fsync) (struct file *, loff_t, loff_t, int datasync); int (*fasync) (int, struct file *, int); int (*lock) (struct file *, int, struct file_lock *); ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int); unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long); int (*check_flags)(int); int (*flock) (struct file *, int, struct file_lock *); ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int); ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int); int (*setlease)(struct file *, long, struct file_lock **, void **); long (*fallocate)(struct file *file, int mode, loff_t offset, loff_t len); void (*show_fdinfo)(struct seq_file *m, struct file *f); #ifndef CONFIG_MMU  unsigned (*mmap_capabilities)(struct file *); #endif  ssize_t (*copy_file_range)(struct file *, loff_t, struct file *, loff_t, size_t, unsigned int); int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*dedupe_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*fadvise)(struct file *, loff_t, loff_t, int); } __randomize_layout; 结构体名称：file_operations</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux设备树详解</title>
+      <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Fri, 19 Jan 2024 21:43:13 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</guid>
+      <description>【一文秒懂】Linux设备树详解 #  1、Linux设备树概念 #  Linux内核是从V2.6开始引入设备树的概念，其起源于OF:OpenFirmware， 用于描述一个硬件平台的硬件资源信息，这些信息包括：CPU的数量和类别、内存基地址和大小、总线和桥、外设连接、中断控制器和中断使用情况、GPIO控制器和GPIO使用情况、Clock控制器和Clock使用情况等等。
+官方说明：
+ The &amp;ldquo;Open Firmware Device Tree&amp;rdquo;, or simply Device Tree (DT), is a data structure and language for describing hardware.
+设备树是一种数据结构和一种用于描述硬件信息的语言。
+ 设备树的特点：
+ 实现驱动代码与设备硬件信息相分离。 通过被bootloader(uboot)和Linux传递到内核， 内核可以从设备树中获取对应的硬件信息。 对于同一SOC的不同主板，只需更换设备树文件即可实现不同主板的无差异支持，而无需更换内核文件，实现了内核和不同板级硬件数据的拆分。   2、设备树的由来 #  明白了设备树的概念，不妨思考一下：为什么要引入设备树？
+在Linux内核v2.6版本以前，ARM架构用于描述不同的硬件信息的文件都存放在arch/arm/plat-xxx和arch/arm/mach-xxx文件夹下，如下：
+在这些文件内，都是通过手动定义不同的硬件设备，步骤非常繁琐
+这样就导致了Linux内核代码中充斥着大量的垃圾代码，因为不同的板级他们的硬件信息都不相同，这些都是硬件特有的信息，对内核而言没有任何的意义，但是往往这部分代码特别的多，造成内核的冗余。
+设备树的引入就是为了解决这个问题，通过引入设备树，我们可以直接通过它来传递给Linux，而不再需要内核中大量的垃圾代码。
+ 3、设备树组成 #   整个设备树牵涉面比较广，即增加了新的用于描述设备硬件信息的文本格式，又增加了编译这个文本的工具，同时还得支持Bootloader解析设备树，并将信息传递给内核。
+ 整个设备树包含DTC（device tree compiler），DTS（device tree source）和DTB（device tree blob）。
+ DTS（device tree source）  DTS是一种ASCII文本格式的设备树描述，在ARM Linux中，一个dts文件对应一个ARM的设备，该文件一般放在arch/arm/boot/dts/目录中。
+ 当然，我们还会看到一些dtsi文件，这些文件有什么用呢？</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】为什么Linux内核中不经常使用typedef</title>
+      <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/</link>
+      <pubDate>Fri, 19 Jan 2024 21:45:04 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/</guid>
+      <description>为什么 Linux 内核中不经常使用 typedef？ #   我们在进行Linux驱动开发过程中，有没有出现过这样的报错？
+WARNING: do not add new typedefs 不允许使用typedef！
+虽然只是一个警告，但是如果你想往开源仓库提交代码，这就是一个必优化项。
+那么，为什么Linux内核不建议使用typedef呢？
+ 1、Linus Torvalds 的态度 #    &amp;gt; On Mon, 10 Jun 2002, Linus Torvalds wrote: &amp;gt; &amp;gt; &amp;ndash;snip/snip &amp;gt; &amp;gt; But in the end, maintainership matters. I personally don&amp;rsquo;t want the &amp;gt; &amp;gt; typedef culture to get the upper hand, but I don&amp;rsquo;t mind a few of them, and &amp;gt; &amp;gt; people who maintain their own code usually get the last word.</description>
+    </item>
+    
+  </channel>
+</rss>

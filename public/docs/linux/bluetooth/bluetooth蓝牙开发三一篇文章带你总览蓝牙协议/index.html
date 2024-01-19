@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【Bluetooth|蓝牙开发】三、一篇文章，带你总览蓝牙协议 #  1、前言 #  在我们上一章节，学习了蓝牙的基础概念，发展历程，以及常见的蓝牙架构，相信大家对蓝牙也有了一定的了解！
+为了更好的去踏入蓝牙开发的大门，蓝牙协议栈是一个我们不得不去跨越的门槛！
+ 蓝牙协议及其复杂，并非一文能够道尽，本篇文章主要在于对蓝牙整体的协议架构进行梳理，文末官方协议附下载链接。
+  2、蓝牙芯片架构 #  蓝牙的核心架构，由一个Host和一个或多个Controller组成。
+ BT Host：一个逻辑实体，在HCI（Host Controller Interface）的上层。 BT Controller：一个逻辑实体，在HCI（Host Controller Interface）的下层。  Bluetooth的主控制器，可能是以下几种：
+ BR/EDR Controller：内部包含Radio, Baseband，Link Manager，可选的HCI。 LE Controller ：内部包含LE PHY，Link Layer ，可选的HCI BR/EDR &amp; LE Controller ：BR/EDR与LE的组合的控制器 MAC/PHY (AMP) Controller：二级控制器，可替代的，内部包含 802.11 PAL (Protocol Adaptation Layer)，802.11 MAC，PHY，可选的HCI。   根据Host与Controller的组成关系，常见的蓝牙芯片也分为以下几种架构：
+ 单模蓝牙芯片：单一传统蓝牙的芯片，单一低功耗蓝牙的芯片。即（1个Host结合1个Controller） 双模蓝牙芯片：同时支持传统蓝牙和低功耗蓝牙的芯片。即（1个Host结合多个Controller）  如下图：
+ 3、蓝牙协议架构——视角1 #  ==上图为官方协议中所提及的图片，由全局到局部来看==
+3.1 全局分析 #   由下到上分析">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议" />
+<meta property="og:description" content="【Bluetooth|蓝牙开发】三、一篇文章，带你总览蓝牙协议 #  1、前言 #  在我们上一章节，学习了蓝牙的基础概念，发展历程，以及常见的蓝牙架构，相信大家对蓝牙也有了一定的了解！
+为了更好的去踏入蓝牙开发的大门，蓝牙协议栈是一个我们不得不去跨越的门槛！
+ 蓝牙协议及其复杂，并非一文能够道尽，本篇文章主要在于对蓝牙整体的协议架构进行梳理，文末官方协议附下载链接。
+  2、蓝牙芯片架构 #  蓝牙的核心架构，由一个Host和一个或多个Controller组成。
+ BT Host：一个逻辑实体，在HCI（Host Controller Interface）的上层。 BT Controller：一个逻辑实体，在HCI（Host Controller Interface）的下层。  Bluetooth的主控制器，可能是以下几种：
+ BR/EDR Controller：内部包含Radio, Baseband，Link Manager，可选的HCI。 LE Controller ：内部包含LE PHY，Link Layer ，可选的HCI BR/EDR &amp; LE Controller ：BR/EDR与LE的组合的控制器 MAC/PHY (AMP) Controller：二级控制器，可替代的，内部包含 802.11 PAL (Protocol Adaptation Layer)，802.11 MAC，PHY，可选的HCI。   根据Host与Controller的组成关系，常见的蓝牙芯片也分为以下几种架构：
+ 单模蓝牙芯片：单一传统蓝牙的芯片，单一低功耗蓝牙的芯片。即（1个Host结合1个Controller） 双模蓝牙芯片：同时支持传统蓝牙和低功耗蓝牙的芯片。即（1个Host结合多个Controller）  如下图：
+ 3、蓝牙协议架构——视角1 #  ==上图为官方协议中所提及的图片，由全局到局部来看==
+3.1 全局分析 #   由下到上分析" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-19T21:00:08+08:00" />
+<meta property="article:modified_time" content="2024-01-19T21:00:08+08:00" />
+
+<title>【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.2f45f958bf700fec7580564fe9e5c1a26acc77c4ac9769c7e45f116b05ad1a0b.js" integrity="sha256-L0X5WL9wD&#43;x1gFZP6eXBomrMd8Ssl2nH5F8RawWtGgs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a role="button" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a role="button" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-00ea238a2f9544b32c1424d14ac8d5b7" class="toggle"  />
+    <label for="section-00ea238a2f9544b32c1424d14ac8d5b7" class="flex justify-between">
+      <a role="button" class="">Linux 驱动开发基础</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" class="">【一文秒懂】Linux字符设备驱动</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux设备树详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/" class="">【一文秒懂】为什么Linux内核中不经常使用typedef</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a role="button" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/" class="">【一文秒懂】Linux内核调试工具——Debugfs</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/" class="">【一文秒懂】Linux内核调试工具——devmem</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9ae83851c5fe25a6d227e96b400b1ab9" class="toggle"  />
+    <label for="section-9ae83851c5fe25a6d227e96b400b1ab9" class="flex justify-between">
+      <a role="button" class="">Linux LED子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%80linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%B0%E6%89%8B%E5%BF%85%E8%AF%BB/" class="">【LED子系统深度剖析】一、开篇词|Linux驱动开发新手必读</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%8Cled%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" class="">【LED子系统深度剖析】二、LED子系统框架分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%89%E7%A1%AC%E4%BB%B6%E9%A9%B1%E5%8A%A8%E5%B1%82%E8%AF%A6%E8%A7%A3/" class="">【LED子系统深度剖析】三、硬件驱动层详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%9B%9B%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%80/" class="">【LED子系统深度剖析】四、核心层详解（一）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" class="">【LED子系统深度剖析】五、核心层详解（二）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AD%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%89/" class="">【LED子系统深度剖析】六、核心层详解（三）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%83%E8%A7%A6%E5%8F%91%E5%99%A8%E5%AE%9E%E7%8E%B0/" class="">【LED子系统深度剖析】七、触发器实现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AB%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80/" class="">【LED子系统深度剖析】八、小试牛刀</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】九、数据结构详解（番外篇）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】十、详细实现流程（番外篇）</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf0229851221605a75715f5f9633256a" class="toggle"  />
+    <label for="section-bf0229851221605a75715f5f9633256a" class="flex justify-between">
+      <a role="button" class="">Linux MMC 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/" class="">【MMC子系统】一、MMC_SD_SDIO介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" class="">【MMC子系统】二、EMMC协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/" class="">【MMC子系统】三、MMC子系统框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/" class="">【MMC子系统】四、MMC控制器驱动层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/" class="">【MMC子系统】五、MMC核心层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/" class="">【MMC子系统】六、MMC块设备层</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-541874a152001b263009202c99a285c4" class="toggle" checked />
+    <label for="section-541874a152001b263009202c99a285c4" class="flex justify-between">
+      <a role="button" class="">Bluetooth蓝牙开发</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%80%E6%89%93%E9%80%A0%E5%85%A8%E7%BD%91%E6%9C%80%E8%AF%A6%E7%BB%86%E7%9A%84bluetooth%E5%BC%80%E5%8F%91%E6%95%99%E7%A8%8B/" class="">【Bluetooth蓝牙开发】一、打造全网最详细的Bluetooth开发教程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%8C%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8/" class="">【Bluetooth蓝牙开发】二、蓝牙开发入门</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" class="active">【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%9B%9Bble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E7%89%A9%E7%90%86%E5%B1%82%E6%B5%85%E6%9E%90/" class="">【Bluetooth蓝牙开发】四、BLE协议之物理层浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%94ble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E9%93%BE%E8%B7%AF%E5%B1%82/" class="">【Bluetooth蓝牙开发】五、BLE协议之链路层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ADble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E4%BC%A0%E8%BE%93%E5%B1%82/" class="">【Bluetooth蓝牙开发】六、BLE协议之传输层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/" class="">【Bluetooth蓝牙开发】七、BLE协议之L2CAP</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ABble%E5%8D%8F%E8%AE%AE%E4%B9%8Batt/" class="">【Bluetooth蓝牙开发】八、BLE协议之ATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/" class="">【Bluetooth蓝牙开发】九、BLE协议——GATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81ble%E8%93%9D%E7%89%99%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%B9%BF%E6%92%AD%E6%89%AB%E6%8F%8F%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5/" class="">【Bluetooth蓝牙开发】十、BLE蓝牙通信流程（建立连接，广播，扫描，断开连接）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%B8%80%E8%B6%85%E8%AF%A6%E7%BB%86%E7%9A%84bluez%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" class="">【Bluetooth蓝牙开发】十一、超详细的Bluez交叉编译</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%BA%8C%E8%93%9D%E7%89%99%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88%E6%B1%87%E6%80%BB/" class="">【Bluetooth蓝牙开发】十二、蓝牙调试工具【集合汇总】</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#bluetooth蓝牙开发三一篇文章带你总览蓝牙协议">【Bluetooth|蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2蓝牙芯片架构">2、蓝牙芯片架构</a></li>
+        <li><a href="#3蓝牙协议架构视角1">3、蓝牙协议架构——视角1</a>
+          <ul>
+            <li><a href="#31-全局分析">3.1 全局分析</a></li>
+            <li><a href="#532-局部分析">5.3.2 局部分析</a></li>
+          </ul>
+        </li>
+        <li><a href="#4蓝牙协议架构视角2">4、蓝牙协议架构——视角2</a>
+          <ul>
+            <li><a href="#41-hw层蓝牙芯片层">4.1 HW层——蓝牙芯片层</a></li>
+            <li><a href="#42-transport数据传输层">4.2 Transport——数据传输层</a></li>
+            <li><a href="#43-host协议层">4.3 HOST——协议层</a></li>
+          </ul>
+        </li>
+        <li><a href="#5总结时刻">5、总结时刻</a></li>
+        <li><a href="#6参考文章下载地址">6、参考文章&amp;下载地址</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="bluetooth蓝牙开发三一篇文章带你总览蓝牙协议">
+  【Bluetooth|蓝牙开发】三、一篇文章，带你总览蓝牙协议
+  <a class="anchor" href="#bluetooth%e8%93%9d%e7%89%99%e5%bc%80%e5%8f%91%e4%b8%89%e4%b8%80%e7%af%87%e6%96%87%e7%ab%a0%e5%b8%a6%e4%bd%a0%e6%80%bb%e8%a7%88%e8%93%9d%e7%89%99%e5%8d%8f%e8%ae%ae">#</a>
+</h1>
+<h2 id="1前言">
+  1、前言
+  <a class="anchor" href="#1%e5%89%8d%e8%a8%80">#</a>
+</h2>
+<p>在我们上一章节，学习了蓝牙的基础概念，发展历程，以及常见的蓝牙架构，相信大家对蓝牙也有了一定的了解！</p>
+<p>为了更好的去踏入蓝牙开发的大门，蓝牙协议栈是一个我们不得不去跨越的门槛！</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220930070002304.png" alt="" /></p>
+<blockquote>
+<p>蓝牙协议及其复杂，并非一文能够道尽，本篇文章主要在于对蓝牙整体的协议架构进行梳理，<span style="color: red;"><strong>文末官方协议附下载链接。</strong></span></p>
+</blockquote>
+<p> </p>
+<h2 id="2蓝牙芯片架构">
+  2、蓝牙芯片架构
+  <a class="anchor" href="#2%e8%93%9d%e7%89%99%e8%8a%af%e7%89%87%e6%9e%b6%e6%9e%84">#</a>
+</h2>
+<p>蓝牙的核心架构，由一个<code>Host</code>和一个或多个<code>Controller</code>组成。</p>
+<ul>
+<li><code>BT Host</code>：一个逻辑实体，在<code>HCI（Host Controller Interface）</code>的上层。</li>
+<li><code>BT Controller</code>：一个逻辑实体，在<code>HCI（Host Controller Interface）</code>的下层。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220927085245742.png" alt="image-20220927085245742" /></p>
+<p><code>Bluetooth</code>的主控制器，可能是以下几种：</p>
+<ul>
+<li><code>BR/EDR Controller</code>：内部包含<code>Radio</code>, <code>Baseband</code>，<code>Link Manager</code>，<code>可选的HCI</code>。</li>
+<li><code>LE Controller</code> ：内部包含<code>LE PHY</code>，<code>Link Layer</code> ，<code>可选的HCI</code></li>
+<li><code>BR/EDR &amp; LE Controller</code> ：BR/EDR与LE的组合的控制器</li>
+<li><code>MAC/PHY (AMP) Controller</code>：二级控制器，可替代的，内部包含 <code>802.11 PAL (Protocol Adaptation Layer)</code>，<code>802.11 MAC</code>，<code>PHY</code>，<code>可选的HCI</code>。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220927085439947.png" alt="image-20220927085439947" /></p>
+<p> </p>
+<p>根据<code>Host</code>与<code>Controller</code>的组成关系，常见的蓝牙芯片也分为以下几种架构：</p>
+<ul>
+<li><strong>单模蓝牙芯片</strong>：单一传统蓝牙的芯片，单一低功耗蓝牙的芯片。即（1个<code>Host</code>结合1个<code>Controller</code>）</li>
+<li><strong>双模蓝牙芯片</strong>：同时支持传统蓝牙和低功耗蓝牙的芯片。即（1个<code>Host</code>结合多个<code>Controller</code>）</li>
+</ul>
+<p><font color = "blue"><strong>如下图</strong>：</font></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206072002059.png" alt="image-20220607200203023" /></p>
+<p> </p>
+<h2 id="3蓝牙协议架构视角1">
+  3、蓝牙协议架构——视角1
+  <a class="anchor" href="#3%e8%93%9d%e7%89%99%e5%8d%8f%e8%ae%ae%e6%9e%b6%e6%9e%84%e8%a7%86%e8%a7%921">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206072012045.png" alt="image-20220607201228994" /></p>
+<p>==<strong>上图为官方协议中所提及的图片，由全局到局部来看</strong>==</p>
+<h3 id="31-全局分析">
+  3.1 全局分析
+  <a class="anchor" href="#31-%e5%85%a8%e5%b1%80%e5%88%86%e6%9e%90">#</a>
+</h3>
+<blockquote>
+<p><strong>由下到上分析</strong></p>
+</blockquote>
+<p><strong>Controller</strong>：</p>
+<ul>
+<li><strong>BR/EDR Controller</strong>：由<code>BR/EDR Radio</code>、<code>Link Controller</code>、<code>Link Manager</code>组成</li>
+<li><strong>LE Controller</strong>：由 <code>LE Radio</code> 、<code>Link Controller</code>、<code>Link Manager</code>组成</li>
+<li><strong>AMP Controller</strong>：由, <code>AMP PHY</code> 、<code>AMP MAC</code>, 、<code>AMP PAL</code>组成</li>
+</ul>
+<p><strong>Host</strong>：</p>
+<ul>
+<li><strong>BR/EDR Host</strong>：由 <code>L2CAP</code>、<code>SDP</code> 、<code>GAP</code> 组成</li>
+<li><strong>LE Host</strong>：由 <code>L2CAP</code>、<code>SMP</code> 、<code>GAP</code> 、<code>Attribute protocol</code>、<code>GATT</code>组成</li>
+</ul>
+<p> </p>
+<h3 id="532-局部分析">
+  5.3.2 局部分析
+  <a class="anchor" href="#532-%e5%b1%80%e9%83%a8%e5%88%86%e6%9e%90">#</a>
+</h3>
+<blockquote>
+<p><strong>由上到下分析</strong></p>
+</blockquote>
+<h4 id="host层">
+  Host层
+  <a class="anchor" href="#host%e5%b1%82">#</a>
+</h4>
+<ul>
+<li><strong>Channel Manager</strong>：通道管理，主要用于创建、管理、关闭<code>L2CAP</code>通道，用于服务协议和应用数据的传输。</li>
+<li><strong>L2CAP Resource Manage</strong>：<code>L2CAP</code>资源管理，主要负责管理分片的<code>PDU</code>的正确提交。</li>
+<li><strong>Security Manager Protocol</strong>：<code>SMP</code>安全管理协议，主要负责生成加密密钥和身份密钥。</li>
+<li><strong>Attribute Protocol</strong>：<code>ATT</code>，属性协议，主要负责服务端与客户端点到点的数据传输。</li>
+<li><strong>AMP Manager Protocol</strong>：直接使用<code>L2CAP</code>与远程设备通信。</li>
+<li><strong>Generic Attribute Profile</strong>：<code>GATT</code>，提供更多的功能，概要文件描述了属性服务器中使用的服务层次结构、特征和属性，用于<code>LE</code>设备</li>
+<li><strong>Generic Access Profile</strong>：<code>GAP</code>，标识了基础的蓝牙设备的通用功能</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206141103919.png" alt="image-20220614110304885" /></p>
+<h4 id="controller层">
+  Controller层
+  <a class="anchor" href="#controller%e5%b1%82">#</a>
+</h4>
+<ul>
+<li><strong>Device Manager</strong>：控制蓝牙设备的通用行为，负责与蓝牙通信过程中，所有的与数据无关的操作，如查询设备，连接设备</li>
+<li><strong>Link Manager</strong>：链路管理，主要负责创建，修改，释放逻辑链路。</li>
+<li><strong>Baseband Resource Manager</strong>：基带资源管理，主要负责所有的访问无线电媒体</li>
+<li><strong>Link Controller</strong>：链路控制，主要负责从编码和解码蓝牙数据包</li>
+<li><strong>PHY</strong>：物理层，主要负责发送，接收物理通道的信息包</li>
+</ul>
+<p>以上为官方手册提供的视图，<code>Host</code>通过<code>HCI（Host Controll Interface）</code>接口，来控制<code>Controller</code>执行相应的动作。</p>
+<p> </p>
+<h2 id="4蓝牙协议架构视角2">
+  4、蓝牙协议架构——视角2
+  <a class="anchor" href="#4%e8%93%9d%e7%89%99%e5%8d%8f%e8%ae%ae%e6%9e%b6%e6%9e%84%e8%a7%86%e8%a7%922">#</a>
+</h2>
+<p><span style="color: blue;">下面是参考网上的一位博主的文章，写的较为详细，遂分享出来。</span></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206071935280.png" alt="img" /></p>
+<p>以上架构图，将蓝牙协议分为了<code>HW</code>层，<code>Transport</code>层，<code>Host</code>层。</p>
+<p> </p>
+<h3 id="41-hw层蓝牙芯片层">
+  4.1 HW层——蓝牙芯片层
+  <a class="anchor" href="#41-hw%e5%b1%82%e8%93%9d%e7%89%99%e8%8a%af%e7%89%87%e5%b1%82">#</a>
+</h3>
+<p><code>HW</code>层，指的是蓝牙芯片层，也就是我们上面说的<code>Controller</code>，包括以下几个部分：</p>
+<ul>
+<li>
+<p><strong>RF（RADIO）</strong>：射频层，本地蓝牙数据通过射频发送给远端设备，并且通过射频接收来自远端蓝牙设备的数据。</p>
+</li>
+<li>
+<p><strong>BB（BASEBAND）</strong>：基带层，进行射频信号与数字或语音信号的相互转化，实现基带协议和其它的底层连接规程。</p>
+</li>
+<li>
+<p><strong>LMP（LINK MANAGER PROTOCOL）</strong>：链路管理层，负责管理蓝牙设备之间的通信，实现链路的建立、验证、链路配置等操作</p>
+</li>
+<li>
+<p><strong>HCI（HOST CONTROLLER INTERFACE）</strong>：主机控制器接口层，HCI层在芯片以及协议栈都有，芯片层面的HCI负责把协议栈的数据做处理，转换为芯片内部动作，并且接收到远端的数据，通过HCI上报给协议栈。</p>
+</li>
+<li>
+<p><strong>BLE PHY</strong>：BLE的物理层，通信通道的划分。</p>
+</li>
+<li>
+<p><strong>BLE LL</strong>：BLE的链路层，对通信通道的复用以及逻辑划分。</p>
+</li>
+</ul>
+<p> </p>
+<h3 id="42-transport数据传输层">
+  4.2 Transport——数据传输层
+  <a class="anchor" href="#42-transport%e6%95%b0%e6%8d%ae%e4%bc%a0%e8%be%93%e5%b1%82">#</a>
+</h3>
+<p><code>Transport</code>层，主机控制层接口，通过硬件接口<code>UART/USB/SDIO</code>把<code>HOST</code>协议层的数据发送给<code>Controller</code>层，并且接收<code>Controller</code>层的数据。</p>
+<p><span style="color: blue;"><strong>该部分有几个协议</strong></span>：</p>
+<ul>
+<li><strong>H2</strong>：基于USB的传输</li>
+<li><strong>H4</strong>：基于UART的传输，最简单的传输方式，只在<code>HCI raw data</code>前面加上一个<code>type</code>，基于流控</li>
+<li><strong>H5</strong>: 基于UART的传输，普通模式下即可传输。</li>
+<li><strong>BCSP</strong>: 基于UART的传输</li>
+<li><strong>SDIO</strong> ：基于SDIO的传输</li>
+</ul>
+<p><span style="color: blue;"><strong>H4需要蓝牙芯片的UART_TX/UART_RX/UART_CTS/UART_RTS/VCC/GND接到MCU；而H5只需要蓝牙芯片的UART_TX/UART_RX/VCC/GND接到MCU就可以通信。</strong></span></p>
+<p> </p>
+<h3 id="43-host协议层">
+  4.3 HOST——协议层
+  <a class="anchor" href="#43-host%e5%8d%8f%e8%ae%ae%e5%b1%82">#</a>
+</h3>
+<p><code>HOST</code>层，此部分就是蓝牙协议栈，该部分包括多个协议：</p>
+<ul>
+<li><span style="color: red;"><strong>L2CAP（Logical Link Control and Adaptation Protocol）</strong></span>：逻辑链路控制与适配协议，将ACL数据分组，对高层应用的数据进行分组，并提供协议复用和服务质量交换等功能。通过协议多路复用、分段重组操作和组概念,向高层提供面向连接的和无连接的数据服务</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20200721140939708.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1hpYW9YaWFvUGVuZ0Jv,size_16,color_FFFFFF,t_70" alt="img" /></p>
+<ul>
+<li><strong>SDP（SERVICE DISCOVERY PROTOCOL）</strong>：服务发现协议，为应用程序提供发现可用服务，并确定服务特征的方法。</li>
+</ul>
+<p><img src="https://img-blog.csdnimg.cn/20200721141113409.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L1hpYW9YaWFvUGVuZ0Jv,size_16,color_FFFFFF,t_70" alt="img" /></p>
+<ul>
+<li>
+<p><strong>RFCOMM（Serial Port Emulation）</strong>：串口仿真协议，上层协议蓝牙电话，蓝牙透传SPP等协议都是直接走的RFCOMM</p>
+</li>
+<li>
+<p><strong>OBEX</strong>：对象交换协议，蓝牙电话本，蓝牙短信，文件传输等协议都是走的OBEX</p>
+</li>
+<li>
+<p><strong>HFP（Hands-Free）</strong>：蓝牙免提协议</p>
+</li>
+<li>
+<p><strong>HSP</strong>：蓝牙耳机协议，最开始的蓝牙耳机协议，目前已经没有产品在用这个了吧，至少我没有看到了。算是一个简化版的HFP。</p>
+</li>
+<li>
+<p><strong>SPP（SERIAL PORT PROFILE）</strong>：蓝牙串口协议</p>
+</li>
+<li>
+<p><strong>IAP</strong>：苹果的特有协议，分为IAP1/IAP2，一般做Carplay或者iPod功能的人肯定接触过这块，有需要这块的私下联系我</p>
+</li>
+<li>
+<p><strong>PBAP（Phone Book Access）</strong>：蓝牙电话本访问协议</p>
+</li>
+<li>
+<p><strong>MAP（MESSAGE ACCESS PROFILE）</strong>：蓝牙短信访问协议</p>
+</li>
+<li>
+<p><strong>HID（HUMAN INTERFACE DEVICE）</strong>：人机接口协议，HID还是有很多广泛的用途的，比如蓝牙鼠标，蓝牙键盘，蓝牙自拍杆，蓝牙手柄等。</p>
+</li>
+<li>
+<p><strong>A2DP（Advanced Audio Distribution）</strong>: 蓝牙音乐协议</p>
+</li>
+<li>
+<p><strong>SM</strong>: 蓝牙BLE安全管理协议</p>
+</li>
+<li>
+<p><span style="color: red;"><strong>GAP（GENERIC ACCESS PROFILE）</strong></span>：它定义了蓝牙设备的基本要求。</p>
+<ul>
+<li>对于<code>BR/EDR</code>，它定义了一个蓝牙设备，包括无线电、基带、链路管理器、L2CAP和服务发现协议功能。</li>
+<li>对于<code>LE</code>，它定义一个物理层，链路层，L2CAP，安全管理器，属性协议和通用属性配置文件。</li>
+</ul>
+<p>它联系了所有的不同的层之间的交互，也描述了设备发现、建立连接、安全、认证、关联模型和发现服务的行为和方法。</p>
+</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206141009790.png" alt="image-20220614100912745" /></p>
+<ul>
+<li><span style="color: red;"><strong>ATT（Attribute Protocol）</strong></span>：蓝牙属性协议,用于发现、读、写对端设备的协议(针对BLE设备),ATT允许设备作为服务端提供拥有关联值的属性集 ，让作为客户端的设备来发现、读、写这些属性；同时服务端能主动通知客户端。</li>
+<li><span style="color: red;"><strong>GATT（Generic Attribute Profile）</strong></span>：蓝牙通用属性协议，描述了一种使用ATT的服务框架 ，该框架定义了数据交换的格式。</li>
+</ul>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/202206141016771.png" alt="image-20220614101640726" /></p>
+<p> </p>
+<h2 id="5总结时刻">
+  5、总结时刻
+  <a class="anchor" href="#5%e6%80%bb%e7%bb%93%e6%97%b6%e5%88%bb">#</a>
+</h2>
+<p><strong>蓝牙芯片的架构</strong>：根据<code>Host</code>与<code>Controller</code>的结合关系，可以分为单模芯片和双模芯片。</p>
+<p><strong>蓝牙协议的架构</strong>：蓝牙协议分为三层，即：Host层，Transport层，Controller层。每一层又由多种不同的协议组成。</p>
+<p>本篇文章先进行初步了解，后续会逐步深入讲解！</p>
+<p> </p>
+<h2 id="6参考文章下载地址">
+  6、参考文章&amp;下载地址
+  <a class="anchor" href="#6%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0%e4%b8%8b%e8%bd%bd%e5%9c%b0%e5%9d%80">#</a>
+</h2>
+<p>[1]：<a href="https://blog.csdn.net/XiaoXiaoPengBo/article/details/107466841">参考文章</a></p>
+<p>[2]：<a href="https://www.dongni.work/archives/resourceall">蓝牙协议下载地址</a></p>
+<p> </p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#bluetooth蓝牙开发三一篇文章带你总览蓝牙协议">【Bluetooth|蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2蓝牙芯片架构">2、蓝牙芯片架构</a></li>
+        <li><a href="#3蓝牙协议架构视角1">3、蓝牙协议架构——视角1</a>
+          <ul>
+            <li><a href="#31-全局分析">3.1 全局分析</a></li>
+            <li><a href="#532-局部分析">5.3.2 局部分析</a></li>
+          </ul>
+        </li>
+        <li><a href="#4蓝牙协议架构视角2">4、蓝牙协议架构——视角2</a>
+          <ul>
+            <li><a href="#41-hw层蓝牙芯片层">4.1 HW层——蓝牙芯片层</a></li>
+            <li><a href="#42-transport数据传输层">4.2 Transport——数据传输层</a></li>
+            <li><a href="#43-host协议层">4.3 HOST——协议层</a></li>
+          </ul>
+        </li>
+        <li><a href="#5总结时刻">5、总结时刻</a></li>
+        <li><a href="#6参考文章下载地址">6、参考文章&amp;下载地址</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

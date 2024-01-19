@@ -6,7 +6,7 @@
     <description>Recent content in Linux 调试工具 on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 17 Jan 2024 21:37:13 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/linux/linux_debug/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 19 Jan 2024 21:23:44 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/linux/linux_debug/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>【一文秒懂】Ftrace系统调试工具使用终极指南</title>
       <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/</link>
@@ -44,6 +44,36 @@ top -hv|-bcHiOSs -d secs -n max -u|U user -p pid -o fld -w [cols] 常用的Top�
 top：启动top命令 top -c：显示完整的命令行 top -b：以批处理模式显示程序信息 top -S：以累积模式显示程序信息 top -n 2：表示更新两次后终止更新显示 top -d 3：设置信息更新周期为3秒 top -p 139：显示进程号为139的进程信息，CPU、内存占用率等 top -n 10：显示更新十次后退出 除此之外，在top进程运行过程中，两个最重要的功能是查看帮助（h 或 ？）和退出（q 或 Ctrl+C）。
  3、Top信息详解 #  top展示界面由从上到下3部分组成
  概览区域 表头 任务区域 还有一个输入/消息行，位于概览区域和表头之间。  3.1 概览区详解 #  top - 14:46:08 up 5:46, 1 user, load average: 0.</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux内核调试工具——Debugfs</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/</link>
+      <pubDate>Fri, 19 Jan 2024 21:23:44 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/</guid>
+      <description>【一文秒懂】Linux内核调试工具——Debugfs #  1、介绍 #  Debugfs其存在的主要意义是为了内核开发者向用户空间传递更多有用的信息，与proc不同，proc只提供进程相关的信息；同时也与sysfs不同，sysfs对每个文件都要求一定的规则，而Debugfs没有任何的规则。
+简而言之，Debugfs是一种用于内核调试的虚拟文件系统。
+2、如何调试 #  2.1 配置Debugfs #  进去menuconfig选项中，按下/搜索CONFIG_DEBUG_FS关键词即可！
+ 当然，可以看Location在内核中的位置。
+ 2.2 挂载Debugfs #  mount -t debugfs none /sys/kernel/debug	#挂载 mount	#查看挂载情况 ___ none on /sys/kernel/debug type debugfs (rw,relatime) 2.3 GPIO调试 #  cat gpio gpio-43 ( |wakeup ) in lo IRQ gpio-64 ( |cd ) in lo IRQ  上述只是简单的调试GPIO的方法，而Debugfs功能远不止于此，其提供了一些API接口，方便我们在内核中Debug使用。
+而我们要做的，就是在我们想要进行Debug的地方，注册debugfs接口，然后查看我们要调试的信息。
+ 2.4 GPIO的实现 #  文件kernel\drivers\gpio\gpiolib.c中
+`static const struct file_operations gpiolib_operations = { .</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux内核调试工具——devmem</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</link>
+      <pubDate>Fri, 19 Jan 2024 21:23:10 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</guid>
+      <description>【一文秒懂】Linux内核调试工具——devmem #  1、介绍 #  我们在底层开发过程中，经常需要在终端查看或者修改设备寄存器的值，有这样一个工具&amp;mdash;-devmem，可用于读取或者修改物理寄存器的值，非常方便！
+简而言之，devmem就是在Linux命令行模式下，直接操作我们设备寄存器的值！
+2、如何使用 #  2.1 配置devmem #  进入menuconfig选项中，按下/搜索关键词即可！
+2.2、使用devmem #   进入Linux后，输入devmem -h查看帮助信息即可！
+ Usage: devmem ADDRESS [WIDTH [VALUE]] Read/write from physical address ADDRESS Address to act upon WIDTH Width (8/16/...) VALUE Data to be written []内部为可选内容，比较简单，这里直接上使用代码！
+ 读物理内存  devmem 0x10000000	#读指定的物理内存值 devmem 0x10000000 16	#读16bit物理内存的值  写物理内存  devmem 0x10000000 32 0x00000000	#以32bit写入给定的值到指定物理内存 devmem 0x10000000 8 0x010	#以8bit写入给定的值到指定物理内存  欢迎关注【嵌入式艺术】，董哥原创！  </description>
     </item>
     
   </channel>

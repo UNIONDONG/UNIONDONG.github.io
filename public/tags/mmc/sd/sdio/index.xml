@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>MMC/SD/SDIO on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/mmc/sd/sdio/</link>
+    <description>Recent content in MMC/SD/SDIO on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://uniondong.github.io/tags/mmc/sd/sdio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【MMC子系统】一、MMC_SD_SDIO介绍</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/</link>
+      <pubDate>Fri, 19 Jan 2024 21:16:36 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/</guid>
+      <description>【MMC子系统】 一、MMC/SD/SDIO介绍 #  1、前言 #  该节学习Linux Kernel的MMC子系统，也称为块设备驱动，正如其名，与字符驱动相比，MMC子系统以块为单位进行操作。
+同时，由于MMC Card、SD Card、SDIO Card等设备协议基本大同小异，所以在Linux Kernel中使用MMC子系统来统一管理！
+ 2、MMC/SD/SDIO介绍 #  上面我们了解到，Linux Kernel使用统一的子系统模型来管理MMC、SD、SDIO等设备，那么为什么要这样设计呢？
+ 答案当然是：三者协议有一定的共通性。
+  MMC（MultiMediaCard）多媒体卡设备，从本质上看，它是一种用于固态非易失性存储的内存卡（memory card）规范，定义了诸如卡的形态、尺寸、容量、电气信号、和主机之间的通信协议等方方面面的内容。
+1997年，MMC规范正式发布，至今已经进化出了SD、MicroSD、SDIO、EMMC等多种不同的规范，虽然眼花缭乱，但是追其根源，都源于MMC规范，所以Linux Kernel可以将其统一管理！
+ MMC：强调的是多媒体存储（MM：MultiMedia）
+SD：强调的是安全数据（SD：Secure Digital）
+SDIO：强调的是IO接口(IO：Input/Output)
+   更多干货可见：高级工程师聚集地，助力大家更上一层楼！
+  3、总线接口 #  MMC、SD、SDIO其物理接口也十分相似，我们以MMC为例进行分析。
+我们的MMC卡如上图所示，内部我们不展开分析，直接将其作为一个完整的设备来分析。
+其通过CLK、CMD、DATA等管脚与我们的SOC通信，两者之间当然少不了Controller了。
+把通信总线部分，拿出来看：
+ CLK：提供SOC和设备之间的通信时钟，常用的通信频率为400KHz（识卡）、25MHz，50MHz
+CMD：提供SOC和设备之间的通信命令，标识不同的命令编号，类型多达50多种。
+DATA：提供SOC和设备之间的数据通信，其通信总线有8根，可自定义设置，一般默认的是1-bit (默认)模式、4-bit模式和8-bit模式。当然数据线越多，传输越快嘛，但是处理起来也稍微繁琐。
+除了上面的一些管脚，当然还少不了VCC、GND等管脚喽，与其它外设不同的是，MMC类的设备，还会有一个检测引脚DET，用于检测是否存在卡设备（热插拔）。
+  好啦，上面我们对MMC、SD、SDIO进行简单了解，也知道了通信的常用方式与物理接口，当然其最核心在于通信的协议啦！由于协议过于复杂，我们放到后面了解。
+ 4、参考文章 #  [1]：http://www.wowotech.net/basic_tech/mmc_sd_sdio_intro.html
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【MMC子系统】二、EMMC协议</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/</link>
+      <pubDate>Fri, 19 Jan 2024 21:14:30 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/</guid>
+      <description>【MMC子系统】 二、EMMC协议 #  1、前言 #  在上一节，我们知道EMMC、SD、SDIO三种规范都是在MMC规范之上发展而来，协议相差不大，所以Linux Kernel才能使用MMC子系统来统一管理！
+下面，我们以MMC协议为例，来了解一下相关协议!
+ 2、EMMC基本了解 #  2.1 物理线路 #     物理接口 接口含义     CLK 时钟线，此信号的每一周期控制命令线上的 1 bit 传输，以及所有数据线上 1 bit（1x） 或 2 bit（2x）传输。   CMD 命令线，此信号是双向命令通道，用于设备初始化和命令传输。CMD信号有两种工 作模式：用于初始化模式开漏模式和快速命令传输推拉模式。   DAT0-7 这些是双向的数据通道。DAT 信号以推拉模式工作。缺省状态，只有DAT0处于推拉模式，DAT1-7处于上拉（内含上拉），进入4bit后，DAT0-3处于推拉     2.2 EMMC相关寄存器了解 #   2.3 其他特性了解 #    读写模式：单块读写，多块读写
+  寻址方式：字节寻址和扇区寻址，字节寻址允许最大2GB，容量超过2GB的，使用扇区（512B）寻址
+  电压模式：支持高电压和双电压模式
+  支持增强分区模式等</description>
+    </item>
+    
+    <item>
+      <title>【MMC子系统】三、MMC子系统框架</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/</link>
+      <pubDate>Fri, 19 Jan 2024 21:14:38 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/</guid>
+      <description>【MMC子系统】三、MMC子系统框架 #  上章，我们简单了解了EMMC协议，感兴趣的可以查阅一下SD和SDIO的协议，之所以Linux内核能够对SD、SDIO、EMMC进行统一管理，根本原因就是三者协议上的相似性，我们该系列文章均以EMMC为剑，一层层划开包裹着的盔甲。
+ 本系列文章，均以Linux 4.19为参考
+  1、MMC子系统框架 #  如上图所示，MMC子系统的整体框架包括：MMC Host、MMC Core、MMC Block。我们从下网上看：
+ MMC HOST：即MMC控制器驱动层，正如其名，该层主要是为了实现MMC控制器的初始化，以及MMC底层的数据收发操作，其直接控制的是底层寄存器，用以产生相应的通信时序。 MMC CORE：即MMC核心层，该层主要起到了承上启下的作用。对下，主要体现在注册MMC总线，实现对MMC device和MMC driver的统一管理；对上，体现在实现MMC通信协议，并向上提供相应的读写操作接口。 MMC BLOCK：即MMC块设备驱动层，其主要作用是屏蔽底层的实现逻辑，将底层抽象为卡设备，并且与虚拟文件系统关联，负责块设备请求的处理以及请求队列的管理，又称为card卡驱动。   哈哈，简单吧，我们刚开始对MMC子系统框架就先了解这么多，不着急，慢慢来。
+  2、MMC子系统文件结构 #  了解完MMC子系统后，我们看一下MMC驱动在Linux下的目录结构，我们进入到drivers/mmc目录
+drivers/mmc/ ├── core ├── block.c ├── bus.c ├── core.c ├── mmc.c ├── mmc_ops.c ├── ...... ├── host ├── sunxi-mmc.c ├── ......  这里介绍一个方法
+ 如果刚接触的朋友，不知道文件之间的关系是怎么样的，可以通过Makefile和Kconfig文件来大致看一下。
+obj-$(CONFIG_MMC)	+= mmc_core.o mmc_core-y	:= core.o bus.o host.o \ 	mmc.o mmc_ops.</description>
+    </item>
+    
+    <item>
+      <title>【MMC子系统】四、MMC控制器驱动层</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/</link>
+      <pubDate>Fri, 19 Jan 2024 21:15:18 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/</guid>
+      <description>【MMC子系统】四、MMC控制器驱动层 #  MMC控制器驱动层一般为chip manufacturer做的事，不同的芯片实现方式不尽相同。
+ Linux内核源码，相当大的一部分都是由Device Drivers程序代码组成，其次另一大部分就是那些你从来都没有听说过的Filesystem Format组成，真正核心的代码非常短小精悍的。
+ 当然，设备驱动程序也有一套既定的框架，按照框架来编写，实现对应的接口就可以了，在这里，我们主要分析一下MMC控制器驱动的实现框架，不拘泥于细节。
+ 下文以sunxi-mmc.c为例来分析，基于Linux4.19
+  4.1 通用驱动框架 #  static int sunxi_mmc_probe(struct platform_device *pdev) { ..... } static const struct of_device_id sunxi_mmc_of_match[] = { { .compatible = &amp;#34;allwinner,sun4i-a10-mmc&amp;#34;, .data = &amp;amp;sun4i_a10_cfg }, { .compatible = &amp;#34;allwinner,sun5i-a13-mmc&amp;#34;, .data = &amp;amp;sun5i_a13_cfg }, { .compatible = &amp;#34;allwinner,sun7i-a20-mmc&amp;#34;, .data = &amp;amp;sun7i_a20_cfg }, { .compatible = &amp;#34;allwinner,sun8i-a83t-emmc&amp;#34;, .data = &amp;amp;sun8i_a83t_emmc_cfg }, { .compatible = &amp;#34;allwinner,sun9i-a80-mmc&amp;#34;, .</description>
+    </item>
+    
+    <item>
+      <title>【MMC子系统】五、MMC核心层</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/</link>
+      <pubDate>Fri, 19 Jan 2024 21:15:35 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【MMC子系统】六、MMC块设备层</title>
+      <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/</link>
+      <pubDate>Fri, 19 Jan 2024 21:15:44 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+  </channel>
+</rss>

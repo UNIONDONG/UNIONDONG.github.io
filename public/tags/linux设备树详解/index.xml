@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux设备树详解 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</link>
+    <description>Recent content in Linux设备树详解 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 19 Jan 2024 21:43:13 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【一文秒懂】Linux设备树详解</title>
+      <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Fri, 19 Jan 2024 21:43:13 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</guid>
+      <description>【一文秒懂】Linux设备树详解 #  1、Linux设备树概念 #  Linux内核是从V2.6开始引入设备树的概念，其起源于OF:OpenFirmware， 用于描述一个硬件平台的硬件资源信息，这些信息包括：CPU的数量和类别、内存基地址和大小、总线和桥、外设连接、中断控制器和中断使用情况、GPIO控制器和GPIO使用情况、Clock控制器和Clock使用情况等等。
+官方说明：
+ The &amp;ldquo;Open Firmware Device Tree&amp;rdquo;, or simply Device Tree (DT), is a data structure and language for describing hardware.
+设备树是一种数据结构和一种用于描述硬件信息的语言。
+ 设备树的特点：
+ 实现驱动代码与设备硬件信息相分离。 通过被bootloader(uboot)和Linux传递到内核， 内核可以从设备树中获取对应的硬件信息。 对于同一SOC的不同主板，只需更换设备树文件即可实现不同主板的无差异支持，而无需更换内核文件，实现了内核和不同板级硬件数据的拆分。   2、设备树的由来 #  明白了设备树的概念，不妨思考一下：为什么要引入设备树？
+在Linux内核v2.6版本以前，ARM架构用于描述不同的硬件信息的文件都存放在arch/arm/plat-xxx和arch/arm/mach-xxx文件夹下，如下：
+在这些文件内，都是通过手动定义不同的硬件设备，步骤非常繁琐
+这样就导致了Linux内核代码中充斥着大量的垃圾代码，因为不同的板级他们的硬件信息都不相同，这些都是硬件特有的信息，对内核而言没有任何的意义，但是往往这部分代码特别的多，造成内核的冗余。
+设备树的引入就是为了解决这个问题，通过引入设备树，我们可以直接通过它来传递给Linux，而不再需要内核中大量的垃圾代码。
+ 3、设备树组成 #   整个设备树牵涉面比较广，即增加了新的用于描述设备硬件信息的文本格式，又增加了编译这个文本的工具，同时还得支持Bootloader解析设备树，并将信息传递给内核。
+ 整个设备树包含DTC（device tree compiler），DTS（device tree source）和DTB（device tree blob）。
+ DTS（device tree source）  DTS是一种ASCII文本格式的设备树描述，在ARM Linux中，一个dts文件对应一个ARM的设备，该文件一般放在arch/arm/boot/dts/目录中。
+ 当然，我们还会看到一些dtsi文件，这些文件有什么用呢？</description>
+    </item>
+    
+  </channel>
+</rss>

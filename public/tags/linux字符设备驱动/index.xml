@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux字符设备驱动 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</link>
+    <description>Recent content in Linux字符设备驱动 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 19 Jan 2024 21:40:08 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【一文秒懂】Linux字符设备驱动</title>
+      <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</link>
+      <pubDate>Fri, 19 Jan 2024 21:40:08 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</guid>
+      <description>【一文秒懂】Linux字符设备驱动 #  1、前言 #  众所周知，Linux内核主要包括三种驱动模型，字符设备驱动，块设备驱动以及网络设备驱动。
+其中，Linux字符设备驱动，可以说是Linux驱动开发中最常见的一种驱动模型。
+我们该系列文章，主要为了帮助大家快速入门Linux驱动开发，该篇主要来了解一些字符设备驱动的框架和机制。
+ 系列文章基于Kernel 4.19
+  2、关键数据结构 #  2.1 cdev #  struct cdev { struct kobject kobj; struct module *owner; const struct file_operations *ops; struct list_head list; dev_t dev; unsigned int count; } __randomize_layout; 结构体名称：cdev
+文件位置：include/linux/cdev.h
+主要作用：cdev可以理解为char device，用来抽象一个字符设备。
+核心成员及含义：
+ kobj：表示一个内核对象。 owner：指向该模块的指针 ops：指向文件操作的指针，包括open、read、write等操作接口 list：用于将该设备加入到内核模块链表中 dev：设备号，由主设备号和次设备号构成 count：表示有多少个同类型设备，也间接表示设备号的范围 __randomize_layout：一个编译器指令，用于随机化结构体的布局，以增加安全性。   2.2 file_operations #  struct file_operations { struct module *owner; loff_t (*llseek) (struct file *, loff_t, int); ssize_t (*read) (struct file *, char __user *, size_t, loff_t *); ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *); ssize_t (*read_iter) (struct kiocb *, struct iov_iter *); ssize_t (*write_iter) (struct kiocb *, struct iov_iter *); int (*iterate) (struct file *, struct dir_context *); int (*iterate_shared) (struct file *, struct dir_context *); __poll_t (*poll) (struct file *, struct poll_table_struct *); long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long); long (*compat_ioctl) (struct file *, unsigned int, unsigned long); int (*mmap) (struct file *, struct vm_area_struct *); unsigned long mmap_supported_flags; int (*open) (struct inode *, struct file *); int (*flush) (struct file *, fl_owner_t id); int (*release) (struct inode *, struct file *); int (*fsync) (struct file *, loff_t, loff_t, int datasync); int (*fasync) (int, struct file *, int); int (*lock) (struct file *, int, struct file_lock *); ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int); unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long); int (*check_flags)(int); int (*flock) (struct file *, int, struct file_lock *); ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int); ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int); int (*setlease)(struct file *, long, struct file_lock **, void **); long (*fallocate)(struct file *file, int mode, loff_t offset, loff_t len); void (*show_fdinfo)(struct seq_file *m, struct file *f); #ifndef CONFIG_MMU  unsigned (*mmap_capabilities)(struct file *); #endif  ssize_t (*copy_file_range)(struct file *, loff_t, struct file *, loff_t, size_t, unsigned int); int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*dedupe_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*fadvise)(struct file *, loff_t, loff_t, int); } __randomize_layout; 结构体名称：file_operations</description>
+    </item>
+    
+  </channel>
+</rss>

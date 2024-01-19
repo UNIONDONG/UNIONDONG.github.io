@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【LED子系统深度剖析】五、核心层详解（二） #  1、前言 #   上篇文章我们了解了子系统的核心层led-class.c，下面我们来分析驱动框架中核心层的led-core.c实现以及作用。
+ 我们接着从led-core.c文件开始分析
+2、led_init_core分析 #   上一篇文章，我们知道在将leds_classdev注册进入子系统后，会调用led_init_core函数，初始化核心层，下面我们以led_init_core该函数为突破口分析。
+ 2.1 相关数据结构 #  2.1.1 work_struct #  struct work_struct { atomic_long_t data; struct list_head entry; work_func_t func; #ifdef CONFIG_LOCKDEP  struct lockdep_map lockdep_map; #endif }; 结构体名称：work_struct
+文件位置：include/linux/workqueue.h.h
+主要作用：定义一个工作队列，包括了工作项的状态和数据，以及处理工作项的函数指针，用于实现异步执行任务的功能。在工作队列中，每个工作项都是一个work_struct结构体的实例，通过将工作项添加到工作队列中，可以实现后台执行任务的功能。
+2.1.2 timer_list #  struct timer_list { /* * All fields that change during normal runtime grouped to the * same cacheline */ struct hlist_node	entry; unsigned long	expires; void	(*function)(struct timer_list *); u32	flags; #ifdef CONFIG_LOCKDEP  struct lockdep_map	lockdep_map; #endif }; 结构体名称：work_struct">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【LED子系统深度剖析】五、核心层详解（二）" />
+<meta property="og:description" content="【LED子系统深度剖析】五、核心层详解（二） #  1、前言 #   上篇文章我们了解了子系统的核心层led-class.c，下面我们来分析驱动框架中核心层的led-core.c实现以及作用。
+ 我们接着从led-core.c文件开始分析
+2、led_init_core分析 #   上一篇文章，我们知道在将leds_classdev注册进入子系统后，会调用led_init_core函数，初始化核心层，下面我们以led_init_core该函数为突破口分析。
+ 2.1 相关数据结构 #  2.1.1 work_struct #  struct work_struct { atomic_long_t data; struct list_head entry; work_func_t func; #ifdef CONFIG_LOCKDEP  struct lockdep_map lockdep_map; #endif }; 结构体名称：work_struct
+文件位置：include/linux/workqueue.h.h
+主要作用：定义一个工作队列，包括了工作项的状态和数据，以及处理工作项的函数指针，用于实现异步执行任务的功能。在工作队列中，每个工作项都是一个work_struct结构体的实例，通过将工作项添加到工作队列中，可以实现后台执行任务的功能。
+2.1.2 timer_list #  struct timer_list { /* * All fields that change during normal runtime grouped to the * same cacheline */ struct hlist_node	entry; unsigned long	expires; void	(*function)(struct timer_list *); u32	flags; #ifdef CONFIG_LOCKDEP  struct lockdep_map	lockdep_map; #endif }; 结构体名称：work_struct" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-19T20:29:33+08:00" />
+<meta property="article:modified_time" content="2024-01-19T20:29:33+08:00" />
+
+<title>【LED子系统深度剖析】五、核心层详解（二） | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.2f45f958bf700fec7580564fe9e5c1a26acc77c4ac9769c7e45f116b05ad1a0b.js" integrity="sha256-L0X5WL9wD&#43;x1gFZP6eXBomrMd8Ssl2nH5F8RawWtGgs=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a role="button" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a role="button" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-00ea238a2f9544b32c1424d14ac8d5b7" class="toggle"  />
+    <label for="section-00ea238a2f9544b32c1424d14ac8d5b7" class="flex justify-between">
+      <a role="button" class="">Linux 驱动开发基础</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" class="">【一文秒懂】Linux字符设备驱动</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux设备树详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/" class="">【一文秒懂】为什么Linux内核中不经常使用typedef</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a role="button" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/" class="">【一文秒懂】Linux内核调试工具——Debugfs</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/" class="">【一文秒懂】Linux内核调试工具——devmem</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9ae83851c5fe25a6d227e96b400b1ab9" class="toggle" checked />
+    <label for="section-9ae83851c5fe25a6d227e96b400b1ab9" class="flex justify-between">
+      <a role="button" class="">Linux LED子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%80linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%B0%E6%89%8B%E5%BF%85%E8%AF%BB/" class="">【LED子系统深度剖析】一、开篇词|Linux驱动开发新手必读</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%8Cled%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" class="">【LED子系统深度剖析】二、LED子系统框架分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%89%E7%A1%AC%E4%BB%B6%E9%A9%B1%E5%8A%A8%E5%B1%82%E8%AF%A6%E8%A7%A3/" class="">【LED子系统深度剖析】三、硬件驱动层详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%9B%9B%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%80/" class="">【LED子系统深度剖析】四、核心层详解（一）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" class="active">【LED子系统深度剖析】五、核心层详解（二）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AD%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%89/" class="">【LED子系统深度剖析】六、核心层详解（三）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%83%E8%A7%A6%E5%8F%91%E5%99%A8%E5%AE%9E%E7%8E%B0/" class="">【LED子系统深度剖析】七、触发器实现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AB%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80/" class="">【LED子系统深度剖析】八、小试牛刀</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】九、数据结构详解（番外篇）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】十、详细实现流程（番外篇）</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf0229851221605a75715f5f9633256a" class="toggle"  />
+    <label for="section-bf0229851221605a75715f5f9633256a" class="flex justify-between">
+      <a role="button" class="">Linux MMC 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/" class="">【MMC子系统】一、MMC_SD_SDIO介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" class="">【MMC子系统】二、EMMC协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/" class="">【MMC子系统】三、MMC子系统框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/" class="">【MMC子系统】四、MMC控制器驱动层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/" class="">【MMC子系统】五、MMC核心层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/" class="">【MMC子系统】六、MMC块设备层</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-541874a152001b263009202c99a285c4" class="toggle"  />
+    <label for="section-541874a152001b263009202c99a285c4" class="flex justify-between">
+      <a role="button" class="">Bluetooth蓝牙开发</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%80%E6%89%93%E9%80%A0%E5%85%A8%E7%BD%91%E6%9C%80%E8%AF%A6%E7%BB%86%E7%9A%84bluetooth%E5%BC%80%E5%8F%91%E6%95%99%E7%A8%8B/" class="">【Bluetooth蓝牙开发】一、打造全网最详细的Bluetooth开发教程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%8C%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8/" class="">【Bluetooth蓝牙开发】二、蓝牙开发入门</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" class="">【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%9B%9Bble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E7%89%A9%E7%90%86%E5%B1%82%E6%B5%85%E6%9E%90/" class="">【Bluetooth蓝牙开发】四、BLE协议之物理层浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%94ble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E9%93%BE%E8%B7%AF%E5%B1%82/" class="">【Bluetooth蓝牙开发】五、BLE协议之链路层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ADble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E4%BC%A0%E8%BE%93%E5%B1%82/" class="">【Bluetooth蓝牙开发】六、BLE协议之传输层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/" class="">【Bluetooth蓝牙开发】七、BLE协议之L2CAP</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ABble%E5%8D%8F%E8%AE%AE%E4%B9%8Batt/" class="">【Bluetooth蓝牙开发】八、BLE协议之ATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/" class="">【Bluetooth蓝牙开发】九、BLE协议——GATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81ble%E8%93%9D%E7%89%99%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%B9%BF%E6%92%AD%E6%89%AB%E6%8F%8F%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5/" class="">【Bluetooth蓝牙开发】十、BLE蓝牙通信流程（建立连接，广播，扫描，断开连接）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%B8%80%E8%B6%85%E8%AF%A6%E7%BB%86%E7%9A%84bluez%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" class="">【Bluetooth蓝牙开发】十一、超详细的Bluez交叉编译</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%BA%8C%E8%93%9D%E7%89%99%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88%E6%B1%87%E6%80%BB/" class="">【Bluetooth蓝牙开发】十二、蓝牙调试工具【集合汇总】</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【LED子系统深度剖析】五、核心层详解（二）</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#led子系统深度剖析五核心层详解二">【LED子系统深度剖析】五、核心层详解（二）</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2led_init_core分析">2、led_init_core分析</a>
+          <ul>
+            <li><a href="#21-相关数据结构">2.1 相关数据结构</a></li>
+            <li><a href="#22-相关实现">2.2 相关实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#3led_timer_function分析">3、led_timer_function分析</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#4set_brightness_delayed分析">4、set_brightness_delayed分析</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#5总结">5、总结</a>
+          <ul>
+            <li><a href="#51-代码实现流程">5.1 代码实现流程</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="led子系统深度剖析五核心层详解二">
+  【LED子系统深度剖析】五、核心层详解（二）
+  <a class="anchor" href="#led%e5%ad%90%e7%b3%bb%e7%bb%9f%e6%b7%b1%e5%ba%a6%e5%89%96%e6%9e%90%e4%ba%94%e6%a0%b8%e5%bf%83%e5%b1%82%e8%af%a6%e8%a7%a3%e4%ba%8c">#</a>
+</h1>
+<h2 id="1前言">
+  1、前言
+  <a class="anchor" href="#1%e5%89%8d%e8%a8%80">#</a>
+</h2>
+<blockquote>
+<p>上篇文章我们了解了子系统的核心层<code>led-class.c</code>，下面我们来分析驱动框架中核心层的<code>led-core.c</code>实现以及作用。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20230417084033734.png" alt="image-20230417084033734" /></p>
+<p><span style="color: red;"><strong>我们接着从<code>led-core.c</code>文件开始分析</strong></span></p>
+<h2 id="2led_init_core分析">
+  2、led_init_core分析
+  <a class="anchor" href="#2led_init_core%e5%88%86%e6%9e%90">#</a>
+</h2>
+<blockquote>
+<p>上一篇文章，我们知道在将<code>leds_classdev</code>注册进入子系统后，会调用<code>led_init_core</code>函数，初始化核心层，下面我们以<code>led_init_core</code>该函数为突破口分析。</p>
+</blockquote>
+<h3 id="21-相关数据结构">
+  2.1 相关数据结构
+  <a class="anchor" href="#21-%e7%9b%b8%e5%85%b3%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84">#</a>
+</h3>
+<h4 id="211-work_struct">
+  2.1.1 work_struct
+  <a class="anchor" href="#211-work_struct">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">struct</span> work_struct {
+    atomic_long_t data;
+    <span style="color:#ff79c6">struct</span> list_head entry;
+    work_func_t func;
+<span style="color:#ff79c6">#ifdef CONFIG_LOCKDEP
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> lockdep_map lockdep_map;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>};
+</code></pre></div><p><strong>结构体名称</strong>：<code>work_struct</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/workqueue.h.h</code></p>
+<p><strong>主要作用</strong>：定义一个工作队列，包括了工作项的状态和数据，以及处理工作项的函数指针，用于实现<strong>异步执行任务的功能</strong>。在工作队列中，每个工作项都是一个<code>work_struct</code>结构体的实例，通过将工作项添加到工作队列中，可以实现后台执行任务的功能。</p>
+<h4 id="212-timer_list">
+  2.1.2 timer_list
+  <a class="anchor" href="#212-timer_list">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">struct</span> timer_list {
+    <span style="color:#6272a4">/*
+</span><span style="color:#6272a4">     * All fields that change during normal runtime grouped to the
+</span><span style="color:#6272a4">     * same cacheline
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#ff79c6">struct</span> hlist_node	entry;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span>		expires;
+    <span style="color:#8be9fd">void</span>			(<span style="color:#ff79c6">*</span>function)(<span style="color:#ff79c6">struct</span> timer_list <span style="color:#ff79c6">*</span>);
+    u32			flags;
+
+<span style="color:#ff79c6">#ifdef CONFIG_LOCKDEP
+</span><span style="color:#ff79c6"></span>    <span style="color:#ff79c6">struct</span> lockdep_map	lockdep_map;
+<span style="color:#ff79c6">#endif
+</span><span style="color:#ff79c6"></span>};
+</code></pre></div><p><strong>结构体名称</strong>：<code>work_struct</code></p>
+<p><strong>文件位置</strong>：<code>include/linux/timer.h</code></p>
+<p><strong>主要作用</strong>：表示一个定时器，其中包括定时器到期时间，处理函数，以及一些标志位信息。</p>
+<ul>
+<li><code>entry</code>：一个<code>hlist_node</code>结构体，用于将定时器添加到哈希表中。</li>
+<li><code>expires</code>：一个<code>unsigned long</code>类型的值，表示定时器何时到期。</li>
+<li><code>function</code>：表示定时器的处理函数</li>
+<li><code>flags</code>：一个<code>u32</code>类型的值，表示定时器的标志位</li>
+<li><code>lockdep_map</code>：如果定义了<code>CONFIG_LOCKDEP</code>，则包含一个<code>lockdep_map</code>结构体，用于跟踪定时器的锁定情况。</li>
+</ul>
+<h3 id="22-相关实现">
+  2.2 相关实现
+  <a class="anchor" href="#22-%e7%9b%b8%e5%85%b3%e5%ae%9e%e7%8e%b0">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">led_init_core</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev)
+{
+    INIT_WORK(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>set_brightness_work, set_brightness_delayed);
+
+    timer_setup(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>blink_timer, led_timer_function, <span style="color:#bd93f9">0</span>);
+}
+</code></pre></div><p><strong>函数介绍</strong>：这部分代码，用于初始化核心层，此函数通过设置延迟工作队列来设置 <code>LED</code> 亮度，并通过计时器来进行软件闪烁。</p>
+<h4 id="221-init_work">
+  2.2.1 INIT_WORK
+  <a class="anchor" href="#221-init_work">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">INIT_WORK(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>set_brightness_work, set_brightness_delayed);
+
+<span style="color:#ff79c6">#define INIT_WORK(_work, _func)						\
+</span><span style="color:#ff79c6">    __INIT_WORK((_work), (_func), 0)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">// #define __INIT_WORK(&amp;led_cdev-&gt;set_brightness_work, set_brightness_delayed, 0)
+</span><span style="color:#6272a4"></span>
+<span style="color:#ff79c6">#define __INIT_WORK(_work, _func, _onstack)				\
+</span><span style="color:#ff79c6">    do {								\
+</span><span style="color:#ff79c6">        __init_work((_work), _onstack);				\
+</span><span style="color:#ff79c6">        (_work)-&gt;data = (atomic_long_t) WORK_DATA_INIT();	\
+</span><span style="color:#ff79c6">        INIT_LIST_HEAD(&amp;(_work)-&gt;entry);			\
+</span><span style="color:#ff79c6">        (_work)-&gt;func = (_func);				\
+</span><span style="color:#ff79c6">    } while (0)
+</span><span style="color:#ff79c6"></span>
+<span style="color:#6272a4">/*
+</span><span style="color:#6272a4">do {
+</span><span style="color:#6272a4">    __init_work(&amp;led_cdev-&gt;set_brightness_work, 0);
+</span><span style="color:#6272a4">    (&amp;led_cdev-&gt;set_brightness_work)-&gt;data = (atomic_long_t) WORK_DATA_INIT();
+</span><span style="color:#6272a4">    INIT_LIST_HEAD(&amp;(&amp;led_cdev-&gt;set_brightness_work)-&gt;entry);
+</span><span style="color:#6272a4">    (&amp;led_cdev-&gt;set_brightness_work)-&gt;func = set_brightness_delayed;
+</span><span style="color:#6272a4">} while (0)
+</span><span style="color:#6272a4">*/</span>
+</code></pre></div><p><strong>函数介绍</strong>：<code>INIT_WORK</code>该宏定义，两个参数，一个是表示工作队列的指针<code>&amp;led_cdev-&gt;set_brightness_work</code>，一个是工作队列的处理函数<code>set_brightness_delayed</code></p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>调用<code>INIT_WORK</code>宏定义，将工作队列指针和处理函数作为参数传递</li>
+<li>最终通过<code>do while</code>将工作队列初始化函数包括在内，实现工作队列的初始化</li>
+</ol>
+<h4 id="222-timer_setup">
+  2.2.2 timer_setup
+  <a class="anchor" href="#222-timer_setup">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    timer_setup(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>blink_timer, led_timer_function, <span style="color:#bd93f9">0</span>);
+</code></pre></div><p><strong>函数介绍</strong>：这里不展开介绍，同上，将定时器指针和处理函数作为参数，直接初始化。定时器的超时时间通过<code>mod_timer</code>来设置。</p>
+<blockquote>
+<p>由上文可知，我们<code>led-core.c</code>的核心是初始化了一个工作队列和一个定时器函数，<span style="color: red;"><strong>通过延迟工作队列来设置 <code>LED</code> 亮度，并通过计时器来进行软件闪烁。</strong></span></p>
+<p>我们先来分析<code>led_timer_function</code>函数</p>
+</blockquote>
+<h2 id="3led_timer_function分析">
+  3、led_timer_function分析
+  <a class="anchor" href="#3led_timer_function%e5%88%86%e6%9e%90">#</a>
+</h2>
+<blockquote>
+<p>由上文可知，<code>led_timer_function</code>主要负责<code>LED</code>的闪烁功能</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">led_timer_function</span>(<span style="color:#ff79c6">struct</span> timer_list <span style="color:#ff79c6">*</span>t)
+{
+    <span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev <span style="color:#ff79c6">=</span> from_timer(led_cdev, t, blink_timer);	<span style="color:#6272a4">//	获取结构体指针
+</span><span style="color:#6272a4"></span>    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> brightness;
+    <span style="color:#8be9fd">unsigned</span> <span style="color:#8be9fd">long</span> delay;
+
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>led_cdev<span style="color:#ff79c6">-&gt;</span>blink_delay_on <span style="color:#ff79c6">||</span> <span style="color:#ff79c6">!</span>led_cdev<span style="color:#ff79c6">-&gt;</span>blink_delay_off) {			<span style="color:#6272a4">//	闪烁延时判断
+</span><span style="color:#6272a4"></span>        led_set_brightness_nosleep(led_cdev, LED_OFF);
+        clear_bit(LED_BLINK_SW, <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags);
+        <span style="color:#ff79c6">return</span>;
+    }
+
+    <span style="color:#ff79c6">if</span> (test_and_clear_bit(LED_BLINK_ONESHOT_STOP,							<span style="color:#6272a4">//	测试是否为闪烁一次
+</span><span style="color:#6272a4"></span>                   <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags)) {
+        clear_bit(LED_BLINK_SW, <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags);
+        <span style="color:#ff79c6">return</span>;
+    }
+
+    brightness <span style="color:#ff79c6">=</span> led_get_brightness(led_cdev);								<span style="color:#6272a4">//	获取当前亮度值
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>brightness) {
+        <span style="color:#6272a4">/* Time to switch the LED on. */</span>
+        <span style="color:#ff79c6">if</span> (test_and_clear_bit(LED_BLINK_BRIGHTNESS_CHANGE,
+                    <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags))
+            brightness <span style="color:#ff79c6">=</span> led_cdev<span style="color:#ff79c6">-&gt;</span>new_blink_brightness;					<span style="color:#6272a4">//	设置新的亮度值
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">else</span>
+            brightness <span style="color:#ff79c6">=</span> led_cdev<span style="color:#ff79c6">-&gt;</span>blink_brightness;						<span style="color:#6272a4">//	设置默认亮度值
+</span><span style="color:#6272a4"></span>        delay <span style="color:#ff79c6">=</span> led_cdev<span style="color:#ff79c6">-&gt;</span>blink_delay_on;
+    } <span style="color:#ff79c6">else</span> {
+        <span style="color:#6272a4">/* Store the current brightness value to be able
+</span><span style="color:#6272a4">         * to restore it when the delay_off period is over.
+</span><span style="color:#6272a4">         */</span>
+        led_cdev<span style="color:#ff79c6">-&gt;</span>blink_brightness <span style="color:#ff79c6">=</span> brightness;							<span style="color:#6272a4">//	存储当前亮度值
+</span><span style="color:#6272a4"></span>        brightness <span style="color:#ff79c6">=</span> LED_OFF;												<span style="color:#6272a4">//	更新亮度值为0
+</span><span style="color:#6272a4"></span>        delay <span style="color:#ff79c6">=</span> led_cdev<span style="color:#ff79c6">-&gt;</span>blink_delay_off;
+    }
+
+    led_set_brightness_nosleep(led_cdev, brightness);						<span style="color:#6272a4">//	设置亮度
+</span><span style="color:#6272a4"></span>
+    <span style="color:#6272a4">/* Return in next iteration if led is in one-shot mode and we are in
+</span><span style="color:#6272a4">     * the final blink state so that the led is toggled each delay_on +
+</span><span style="color:#6272a4">     * delay_off milliseconds in worst case.
+</span><span style="color:#6272a4">     */</span>
+    <span style="color:#ff79c6">if</span> (test_bit(LED_BLINK_ONESHOT, <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags)) {				<span style="color:#6272a4">//	一次闪烁判断
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">if</span> (test_bit(LED_BLINK_INVERT, <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags)) {
+            <span style="color:#ff79c6">if</span> (brightness)
+                set_bit(LED_BLINK_ONESHOT_STOP,
+                    <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags);
+        } <span style="color:#ff79c6">else</span> {
+            <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>brightness)
+                set_bit(LED_BLINK_ONESHOT_STOP,
+                    <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags);
+        }
+    }
+
+    mod_timer(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>blink_timer, jiffies <span style="color:#ff79c6">+</span> msecs_to_jiffies(delay));	<span style="color:#6272a4">//	更新定时器时间
+</span><span style="color:#6272a4"></span>}
+</code></pre></div><p><strong>函数介绍</strong>：该函数实现了定时触发，每次触发控制<code>LED</code>的亮度情况，实现亮灭的效果。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先通过<code>from_timer</code>接口，底层还是通过<code>container_of</code>函数，获取<code>led_classdev</code>结构体指针</li>
+<li>判断<code>blink_delay_on</code>和<code>blink_delay_off</code>延时是否为<code>0</code>，如果为<code>0</code>，默认为关闭<code>LED</code></li>
+<li>通过<code>led_get_brightness</code>获取亮度值，闪烁逻辑如下：
+<ol>
+<li>如果亮度为<code>0</code>，则设置亮度值，更新延时为亮延时：<code>delay = led_cdev-&gt;blink_delay_on</code></li>
+<li>如果亮度不为0，则设置亮度为0，<code>brightness = LED_OFF;</code>然后设置延时为灭延时：<code>delay = led_cdev-&gt;blink_delay_off</code></li>
+</ol>
+</li>
+<li>调用<code>led_set_brightness_nosleep</code>设置<code>LED</code>亮度</li>
+<li>调用<code>mod_timer</code>更新定时器时间</li>
+</ol>
+<h4 id="311-led_get_brightness">
+  3.1.1 led_get_brightness
+  <a class="anchor" href="#311-led_get_brightness">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">static</span> <span style="color:#ff79c6">inline</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">led_get_brightness</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev)
+{
+    <span style="color:#ff79c6">return</span> led_cdev<span style="color:#ff79c6">-&gt;</span>brightness;
+}
+</code></pre></div><p><strong>函数介绍</strong>：该函数比较简单，直接获取<code>led_classdev</code>结构体的亮度值即可！</p>
+<h4 id="312-led_set_brightness_nosleep">
+  3.1.2 led_set_brightness_nosleep
+  <a class="anchor" href="#312-led_set_brightness_nosleep">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">led_set_brightness_nosleep</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev,
+                <span style="color:#ff79c6">enum</span> led_brightness value)
+{
+    led_cdev<span style="color:#ff79c6">-&gt;</span>brightness <span style="color:#ff79c6">=</span> min(value, led_cdev<span style="color:#ff79c6">-&gt;</span>max_brightness);
+
+    <span style="color:#ff79c6">if</span> (led_cdev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> LED_SUSPENDED)
+        <span style="color:#ff79c6">return</span>;
+
+    led_set_brightness_nopm(led_cdev, led_cdev<span style="color:#ff79c6">-&gt;</span>brightness);
+}
+EXPORT_SYMBOL_GPL(led_set_brightness_nosleep);
+</code></pre></div><p><strong>函数介绍</strong>：与最大亮度值进行比较，并设置<code>LED</code>亮度，如果<code>LED</code>被挂起（进入休眠），则直接返回。所以，正如其名，<code>nosleep</code>即不休眠时的函数生效。。</p>
+<h4 id="313-led_set_brightness_nopm">
+  3.1.3 led_set_brightness_nopm
+  <a class="anchor" href="#313-led_set_brightness_nopm">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#8be9fd">void</span> <span style="color:#50fa7b">led_set_brightness_nopm</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev,
+                  <span style="color:#ff79c6">enum</span> led_brightness value)
+{
+    <span style="color:#6272a4">/* Use brightness_set op if available, it is guaranteed not to sleep */</span>
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>__led_set_brightness(led_cdev, value))
+        <span style="color:#ff79c6">return</span>;
+
+    <span style="color:#6272a4">/* If brightness setting can sleep, delegate it to a work queue task */</span>
+    led_cdev<span style="color:#ff79c6">-&gt;</span>delayed_set_value <span style="color:#ff79c6">=</span> value;
+    schedule_work(<span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>set_brightness_work);
+}
+
+<span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">__led_set_brightness</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev,
+                <span style="color:#ff79c6">enum</span> led_brightness value)
+{
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set)
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>ENOTSUPP;
+
+    led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set(led_cdev, value);
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+</code></pre></div><p><strong>函数介绍</strong>：设置<code>LED</code>亮度，该函数首先尝试使用<code>__led_set_brightness</code>函数来设置亮度，该函数保证不会使系统进入睡眠状态。如果不成功，则将亮度设置委托给工作队列任务。</p>
+<p><strong>相关实现</strong>：</p>
+<ol>
+<li>
+<p>尝试调用<code>__led_set_brightness</code>接口，该函数用于未打开休眠功能。</p>
+</li>
+<li>
+<p>如果该<code>__led_set_brightness</code>函数返回错误码，则代表了打开了休眠功能</p>
+</li>
+<li>
+<p>休眠状态下，想要设置<code>LED</code>亮度值，需要将<code>delayed_set_value</code>变量设置为所需的亮度值，然后调度<code>set_brightness_work</code>任务。</p>
+</li>
+</ol>
+<h2 id="4set_brightness_delayed分析">
+  4、set_brightness_delayed分析
+  <a class="anchor" href="#4set_brightness_delayed%e5%88%86%e6%9e%90">#</a>
+</h2>
+<blockquote>
+<p>由上面可知，如果子系统打开了休眠功能，设置<code>LED</code>亮度时，需要加入工作队列，而工作队列的处理函数即： <code>set_brightness_delayed</code></p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">set_brightness_delayed</span>(<span style="color:#ff79c6">struct</span> work_struct <span style="color:#ff79c6">*</span>ws)
+{
+    <span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev <span style="color:#ff79c6">=</span>
+        container_of(ws, <span style="color:#ff79c6">struct</span> led_classdev, set_brightness_work);
+    <span style="color:#8be9fd">int</span> ret <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">0</span>;
+
+    <span style="color:#ff79c6">if</span> (test_and_clear_bit(LED_BLINK_DISABLE, <span style="color:#ff79c6">&amp;</span>led_cdev<span style="color:#ff79c6">-&gt;</span>work_flags)) {
+        led_cdev<span style="color:#ff79c6">-&gt;</span>delayed_set_value <span style="color:#ff79c6">=</span> LED_OFF;
+        led_stop_software_blink(led_cdev);
+    }
+
+    ret <span style="color:#ff79c6">=</span> __led_set_brightness(led_cdev, led_cdev<span style="color:#ff79c6">-&gt;</span>delayed_set_value);
+    <span style="color:#ff79c6">if</span> (ret <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">-</span>ENOTSUPP)
+        ret <span style="color:#ff79c6">=</span> __led_set_brightness_blocking(led_cdev,
+                    led_cdev<span style="color:#ff79c6">-&gt;</span>delayed_set_value);
+    <span style="color:#ff79c6">if</span> (ret <span style="color:#ff79c6">&lt;</span> <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">&amp;&amp;</span>
+        <span style="color:#6272a4">/* LED HW might have been unplugged, therefore don&#39;t warn */</span>
+        <span style="color:#ff79c6">!</span>(ret <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">-</span>ENODEV <span style="color:#ff79c6">&amp;&amp;</span> (led_cdev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> LED_UNREGISTERING) <span style="color:#ff79c6">&amp;&amp;</span>
+        (led_cdev<span style="color:#ff79c6">-&gt;</span>flags <span style="color:#ff79c6">&amp;</span> LED_HW_PLUGGABLE)))
+        dev_err(led_cdev<span style="color:#ff79c6">-&gt;</span>dev,
+            <span style="color:#f1fa8c">&#34;Setting an LED&#39;s brightness failed (%d)</span><span style="color:#f1fa8c">\n</span><span style="color:#f1fa8c">&#34;</span>, ret);
+}
+</code></pre></div><p><strong>函数介绍</strong>：<code>set_brightness_delayed</code>正如其名，延时设置<code>LED</code>灯的亮度。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先通过<code>container_of</code>来获取<code>led_classdev</code>结构体指针</li>
+<li><code>test_and_clear_bit</code>对闪烁标志位进行判断，如果不支持，则关闭</li>
+<li>调用<code>__led_set_brightness</code>和<code>__led_set_brightness_blocking</code>来设置<code>LED</code>的亮度</li>
+</ol>
+<h4 id="411-__led_set_brightness">
+  4.1.1 __led_set_brightness
+  <a class="anchor" href="#411-__led_set_brightness">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">__led_set_brightness</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev,
+                <span style="color:#ff79c6">enum</span> led_brightness value)
+{
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set)
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>ENOTSUPP;
+
+    led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set(led_cdev, value);
+
+    <span style="color:#ff79c6">return</span> <span style="color:#bd93f9">0</span>;
+}
+</code></pre></div><p><strong>函数介绍</strong>：<strong>非阻塞</strong>设置<code>LED</code>亮度，该函数调用<code>led-gpio.c</code>硬件驱动层分配的函数来操作硬件实现，<strong>用于不支持休眠时，不用考虑休眠是否打断该函数执行</strong></p>
+<h4 id="412-__led_set_brightness_blocking">
+  4.1.2 __led_set_brightness_blocking
+  <a class="anchor" href="#412-__led_set_brightness_blocking">#</a>
+</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C"><span style="color:#ff79c6">static</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">__led_set_brightness_blocking</span>(<span style="color:#ff79c6">struct</span> led_classdev <span style="color:#ff79c6">*</span>led_cdev,
+                     <span style="color:#ff79c6">enum</span> led_brightness value)
+{
+    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set_blocking)
+        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>ENOTSUPP;
+
+    <span style="color:#ff79c6">return</span> led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set_blocking(led_cdev, value);
+}
+</code></pre></div><p><strong>函数介绍</strong>：<strong>阻塞</strong>设置<code>LED</code>亮度，该函数调用<code>led-gpio.c</code>硬件驱动层分配的函数来操作硬件实现，<strong>用于在支持休眠时，避免休眠打断该函数执行</strong>。</p>
+<blockquote>
+<p>这两个函数，如果看源码的话，还是有点绕的，因为<code>__led_set_brightness_blocking</code>内部竟然也直接调用了<code>__led_set_brightness</code>，所以这里也尽量还原代码原本的意思。</p>
+</blockquote>
+<p>这篇就先讲到这里，当然该文件中还有一些<code>xxx_blink</code>相关的函数，主要用于管理闪烁，我们放到后面再了解。</p>
+<h2 id="5总结">
+  5、总结
+  <a class="anchor" href="#5%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<p>上面我们了解到核心层的主要作用：<span style="color: red;"><strong>通过延迟工作队列来设置 <code>LED</code> 亮度，并通过计时器来进行软件闪烁。</strong></span></p>
+<h3 id="51-代码实现流程">
+  5.1 代码实现流程
+  <a class="anchor" href="#51-%e4%bb%a3%e7%a0%81%e5%ae%9e%e7%8e%b0%e6%b5%81%e7%a8%8b">#</a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-C" data-lang="C">led_timer_function(drivers<span style="color:#ff79c6">/</span>leds<span style="color:#ff79c6">/</span>led<span style="color:#ff79c6">-</span>core.c)
+    <span style="color:#ff79c6">|--&gt;</span> led_get_brightness                 <span style="color:#6272a4">//  获取亮度值
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">|--&gt;</span> led_set_brightness_nosleep         <span style="color:#6272a4">//  设置LED亮度
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">|--&gt;</span> led_set_brightness_nopm        <span style="color:#6272a4">//  在非休眠状态下设置
+</span><span style="color:#6272a4"></span>            <span style="color:#ff79c6">|--&gt;</span> __led_set_brightness       <span style="color:#6272a4">// 
+</span><span style="color:#6272a4"></span>                <span style="color:#ff79c6">|--&gt;</span> led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set<span style="color:#6272a4">// 硬件驱动层实现 
+</span><span style="color:#6272a4"></span>
+
+
+set_brightness_delayed(drivers<span style="color:#ff79c6">/</span>leds<span style="color:#ff79c6">/</span>led<span style="color:#ff79c6">-</span>core.c)
+    <span style="color:#ff79c6">|--&gt;</span> __led_set_brightness               <span style="color:#6272a4">//  非阻塞函数，调用该接口设置LED亮度后立即返回
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">|--&gt;</span> led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set
+            <span style="color:#ff79c6">|--&gt;</span> gpio_led_set(drivers<span style="color:#ff79c6">/</span>leds<span style="color:#ff79c6">/</span>leds<span style="color:#ff79c6">-</span>gpio.c) <span style="color:#6272a4">//  最终调用的函数
+</span><span style="color:#6272a4"></span>    <span style="color:#ff79c6">|--&gt;</span> __led_set_brightness_blocking      <span style="color:#6272a4">//  阻塞函数，调用该接口设置LED亮度后必须等待设置完成，才返回
+</span><span style="color:#6272a4"></span>        <span style="color:#ff79c6">|--&gt;</span> led_cdev<span style="color:#ff79c6">-&gt;</span>brightness_set_blocking
+            <span style="color:#ff79c6">|--&gt;</span> gpio_led_set_blocking
+
+</code></pre></div><p>核心层的接口，大都是提供给外部使用的，这些函数也都通过<code>EXPORT_SYMBOL_GPL</code>宏定义来导出的，即：向上提供了操作的接口。——<strong>乘上</strong></p>
+<p>并且这些函数底层实现，都关联到了<code>led-gpio.c</code>硬件驱动层，即：调用底层的相关接口——<strong>启下</strong></p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#led子系统深度剖析五核心层详解二">【LED子系统深度剖析】五、核心层详解（二）</a>
+      <ul>
+        <li><a href="#1前言">1、前言</a></li>
+        <li><a href="#2led_init_core分析">2、led_init_core分析</a>
+          <ul>
+            <li><a href="#21-相关数据结构">2.1 相关数据结构</a></li>
+            <li><a href="#22-相关实现">2.2 相关实现</a></li>
+          </ul>
+        </li>
+        <li><a href="#3led_timer_function分析">3、led_timer_function分析</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#4set_brightness_delayed分析">4、set_brightness_delayed分析</a>
+          <ul>
+            <li></li>
+          </ul>
+        </li>
+        <li><a href="#5总结">5、总结</a>
+          <ul>
+            <li><a href="#51-代码实现流程">5.1 代码实现流程</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
