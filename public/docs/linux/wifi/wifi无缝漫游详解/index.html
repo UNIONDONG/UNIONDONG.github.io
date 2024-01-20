@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="WiFi无缝漫游详解 #  1、WLAN漫游简介 #   百度百科：：当网络环境存在多个相同SSID的AP，且它们的覆盖范围的重合时，无线用户可以在整个WLAN覆盖区内移动，无线网卡能够自动发现附近信号强度最大的AP，并通过这个AP收发数据，保持不间断的网络连接，这就称为无线漫游。
+ 简单来说：WLAN漫游是指STA在不同的AP覆盖范围之间移动，且保持用户业务不中断的行为。
+ AP：也就是无线接入点，是一个无线网络的创建者，是网络的中心节点。一般家庭或办公室使用的无线路由器就一个AP。 STA：每一个连接到无线网络中的终端(如笔记本电脑、PDA及其它可以联网的用户设备)都可称为一个站点。   如下图所示，STA1从AP1的覆盖范围移动到AP2的覆盖范围时保持业务不中断。
+  2、WiFi漫游由来 #  当家庭面积超过一定面积后，为了保证全家范围的wifi网络覆盖，我们就需要引入2个以上的WiFi接入点了。在多个WiFi接入点下，为了优化网络使用体验，免去手动切换wifi接入的麻烦，就需要引入WiFi漫游。
+  伪漫游：  一般最常见的伪漫游方法就是将2个以上的wifi接入点的SSID名称及密码设置相同，虽然起到了一定的切换作用，不过用过的朋友都知道效果非常的不好，先不说能否自动切换的问题，就算切换成功了，也会造成IP地址的改变，游戏掉网、断连接是必须的！因此在多AP情况下就必须引入一个新的名词：Wifi快速漫游
+   WiFi漫游  上文提到的设置SSID名称及密码相同的方案是最低能的做法，稍微懂一点网络知识的朋友都不会采用的；
+最次的方案也是要保证DHCP服务器的统一，保证切换Wifi时候IP地址不变。
+更进一阶，引入AC控制器，利用AC&#43;AP的组合形式实现wifi漫游。目前市面上主流的TPlink、爱快、Mesh等产品的方案多是如此。
+其根本的原理是通过AC设定AP的RSSI阈值，将信号不稳定的设备T下线，迫使终端设备重新连接信号最强的AP，实现AP的自动切换。
+ 实话实说这种方案对于绝大多数的用户是完全够用的，AP切换过程中网络中断时间一般在200ms-500ms左右，影响不大，确实优化了网络体验。对于网络要求不高的朋友推荐选择。不过在该方案下游戏会有一段明显的卡顿，但不会掉线。
+  WiFi快速漫游   如果你是一个追求完美网络体验的朋友，而且想一次到位部署网络，不再折腾了，那么你就需要Wifi快速漫游了。上面介绍的第二种方案，虽然效果说得过去，但仍然无法保证切换过程尽可能的少丢包及进一步缩短网络中断时间。这个时候就必须引入Wifi快速漫游方案了，通过Wifi快速漫游进一步缩短网络中断时间，提高网络使用体验，真正实现游戏中不卡顿
+  对于有AC控制器的Wifi网络系统中，漫游过程可以简单分为3个阶段：漫游触发→选择新AP→重新认证。这时候就需要802.11k/v/r协议登场了。
+ 由于Wifi网络密码的存在，在重新认证阶段终端在切换AP的时候需要出示其缓存的密钥，AP检查密钥并进行四次握手，产生数据加密密钥，漫游完成。802.11r协议可以在以上基础上省略4次握手，进一步缩减了断网的时间。 802.11k能告诉终端，如何快速选择漫游AP。 802.11v能优化漫游触发。  能够应用802.11k/v/r协议的Wifi漫游都可以称之为快速漫游，不过这需要AP和终端都支持哦，实际上目前能够支持802.11k/v/r协议的终端并不多，苹果算是一个例外吧，新产品全都支持802.11k/v/r，所以Wifi快速漫游更适合使用苹果的土豪们
+ 综上，WLAN漫游策略主要解决以下问题：
+ 避免漫游过程中的认证时间过长导致丢包甚至业务中断：802.1x认证、Portal认证等认证过程报文交互次数和时间，大于WLAN连接过程，所以漫游需要避免重新认证授权及密钥协商过程。 保证用户授权信息不变：用户的认证和授权信息，是用户访问网络的通行证，如果需要漫游后业务不中断，必须确保用户在AC上的认证和授权信息不变 保证用户IP地址不变：应用层协议均以IP地址和TCP/UDP Session为用户业务承载，漫游后的用户必须能够保持原IP地址不变，对应的TCP/UDP Session才能不中断，应用层数据才能够保持正常转发   3、漫游基础知识 #  WLAN漫游的网络架构
+ AC控制器：可用来集中化控制和管理无线AP，是一个无线网络的核心，负责管理无线网络中的所有无线AP，对AP管理包括：下发配置、修改相关配置参数、射频智能管理、接入安全控制等。 漫游组：在WLAN网络中，可以对不同的AC进行分组，STA可以在同一个组的AC间进行漫游，这个组就叫漫游组。如图，AC1和AC2组成一个漫游组。 AC间隧道：为了支持AC间漫游，漫游组内的所有AC需要同步每个AC管理的STA和AP设备信息，因此在AC间建立一条隧道作为数据同步和报文转发的通道。 Master Controller：STA在同一个漫游组内的AC间进行漫游，需要漫游组内的AC能够试别组内其他AC。通过选定一个AC作为Master Controller，在该AC上维护漫游组成员表，并下发到漫游组内AC，使各AC之间相互试别并建立AC间隧道，如图，选的AC1作为Master Controller.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="WiFi无缝漫游详解" />
+<meta property="og:description" content="WiFi无缝漫游详解 #  1、WLAN漫游简介 #   百度百科：：当网络环境存在多个相同SSID的AP，且它们的覆盖范围的重合时，无线用户可以在整个WLAN覆盖区内移动，无线网卡能够自动发现附近信号强度最大的AP，并通过这个AP收发数据，保持不间断的网络连接，这就称为无线漫游。
+ 简单来说：WLAN漫游是指STA在不同的AP覆盖范围之间移动，且保持用户业务不中断的行为。
+ AP：也就是无线接入点，是一个无线网络的创建者，是网络的中心节点。一般家庭或办公室使用的无线路由器就一个AP。 STA：每一个连接到无线网络中的终端(如笔记本电脑、PDA及其它可以联网的用户设备)都可称为一个站点。   如下图所示，STA1从AP1的覆盖范围移动到AP2的覆盖范围时保持业务不中断。
+  2、WiFi漫游由来 #  当家庭面积超过一定面积后，为了保证全家范围的wifi网络覆盖，我们就需要引入2个以上的WiFi接入点了。在多个WiFi接入点下，为了优化网络使用体验，免去手动切换wifi接入的麻烦，就需要引入WiFi漫游。
+  伪漫游：  一般最常见的伪漫游方法就是将2个以上的wifi接入点的SSID名称及密码设置相同，虽然起到了一定的切换作用，不过用过的朋友都知道效果非常的不好，先不说能否自动切换的问题，就算切换成功了，也会造成IP地址的改变，游戏掉网、断连接是必须的！因此在多AP情况下就必须引入一个新的名词：Wifi快速漫游
+   WiFi漫游  上文提到的设置SSID名称及密码相同的方案是最低能的做法，稍微懂一点网络知识的朋友都不会采用的；
+最次的方案也是要保证DHCP服务器的统一，保证切换Wifi时候IP地址不变。
+更进一阶，引入AC控制器，利用AC&#43;AP的组合形式实现wifi漫游。目前市面上主流的TPlink、爱快、Mesh等产品的方案多是如此。
+其根本的原理是通过AC设定AP的RSSI阈值，将信号不稳定的设备T下线，迫使终端设备重新连接信号最强的AP，实现AP的自动切换。
+ 实话实说这种方案对于绝大多数的用户是完全够用的，AP切换过程中网络中断时间一般在200ms-500ms左右，影响不大，确实优化了网络体验。对于网络要求不高的朋友推荐选择。不过在该方案下游戏会有一段明显的卡顿，但不会掉线。
+  WiFi快速漫游   如果你是一个追求完美网络体验的朋友，而且想一次到位部署网络，不再折腾了，那么你就需要Wifi快速漫游了。上面介绍的第二种方案，虽然效果说得过去，但仍然无法保证切换过程尽可能的少丢包及进一步缩短网络中断时间。这个时候就必须引入Wifi快速漫游方案了，通过Wifi快速漫游进一步缩短网络中断时间，提高网络使用体验，真正实现游戏中不卡顿
+  对于有AC控制器的Wifi网络系统中，漫游过程可以简单分为3个阶段：漫游触发→选择新AP→重新认证。这时候就需要802.11k/v/r协议登场了。
+ 由于Wifi网络密码的存在，在重新认证阶段终端在切换AP的时候需要出示其缓存的密钥，AP检查密钥并进行四次握手，产生数据加密密钥，漫游完成。802.11r协议可以在以上基础上省略4次握手，进一步缩减了断网的时间。 802.11k能告诉终端，如何快速选择漫游AP。 802.11v能优化漫游触发。  能够应用802.11k/v/r协议的Wifi漫游都可以称之为快速漫游，不过这需要AP和终端都支持哦，实际上目前能够支持802.11k/v/r协议的终端并不多，苹果算是一个例外吧，新产品全都支持802.11k/v/r，所以Wifi快速漫游更适合使用苹果的土豪们
+ 综上，WLAN漫游策略主要解决以下问题：
+ 避免漫游过程中的认证时间过长导致丢包甚至业务中断：802.1x认证、Portal认证等认证过程报文交互次数和时间，大于WLAN连接过程，所以漫游需要避免重新认证授权及密钥协商过程。 保证用户授权信息不变：用户的认证和授权信息，是用户访问网络的通行证，如果需要漫游后业务不中断，必须确保用户在AC上的认证和授权信息不变 保证用户IP地址不变：应用层协议均以IP地址和TCP/UDP Session为用户业务承载，漫游后的用户必须能够保持原IP地址不变，对应的TCP/UDP Session才能不中断，应用层数据才能够保持正常转发   3、漫游基础知识 #  WLAN漫游的网络架构
+ AC控制器：可用来集中化控制和管理无线AP，是一个无线网络的核心，负责管理无线网络中的所有无线AP，对AP管理包括：下发配置、修改相关配置参数、射频智能管理、接入安全控制等。 漫游组：在WLAN网络中，可以对不同的AC进行分组，STA可以在同一个组的AC间进行漫游，这个组就叫漫游组。如图，AC1和AC2组成一个漫游组。 AC间隧道：为了支持AC间漫游，漫游组内的所有AC需要同步每个AC管理的STA和AP设备信息，因此在AC间建立一条隧道作为数据同步和报文转发的通道。 Master Controller：STA在同一个漫游组内的AC间进行漫游，需要漫游组内的AC能够试别组内其他AC。通过选定一个AC作为Master Controller，在该AC上维护漫游组成员表，并下发到漫游组内AC，使各AC之间相互试别并建立AC间隧道，如图，选的AC1作为Master Controller." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/wifi/wifi%E6%97%A0%E7%BC%9D%E6%BC%AB%E6%B8%B8%E8%AF%A6%E8%A7%A3/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-20T10:23:36+08:00" />
+<meta property="article:modified_time" content="2024-01-20T10:23:36+08:00" />
+
+<title>WiFi无缝漫游详解 | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b5775eee0b743844194ef6e7bbcd3f5283e5661d599025542fbabfb59441ad57.js" integrity="sha256-tXde7gt0OEQZTvbnu80/UoPlZh1ZkCVUL7q/tZRBrVc=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a role="button" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a role="button" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-00ea238a2f9544b32c1424d14ac8d5b7" class="toggle"  />
+    <label for="section-00ea238a2f9544b32c1424d14ac8d5b7" class="flex justify-between">
+      <a role="button" class="">Linux 驱动开发基础</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" class="">【一文秒懂】Linux字符设备驱动</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux设备树详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/" class="">【一文秒懂】为什么Linux内核中不经常使用typedef</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a role="button" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle"  />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/" class="">【一文秒懂】Linux内核调试工具——devmem</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/" class="">【一文秒懂】Linux内核调试工具——Debugfs</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/" class="">【一文秒懂】Linux网络性能测试工具——Iperf</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdb%E4%BB%8B%E7%BB%8D/" class="">【一文秒懂】Linux调试工具——GDB介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdbserver/" class="">【一文秒懂】Linux远程调试工具——gdbserver</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B/" class="">【一文秒懂】Linux内核死锁检测</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90core-dump%E6%96%87%E4%BB%B6/" class="">【一文秒懂】如何生成core Dump文件</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E4%B9%8Bcore-dump%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux之Core Dump文件详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%80%81%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7/" class="">【一文秒懂】Linux内核态内存泄露检测工具</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9ae83851c5fe25a6d227e96b400b1ab9" class="toggle"  />
+    <label for="section-9ae83851c5fe25a6d227e96b400b1ab9" class="flex justify-between">
+      <a role="button" class="">Linux LED子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%80linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%B0%E6%89%8B%E5%BF%85%E8%AF%BB/" class="">【LED子系统深度剖析】一、开篇词|Linux驱动开发新手必读</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%8Cled%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" class="">【LED子系统深度剖析】二、LED子系统框架分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%89%E7%A1%AC%E4%BB%B6%E9%A9%B1%E5%8A%A8%E5%B1%82%E8%AF%A6%E8%A7%A3/" class="">【LED子系统深度剖析】三、硬件驱动层详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%9B%9B%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%80/" class="">【LED子系统深度剖析】四、核心层详解（一）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" class="">【LED子系统深度剖析】五、核心层详解（二）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AD%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%89/" class="">【LED子系统深度剖析】六、核心层详解（三）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%83%E8%A7%A6%E5%8F%91%E5%99%A8%E5%AE%9E%E7%8E%B0/" class="">【LED子系统深度剖析】七、触发器实现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AB%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80/" class="">【LED子系统深度剖析】八、小试牛刀</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】九、数据结构详解（番外篇）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】十、详细实现流程（番外篇）</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf0229851221605a75715f5f9633256a" class="toggle"  />
+    <label for="section-bf0229851221605a75715f5f9633256a" class="flex justify-between">
+      <a role="button" class="">Linux MMC 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/" class="">【MMC子系统】一、MMC_SD_SDIO介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" class="">【MMC子系统】二、EMMC协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/" class="">【MMC子系统】三、MMC子系统框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/" class="">【MMC子系统】四、MMC控制器驱动层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/" class="">【MMC子系统】五、MMC核心层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/" class="">【MMC子系统】六、MMC块设备层</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-541874a152001b263009202c99a285c4" class="toggle"  />
+    <label for="section-541874a152001b263009202c99a285c4" class="flex justify-between">
+      <a role="button" class="">Bluetooth蓝牙开发详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%80%E6%89%93%E9%80%A0%E5%85%A8%E7%BD%91%E6%9C%80%E8%AF%A6%E7%BB%86%E7%9A%84bluetooth%E5%BC%80%E5%8F%91%E6%95%99%E7%A8%8B/" class="">【Bluetooth蓝牙开发】一、打造全网最详细的Bluetooth开发教程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%8C%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8/" class="">【Bluetooth蓝牙开发】二、蓝牙开发入门</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" class="">【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%9B%9Bble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E7%89%A9%E7%90%86%E5%B1%82%E6%B5%85%E6%9E%90/" class="">【Bluetooth蓝牙开发】四、BLE协议之物理层浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%94ble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E9%93%BE%E8%B7%AF%E5%B1%82/" class="">【Bluetooth蓝牙开发】五、BLE协议之链路层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ADble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E4%BC%A0%E8%BE%93%E5%B1%82/" class="">【Bluetooth蓝牙开发】六、BLE协议之传输层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/" class="">【Bluetooth蓝牙开发】七、BLE协议之L2CAP</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ABble%E5%8D%8F%E8%AE%AE%E4%B9%8Batt/" class="">【Bluetooth蓝牙开发】八、BLE协议之ATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/" class="">【Bluetooth蓝牙开发】九、BLE协议——GATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81ble%E8%93%9D%E7%89%99%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%B9%BF%E6%92%AD%E6%89%AB%E6%8F%8F%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5/" class="">【Bluetooth蓝牙开发】十、BLE蓝牙通信流程（建立连接，广播，扫描，断开连接）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%B8%80%E8%B6%85%E8%AF%A6%E7%BB%86%E7%9A%84bluez%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" class="">【Bluetooth蓝牙开发】十一、超详细的Bluez交叉编译</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%BA%8C%E8%93%9D%E7%89%99%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88%E6%B1%87%E6%80%BB/" class="">【Bluetooth蓝牙开发】十二、蓝牙调试工具【集合汇总】</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3962d06d522e4ac6aca7d70bdb913d71" class="toggle" checked />
+    <label for="section-3962d06d522e4ac6aca7d70bdb913d71" class="flex justify-between">
+      <a role="button" class="">WiFi开发详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/" class="">WIFI基础知识汇总</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/" class="">一文详解路由器配置信息</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/wifi%E6%97%A0%E7%BC%9D%E6%BC%AB%E6%B8%B8%E8%AF%A6%E8%A7%A3/" class="active">WiFi无缝漫游详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>WiFi无缝漫游详解</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#wifi无缝漫游详解">WiFi无缝漫游详解</a>
+      <ul>
+        <li><a href="#1wlan漫游简介">1、WLAN漫游简介</a></li>
+        <li><a href="#2wifi漫游由来">2、WiFi漫游由来</a></li>
+        <li><a href="#3漫游基础知识">3、漫游基础知识</a></li>
+        <li><a href="#4漫游的分类">4、漫游的分类</a>
+          <ul>
+            <li><a href="#41-二层漫游">4.1 二层漫游</a></li>
+            <li><a href="#42-三层漫游">4.2 三层漫游</a></li>
+          </ul>
+        </li>
+        <li><a href="#5漫游基本原理">5、漫游基本原理</a></li>
+        <li><a href="#6切换方式">6、切换方式</a>
+          <ul>
+            <li><a href="#61-主动切换">6.1 主动切换</a></li>
+            <li><a href="#62-被动切换">6.2 被动切换</a></li>
+          </ul>
+        </li>
+        <li><a href="#7漫游基本配置">7、漫游基本配置</a></li>
+        <li><a href="#8参考文章">8、参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="wifi无缝漫游详解">
+  WiFi无缝漫游详解
+  <a class="anchor" href="#wifi%e6%97%a0%e7%bc%9d%e6%bc%ab%e6%b8%b8%e8%af%a6%e8%a7%a3">#</a>
+</h1>
+<h2 id="1wlan漫游简介">
+  1、WLAN漫游简介
+  <a class="anchor" href="#1wlan%e6%bc%ab%e6%b8%b8%e7%ae%80%e4%bb%8b">#</a>
+</h2>
+<blockquote>
+<p><strong>百度百科</strong>：：当网络环境存在多个相同SSID的AP，且它们的覆盖范围的重合时，无线用户可以在整个WLAN覆盖区内移动，无线网卡能够自动发现附近信号强度最大的AP，并通过这个AP收发数据，保持不间断的网络连接，这就称为无线漫游。</p>
+</blockquote>
+<p><strong>简单来说</strong>：<code>WLAN</code>漫游是指<code>STA</code>在不同的<code>AP</code>覆盖范围之间移动，且保持用户业务不中断的行为。</p>
+<ul>
+<li><strong>AP</strong>：也就是无线接入点，是一个无线网络的创建者，是<strong>网络的中心节点</strong>。一般家庭或办公室使用的无线路由器就一个AP。</li>
+<li><strong>STA</strong>：每一个连接到无线网络中的<strong>终端</strong>(如笔记本电脑、PDA及其它可以联网的用户设备)都可称为一个站点。</li>
+</ul>
+<blockquote>
+<p>如下图所示，<code>STA1</code>从<code>AP1</code>的覆盖范围移动到<code>AP2</code>的覆盖范围时保持业务不中断。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808105029933-1487137636.png" alt="img" /></p>
+<p> </p>
+<h2 id="2wifi漫游由来">
+  2、WiFi漫游由来
+  <a class="anchor" href="#2wifi%e6%bc%ab%e6%b8%b8%e7%94%b1%e6%9d%a5">#</a>
+</h2>
+<p>当家庭面积超过一定面积后，为了保证全家范围的wifi网络覆盖，我们就需要引入2个以上的WiFi接入点了。在多个WiFi接入点下，为了优化网络使用体验，免去手动切换wifi接入的麻烦，就需要引入WiFi漫游。</p>
+<p> </p>
+<ul>
+<li><strong>伪漫游</strong>：</li>
+</ul>
+<p>一般<strong>最常见的伪漫游方法</strong>就是将2个以上的wifi接入点的SSID名称及密码设置相同，虽然起到了一定的切换作用，不过用过的朋友都知道效果非常的不好，先不说能否自动切换的问题，就算切换成功了，也会造成IP地址的改变，游戏掉网、断连接是必须的！因此在多AP情况下就必须引入一个新的名词：<strong>Wifi快速漫游</strong></p>
+<p> </p>
+<hr>
+<ul>
+<li><strong>WiFi漫游</strong></li>
+</ul>
+<p>上文提到的设置SSID名称及密码相同的方案是最低能的做法，稍微懂一点网络知识的朋友都不会采用的；</p>
+<p>最次的方案也是要<strong>保证DHCP服务器的统一，保证切换Wifi时候IP地址不变。</strong></p>
+<p>更进一阶，引入AC控制器，利用AC+AP的组合形式实现wifi漫游。目前市面上主流的TPlink、爱快、Mesh等产品的方案多是如此。</p>
+<p>其根本的原理是通过AC设定AP的RSSI阈值，将信号不稳定的设备T下线，迫使终端设备重新连接信号最强的AP，实现AP的自动切换。</p>
+<blockquote>
+<p>实话实说这种方案对于绝大多数的用户是完全够用的，AP切换过程中网络中断时间一般在200ms-500ms左右，影响不大，确实优化了网络体验。对于网络要求不高的朋友推荐选择。不过在该方案下游戏会有一段明显的卡顿，但不会掉线。</p>
+</blockquote>
+<ul>
+<li><strong>WiFi快速漫游</strong></li>
+</ul>
+<blockquote>
+<p>如果你是一个追求完美网络体验的朋友，而且想一次到位部署网络，不再折腾了，那么你就需要<strong>Wifi快速漫游</strong>了。上面介绍的第二种方案，虽然效果说得过去，但仍然无法保证切换过程尽可能的少丢包及进一步缩短网络中断时间。这个时候就必须引入<strong>Wifi快速漫游</strong>方案了，通过<strong>Wifi快速漫游进一步缩短网络中断时间</strong>，提高网络使用体验，真正实现游戏中不卡顿</p>
+</blockquote>
+<p> </p>
+<p>对于有AC控制器的Wifi网络系统中，漫游过程可以简单分为3个阶段：<strong>漫游触发→选择新AP→重新认证</strong>。这时候就需要802.11k/v/r协议登场了。</p>
+<ul>
+<li>由于Wifi网络密码的存在，在重新认证阶段终端在切换AP的时候需要出示其缓存的密钥，AP检查密钥并进行四次握手，产生数据加密密钥，漫游完成。802.11r协议可以在以上基础上省略4次握手，进一步缩减了断网的时间。</li>
+<li>802.11k能告诉终端，如何快速选择漫游AP。</li>
+<li>802.11v能优化漫游触发。</li>
+</ul>
+<p><strong>能够应用802.11k/v/r协议的Wifi漫游都可以称之为快速漫游</strong>，不过这需要AP和终端都支持哦，实际上目前能够支持802.11k/v/r协议的终端并不多，苹果算是一个例外吧，新产品全都支持802.11k/v/r，所以Wifi快速漫游更适合使用苹果的土豪们</p>
+<p> </p>
+<p><strong>综上，WLAN漫游策略主要解决以下问题：</strong></p>
+<ul>
+<li><strong>避免漫游过程中的认证时间过长导致丢包甚至业务中断</strong>：802.1x认证、Portal认证等认证过程报文交互次数和时间，大于WLAN连接过程，所以漫游需要避免重新认证授权及密钥协商过程。</li>
+<li><strong>保证用户授权信息不变</strong>：用户的认证和授权信息，是用户访问网络的通行证，如果需要漫游后业务不中断，必须确保用户在AC上的认证和授权信息不变</li>
+<li><strong>保证用户IP地址不变</strong>：应用层协议均以IP地址和TCP/UDP Session为用户业务承载，漫游后的用户必须能够保持原IP地址不变，对应的TCP/UDP Session才能不中断，应用层数据才能够保持正常转发</li>
+</ul>
+<p> </p>
+<h2 id="3漫游基础知识">
+  3、漫游基础知识
+  <a class="anchor" href="#3%e6%bc%ab%e6%b8%b8%e5%9f%ba%e7%a1%80%e7%9f%a5%e8%af%86">#</a>
+</h2>
+<p><strong>WLAN漫游的网络架构</strong></p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808113243125-2091597894.png" alt="img" /></p>
+<ul>
+<li><strong>AC控制器</strong>：可用来集中化控制和管理无线AP，是一个无线网络的核心，负责管理无线网络中的所有无线AP，对AP管理包括：下发配置、修改相关配置参数、射频智能管理、接入安全控制等。</li>
+<li><strong>漫游组</strong>：在WLAN网络中，可以对不同的AC进行分组，<strong>STA可以在同一个组的AC间进行漫游</strong>，这个组就叫漫游组。如图，AC1和AC2组成一个漫游组。</li>
+<li><strong>AC间隧道</strong>：为了支持AC间漫游，漫游组内的所有AC需要同步每个AC管理的STA和AP设备信息，因此在AC间建立一条隧道作为数据同步和报文转发的通道。</li>
+<li><strong>Master Controller</strong>：STA在同一个漫游组内的AC间进行漫游，需要漫游组内的AC能够试别组内其他AC。通过选定一个AC作为Master Controller，在该AC上维护漫游组成员表，并下发到漫游组内AC，使各AC之间相互试别并建立AC间隧道，如图，选的AC1作为Master Controller.
+<ul>
+<li>Master Controller既可以是漫游组外的AC，也可以在漫游组内选择一个AC</li>
+<li>Master Controlle管理其他AC的同时，不能被其他Master Controlle管理</li>
+</ul>
+</li>
+<li>AC内漫游：如果漫游过程中关联的是同一个AC，则是AC内漫游，如图STA从AP1漫游到AP2即是AC内漫游</li>
+<li>AC间漫游：如果漫游过程中关联的不是同一个AC，则是AC间漫游，如图STA在从Ap1漫游到AP3的过程即为AC间漫游</li>
+<li>HAC （Home AC）：STA首次与漫游组内某个AC进行关联，则该AC为它的HAC</li>
+<li>HAP （Home AP）：STA首次与漫游组内某个AP进行关联，则该AP为它的HAP</li>
+<li>FAC（Foreign AC）：STA漫游后关联的AC即为它的FAC</li>
+<li>FAP（Foreign AP）：STA漫游后关联的AP即为它的FAP</li>
+</ul>
+<p> </p>
+<h2 id="4漫游的分类">
+  4、漫游的分类
+  <a class="anchor" href="#4%e6%bc%ab%e6%b8%b8%e7%9a%84%e5%88%86%e7%b1%bb">#</a>
+</h2>
+<p>漫游根据实际的架构我们将它分为两类：<strong>有缝漫游和无缝漫游</strong>。无缝漫游又可以分为<strong>二层漫游和三层漫游</strong>。</p>
+<ul>
+<li>
+<p><strong>有缝漫游</strong>：有两种情况</p>
+<ul>
+<li>所有网络部署的AP是胖AP，没有AC。</li>
+<li>所有网络部署的AP是瘦AP，没有AC也可以工作。</li>
+</ul>
+<blockquote>
+<p>胖瘦AP的区别：https://zhuanlan.zhihu.com/p/64648479</p>
+</blockquote>
+<blockquote>
+<p>上面两种情况，主要是我们国情产生的，客户不停的压价还要一大堆需要。大家为了降低成本，没有部署AC。只需要SSID、加密配置和信道岔开即可。实际效果第中远好于第一种，因为第二种是在一个DHCP下，第一种就相当安装了很多的家用路由器，问题多多!</p>
+</blockquote>
+</li>
+<li>
+<p><strong>无缝漫游</strong>：</p>
+<blockquote>
+<p>无缝漫游能够做到的是在 AP 与 AP间的切换时间控制在毫秒级，基本不掉包，在业务运用上感受不到有任何停顿，这样客户终端在移动时从一个 AP 快速自由地切换到另一个 AP， 这就是无缝漫游。</p>
+</blockquote>
+<ul>
+<li>二层漫游：同一AC下的快速漫游，AP与AC直连组网，AP和AC连接在同一个VLAN内，可以实现二层漫游。</li>
+<li>三层漫游：跨VLAN的三层漫游，当网络规模比较大，VLAN不一样，IP网段也不相同，因为支持三层无缝漫游，从而保证用户在不一样VLAN间漫游而业务不中断。</li>
+</ul>
+</li>
+</ul>
+<p> </p>
+<h3 id="41-二层漫游">
+  4.1 二层漫游
+  <a class="anchor" href="#41-%e4%ba%8c%e5%b1%82%e6%bc%ab%e6%b8%b8">#</a>
+</h3>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808142355162-1745291625.png" alt="img" /></p>
+<p> </p>
+<p>二层漫游后，STA仍然在原来的子网中，FAP/FAC对二层漫游用户的报文转发同普通新上线用户没有区别，直接在FAP/FAC本地网络转发，<strong>不需要通过AC间隧道转回到HAP中转</strong></p>
+<p><strong>漫游前</strong>：</p>
+<ol>
+<li>STA发送业务报文到HAP</li>
+<li>HAP接收到STA发送的业务报文并发送给HAC</li>
+<li>HAC直接将业务报文发送给上层网络</li>
+</ol>
+<p><strong>漫游后</strong>：</p>
+<ol>
+<li>STA发送业务报文给FAP</li>
+<li>FAP接收到STA的业务报文，并发送给FAC</li>
+<li>FAC直接将业务报文发送给上层网络</li>
+</ol>
+<p> </p>
+<h3 id="42-三层漫游">
+  4.2 三层漫游
+  <a class="anchor" href="#42-%e4%b8%89%e5%b1%82%e6%bc%ab%e6%b8%b8">#</a>
+</h3>
+<h4 id="421-三层漫游--隧道转发模式">
+  4.2.1 三层漫游&ndash;隧道转发模式
+  <a class="anchor" href="#421-%e4%b8%89%e5%b1%82%e6%bc%ab%e6%b8%b8--%e9%9a%a7%e9%81%93%e8%bd%ac%e5%8f%91%e6%a8%a1%e5%bc%8f">#</a>
+</h4>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808145416275-1215514956.png" alt="img" /></p>
+<p>三层漫游时，用户漫游前后不在同一个子网中，为了支持用户漫游后仍能正常访问漫游前网络，<strong>需要将用户流量通过隧道转发到原来的子网中转</strong>。</p>
+<p>隧道转发模式下，HAP和HAC之间业务报文通过CAPWAP隧道封装，此时可以将HAP和HAC看作在同一个子网内，报文无需返回到HAP，直接通过HAC中转到上层网络</p>
+<p><strong>漫游前</strong>：</p>
+<ol>
+<li>STA发送业务报文到HAP</li>
+<li>HAP接收到STA发送的业务报文并发送给HAC</li>
+<li>HAC直接将业务报文发送给上层网络</li>
+</ol>
+<p><strong>漫游后</strong>：</p>
+<ol>
+<li>STA发送业务报文给FAP</li>
+<li>FAP接收到STA的业务报文，并发送给FAC</li>
+<li>FAC通过HAC和FAC之间的AC间隧道将业务报文转发给HAC</li>
+<li>HAC直接将业务报文转发给上层网络</li>
+</ol>
+<h4 id="422-三层漫游--直接转发模式">
+  4.2.2 三层漫游&ndash;直接转发模式
+  <a class="anchor" href="#422-%e4%b8%89%e5%b1%82%e6%bc%ab%e6%b8%b8--%e7%9b%b4%e6%8e%a5%e8%bd%ac%e5%8f%91%e6%a8%a1%e5%bc%8f">#</a>
+</h4>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808152709359-1091210242.png" alt="img" /></p>
+<p>直接转发模式下，HAP和HAC之间的业务报文不通过CAPWAP隧道封装，无法判定HAP和HAC是否在同一个子网内，此时设备默认报文需要返回到HAP进行中转。如果HAP和HAC在同一个子网时，可以将家乡代理设置为性能更强的HAC，减少HAP的负荷并提高转发效率</p>
+<p>用户漫游到其他AP后，默认以HAP作为家乡代理。用户漫游时，自动在FAP和家乡代理间建立一条隧道，用户的流量通过家乡代理中转，以保证用户漫游仍能访问原网络</p>
+<p><strong>漫游前</strong>：</p>
+<ol>
+<li>STA发送业务报文到HAP</li>
+<li>HAP接收到STA发送的业务报文并发送给HAC</li>
+<li>HAC直接将业务报文发送给上层网络</li>
+</ol>
+<p><strong>漫游后</strong>：</p>
+<ol>
+<li>STA发送业务报文给FAP</li>
+<li>FAP接收到STA发送的业务报文，并发送给FAC</li>
+<li>FAC通过HAC和FAC之间的隧道，将业务报文转发给HAC</li>
+<li>HAC将业务报文发送给HAP</li>
+<li>HAP直接将业务报文发送给上层网络</li>
+</ol>
+<p><strong>设置AC为家乡代理</strong>：</p>
+<ol>
+<li>STA发送业务报文给FAP</li>
+<li>FAP接收到STA发送的业务报文并发送给FAC</li>
+<li>FAC通过HAC和FAC之间的隧道，将业务报文转发给HAC</li>
+<li>HAC将业务报文发送给上层网络</li>
+</ol>
+<p> </p>
+<h2 id="5漫游基本原理">
+  5、漫游基本原理
+  <a class="anchor" href="#5%e6%bc%ab%e6%b8%b8%e5%9f%ba%e6%9c%ac%e5%8e%9f%e7%90%86">#</a>
+</h2>
+<ol>
+<li><strong>切换检测</strong>：当STA检测到要发生快速切换时，将向各信道发送切换请求。</li>
+</ol>
+<blockquote>
+<p>STA监听各信道beacon，发现新AP满足漫游条件，向新AP发送probe请求。新AP在其信道中收到请求后，通过在信道中发送应答来进行响应。STA收到应答后，对其进行评估，确定同哪个AP关联最合适。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808111837035-725221065.png" alt="img" /></p>
+<ol start="2">
+<li>
+<p><strong>切换触发</strong>：STA达到漫游阈值就会触发切换，对于触发条件，不同的STA会有不同的方式：</p>
+<ul>
+<li>
+<p>根据当前AP和邻近AP<strong>信号强度的对比</strong>，达到门限值就启动切换</p>
+</li>
+<li>
+<p>根据业务，例如<strong>丢包率</strong>，达到门限值就启动切换，此切换触发方式较慢，效果差</p>
+</li>
+</ul>
+</li>
+</ol>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808112410457-1267483510.png" alt="img" /></p>
+<ol start="3">
+<li><strong>切换操作</strong>：关联新AP，解除与老AP的关联</li>
+</ol>
+<blockquote>
+<p>不同的STA会有不同的操作方式，一般情况，STA在发送切换请求后，发送关联新AP的请求，待请求被接受后，再关联新的AP，然后解除与老AP的关联。但有的STA也会先解除与老AP的关联，再关联新AP</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/1161761-20190808112728830-1243620432.png" alt="img" /></p>
+<p> </p>
+<h2 id="6切换方式">
+  6、切换方式
+  <a class="anchor" href="#6%e5%88%87%e6%8d%a2%e6%96%b9%e5%bc%8f">#</a>
+</h2>
+<p>终端的漫游如何实现？<strong>有主动切换和被动切换两种方式</strong>。</p>
+<h3 id="61-主动切换">
+  6.1 主动切换
+  <a class="anchor" href="#61-%e4%b8%bb%e5%8a%a8%e5%88%87%e6%8d%a2">#</a>
+</h3>
+<p>终端检测到有更强的beacon帧信号，而且SSID与当前接入的SSID相同，主动发送probe request帧，探测具有相同SSID的AP，并从中选择更优的进行接入。通过wireshark抓包，可以看到这个过程如下：<br>
+<img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/20210623203845439.png" alt="在这里插入图片描述" /></p>
+<h3 id="62-被动切换">
+  6.2 被动切换
+  <a class="anchor" href="#62-%e8%a2%ab%e5%8a%a8%e5%88%87%e6%8d%a2">#</a>
+</h3>
+<p>AP通过ACTION帧发送BSS Transition Management Request消息，提供可切换的候选AP，终端用BSS Transition Management Response消息回应结果，然后是与主动切换类似的步骤。<br>
+<img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/20210623203924471.png" alt="在这里插入图片描述" /></p>
+<p>终端在接收到BTM Request后，使用probe request检测候选AP是否可达，然后通过BTM response返回结果。</p>
+<p> </p>
+<h2 id="7漫游基本配置">
+  7、漫游基本配置
+  <a class="anchor" href="#7%e6%bc%ab%e6%b8%b8%e5%9f%ba%e6%9c%ac%e9%85%8d%e7%bd%ae">#</a>
+</h2>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/d85f962bd40735fa2ffbd8ae9d510fb30f240861.jpg" alt="img" /></p>
+<p>要做到漫游，我们的路由器需要一些基本的配置：</p>
+<ul>
+<li>
+<p><strong>无线AP必须设置为相同的SSID</strong>。不同的SSID意味着不同的无线网络，而无法实现无线漫游。需要注意的是，SSID区分大小写。</p>
+</li>
+<li>
+<p><strong>所有无线AP必须使用同一网段的IP地址</strong>，并且处于同一<a href="https://info.support.huawei.com/info-finder/encyclopedia/zh/VLAN.html">VLAN</a>中。</p>
+</li>
+<li>
+<p><strong>信号相互覆盖的无线AP不能使用相同的频道</strong>。</p>
+<blockquote>
+<p>由于多个AP信号覆盖区域相互交叉重叠，因此，各个AP覆盖区域所占频道之间必须遵守一定的规范，邻近的相同频道之间不能相互覆盖，也就是说，相互覆盖区域的无线AP不能采用同一频道，否则，会造成AP在信号传输时的相互干扰，从而降低AP的工作效率。</p>
+<p>在可用的11个频道中，仅有3个频道是完全不覆盖的，他们分别是频道1、频道6和频道11，利用这些频道作为多蜂窝覆盖是最合适的。另外，用于实现无线漫游网络的无线AP必须使用同一网络名称（SSID），使用同一网段的IP地址，否则，无线客户端将无法实现漫游功能。</p>
+<p>无线漫游网络中，客户端的配置与接入点网络中的配置完全相同。用户在移动过程中，根本感觉不到无线AP间进行切换。</p>
+</blockquote>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20220913153218889.png" alt="image-20220913153218889" /></p>
+<p><strong>通过<code>wirelessMon</code>工具，可以查看不同信道的占用情况！</strong></p>
+</li>
+<li>
+<p><strong>AP信号覆盖区域应当相互交叉重叠</strong>，否则，会导致无线网络盲区。也就是说，无线AP之间的距离，应当小于无线AP的有限传输距离。 相互覆盖的无线AP必须采用不同的、甚至是不相邻频道，否则，将导致严重干扰，降低AP通信效率。</p>
+</li>
+<li>
+<p><strong>必须采用相同的WEP或WPA加密</strong>。所有无线AP和客户端必须采用相同的WEP或WPA加密，否则，将无法建立彼此之间的连接。WEP和WPA也是区分大小写的。</p>
+</li>
+<li>
+<p><strong>将三个无线路由器SSID、加密方式、密钥设置成相同的。实现无缝漫游</strong>。</p>
+</li>
+<li>
+<p><strong><code>DHCPC</code>服务要一致，确保分配到的<code>IP</code>地址不变</strong></p>
+</li>
+</ul>
+<p> </p>
+<h2 id="8参考文章">
+  8、参考文章
+  <a class="anchor" href="#8%e5%8f%82%e8%80%83%e6%96%87%e7%ab%a0">#</a>
+</h2>
+<p>[1]：https://post.smzdm.com/p/a83dz8vn/</p>
+<p>[2]：https://product.pconline.com.cn/itbk/wlbg/network/1802/10851726.html</p>
+<p>[3]：https://www.cnblogs.com/juankai/p/11320325.html</p>
+<p>[4]：https://blog.csdn.net/yihuliunian/article/details/106903521</p>
+<p> </p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#wifi无缝漫游详解">WiFi无缝漫游详解</a>
+      <ul>
+        <li><a href="#1wlan漫游简介">1、WLAN漫游简介</a></li>
+        <li><a href="#2wifi漫游由来">2、WiFi漫游由来</a></li>
+        <li><a href="#3漫游基础知识">3、漫游基础知识</a></li>
+        <li><a href="#4漫游的分类">4、漫游的分类</a>
+          <ul>
+            <li><a href="#41-二层漫游">4.1 二层漫游</a></li>
+            <li><a href="#42-三层漫游">4.2 三层漫游</a></li>
+          </ul>
+        </li>
+        <li><a href="#5漫游基本原理">5、漫游基本原理</a></li>
+        <li><a href="#6切换方式">6、切换方式</a>
+          <ul>
+            <li><a href="#61-主动切换">6.1 主动切换</a></li>
+            <li><a href="#62-被动切换">6.2 被动切换</a></li>
+          </ul>
+        </li>
+        <li><a href="#7漫游基本配置">7、漫游基本配置</a></li>
+        <li><a href="#8参考文章">8、参考文章</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

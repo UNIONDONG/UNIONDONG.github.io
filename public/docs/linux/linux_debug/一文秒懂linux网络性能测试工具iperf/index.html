@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="【一文秒懂】Linux网络性能测试工具——Iperf #  Iperf是一个网络性能测试工具，可以测试最大TCP和UDP带宽性能，具有多种参数和UDP特性，可以根据需要调整，可以报告带宽、延迟抖动和数据包丢失。
+Iperf3在NLNR/DAST开的的原始版本进行重新设计，其目标是更小、更简单的代码库，并且还提供Iperf所不具备的新功能，如：nuttcp 和netperf
+iperf有Linux,Windows,android,Mac等版本，下面结合实际网络场景进行iperf工具使用的介绍
+确保使用Iperf测试的服务端和客户端都处于同一局域网内！
+1、Iperf环境准备 #  Iperf下载链接：推荐下载源码路径，官网下载、Github下载或者其他地址2
+1.1 Linux源码安装Iperf #  以Ubuntu20.04为例，下载压缩包iperf-3.1.3.tar.gz，解压并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir linux_install_dir	#创建安装目录 ./configure	--prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/linux_install_dir	#--prefix设置安装目录，即iperf3生成路径，绝对路径 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入linux_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。
+Machine: Advanced Micro Devices X86-64 1.2 Arm交叉编译Iperf #  以Arm平台为例，解压iperf-3.11.tar.gz，并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir arm_install_dir	#创建安装目录 ./configure --host=arm-linux-gnueabihf --prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/arm_install_dir/ CFLAGS=-static# --host设置使用的编译器；	--prefix 安装目录； CFLAGS静态编译 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入arm_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="【一文秒懂】Linux网络性能测试工具——Iperf" />
+<meta property="og:description" content="【一文秒懂】Linux网络性能测试工具——Iperf #  Iperf是一个网络性能测试工具，可以测试最大TCP和UDP带宽性能，具有多种参数和UDP特性，可以根据需要调整，可以报告带宽、延迟抖动和数据包丢失。
+Iperf3在NLNR/DAST开的的原始版本进行重新设计，其目标是更小、更简单的代码库，并且还提供Iperf所不具备的新功能，如：nuttcp 和netperf
+iperf有Linux,Windows,android,Mac等版本，下面结合实际网络场景进行iperf工具使用的介绍
+确保使用Iperf测试的服务端和客户端都处于同一局域网内！
+1、Iperf环境准备 #  Iperf下载链接：推荐下载源码路径，官网下载、Github下载或者其他地址2
+1.1 Linux源码安装Iperf #  以Ubuntu20.04为例，下载压缩包iperf-3.1.3.tar.gz，解压并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir linux_install_dir	#创建安装目录 ./configure	--prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/linux_install_dir	#--prefix设置安装目录，即iperf3生成路径，绝对路径 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入linux_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。
+Machine: Advanced Micro Devices X86-64 1.2 Arm交叉编译Iperf #  以Arm平台为例，解压iperf-3.11.tar.gz，并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir arm_install_dir	#创建安装目录 ./configure --host=arm-linux-gnueabihf --prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/arm_install_dir/ CFLAGS=-static# --host设置使用的编译器；	--prefix 安装目录； CFLAGS静态编译 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入arm_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/" /><meta property="article:section" content="docs" />
+<meta property="article:published_time" content="2024-01-20T09:47:12+08:00" />
+<meta property="article:modified_time" content="2024-01-20T09:47:12+08:00" />
+
+<title>【一文秒懂】Linux网络性能测试工具——Iperf | Donge Blog</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" >
+<link rel="stylesheet" href="/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/flexsearch.min.js"></script>
+  <script defer src="/en.search.min.b5775eee0b743844194ef6e7bbcd3f5283e5661d599025542fbabfb59441ad57.js" integrity="sha256-tXde7gt0OEQZTvbnu80/UoPlZh1ZkCVUL7q/tZRBrVc=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/"><img src="/img/logo.png" alt="Logo" /><span>Donge Blog</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://blog.csdn.net/dong__ge"  target="_blank" rel="noopener">
+        CSDN
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://www.zhihu.com/people/Embedded_Art"  target="_blank" rel="noopener">
+        知乎
+      </a>
+  </li>
+  
+  <li>
+    <a href="https://github.com/UNIONDONG"  target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+  <li>
+    <a href="/about/index_zh/"  >
+        About
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>嵌入式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3ebd3b438738bd5ab63f55999004f0e7" class="toggle"  />
+    <label for="section-3ebd3b438738bd5ab63f55999004f0e7" class="flex justify-between">
+      <a role="button" class="">嵌入式工程师养成记</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/self_improve/10w&#43;%E9%98%85%E8%AF%BB%E8%80%97%E6%97%B6%E4%B8%80%E5%91%A8%E6%80%BB%E7%BB%93%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E8%B6%85%E8%AF%A6%E7%BB%86/" class="">【10W&#43;阅读】耗时一周总结的嵌入式学习路线，超详细</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-979254fc07de711332325335a96d33d1" class="toggle"  />
+    <label for="section-979254fc07de711332325335a96d33d1" class="flex justify-between">
+      <a role="button" class="">嵌入式面经</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/soc%E7%9A%84bringup%E6%B5%81%E7%A8%8B/" class="">Soc的Bring Up流程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/cpu%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84/" class="">CPU体系架构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/embeded_tech/embeded_interview/linux%E7%94%A8%E6%88%B7%E6%80%81%E5%92%8C%E5%86%85%E6%A0%B8%E6%80%81%E4%BA%A4%E4%BA%92%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E5%BC%8F/" class="">Linux用户态和内核态交互的几种方式</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Uboot开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%80uboot%E5%9F%BA%E7%A1%80%E4%BA%86%E8%A7%A3/" class="">一、uboot基础了解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%BA%8Cuboot%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" class="">二、uboot启动流程分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E4%B8%89uboot%E9%A9%B1%E5%8A%A8%E6%A8%A1%E5%9E%8B/" class="">三、Uboot驱动模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/uboot/%E5%9B%9Buboot%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90/" class="">四、Uboot命令行模式分析</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+  
+
+  
+    <span>Linux开发</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-00ea238a2f9544b32c1424d14ac8d5b7" class="toggle"  />
+    <label for="section-00ea238a2f9544b32c1424d14ac8d5b7" class="flex justify-between">
+      <a role="button" class="">Linux 驱动开发基础</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/" class="">【一文秒懂】Linux字符设备驱动</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux设备树详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/" class="">【一文秒懂】为什么Linux内核中不经常使用typedef</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="toggle"  />
+    <label for="section-3eeeb8a1a5c1ce449ec7070209d774d9" class="flex justify-between">
+      <a role="button" class="">Linux API 揭秘</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98module_init%E4%B8%8Emodule_exit/" class="">【Linux API 揭秘】module_init与module_exit</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_api/linux-api-%E6%8F%AD%E7%A7%98container_of%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="">【Linux API 揭秘】container_of函数详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-cad08b32e77ccfb31b07972873519838" class="toggle" checked />
+    <label for="section-cad08b32e77ccfb31b07972873519838" class="flex justify-between">
+      <a role="button" class="">Linux 调试工具</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/" class="">【一文秒懂】Linux内核调试工具——devmem</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82ftrace%E7%B3%BB%E7%BB%9F%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8%E7%BB%88%E6%9E%81%E6%8C%87%E5%8D%97/" class="">【一文秒懂】Ftrace系统调试工具使用终极指南</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82top%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】TOP命令详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7debugfs/" class="">【一文秒懂】Linux内核调试工具——Debugfs</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/" class="active">【一文秒懂】Linux网络性能测试工具——Iperf</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdb%E4%BB%8B%E7%BB%8D/" class="">【一文秒懂】Linux调试工具——GDB介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdbserver/" class="">【一文秒懂】Linux远程调试工具——gdbserver</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B/" class="">【一文秒懂】Linux内核死锁检测</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90core-dump%E6%96%87%E4%BB%B6/" class="">【一文秒懂】如何生成core Dump文件</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E4%B9%8Bcore-dump%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3/" class="">【一文秒懂】Linux之Core Dump文件详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%80%81%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7/" class="">【一文秒懂】Linux内核态内存泄露检测工具</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-b3bfa0c2506d9fd89a39b0698e122f31" class="toggle"  />
+    <label for="section-b3bfa0c2506d9fd89a39b0698e122f31" class="flex justify-between">
+      <a role="button" class="">Linux 内存管理</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%80%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E7%94%B1%E6%9D%A5%E5%8F%8A%E6%80%9D%E6%83%B3/" class="">一、内存管理的由来及思想</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%8C%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80/" class="">二、虚拟地址空间布局</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%B8%89%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E7%AE%A1%E7%90%86/" class="">三、虚拟地址空间管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%9B%9B%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%9E%8B/" class="">四、物理地址空间设计模型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E4%BA%94%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%A9%BA%E9%97%B4%E5%B8%83%E5%B1%80%E5%8F%8A%E7%AE%A1%E7%90%86/" class="">五、物理内存空间布局及管理</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_memory_manage/%E5%85%AD%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%BC%99%E4%BC%B4%E7%B3%BB%E7%BB%9F/" class="">六、物理内存分配——伙伴系统</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-2455edf5b3ea22c6053a61d28029cb9a" class="toggle"  />
+    <label for="section-2455edf5b3ea22c6053a61d28029cb9a" class="flex justify-between">
+      <a role="button" class="">Linux 内核锁详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%80%E5%86%85%E6%A0%B8%E9%94%81%E7%9A%84%E7%94%B1%E6%9D%A5/" class="">【深入理解Linux锁机制】一、内核锁的由来</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%8C%E4%B8%AD%E6%96%AD%E5%B1%8F%E8%94%BD/" class="">【深入理解Linux锁机制】二、中断屏蔽</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%89%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="">【深入理解Linux锁机制】三、原子操作</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%9B%9B%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】四、自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%BA%94%E8%A1%8D%E7%94%9F%E8%87%AA%E6%97%8B%E9%94%81/" class="">【深入理解Linux锁机制】五、衍生自旋锁</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AD%E4%BF%A1%E5%8F%B7%E9%87%8F/" class="">【深入理解Linux锁机制】六、信号量</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/" class="">【深入理解Linux锁机制】七、互斥体</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E5%85%AB%E5%AE%8C%E6%88%90%E9%87%8F/" class="">【深入理解Linux锁机制】八、完成量</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3e346f9c1e7b71569b8cd088121d9787" class="toggle"  />
+    <label for="section-3e346f9c1e7b71569b8cd088121d9787" class="flex justify-between">
+      <a role="button" class="">Linux NVMEM 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%80efuse%E4%BB%8B%E7%BB%8D%E5%8F%8A%E5%AE%89%E5%85%A8%E5%90%AF%E5%8A%A8%E6%B5%85%E6%9E%90/" class="">【NVMEM子系统深入剖析】一、Efuse介绍及安全启动浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%BA%8Cnvmem%E9%A9%B1%E5%8A%A8%E6%A1%86%E6%9E%B6/" class="">【NVMEM子系统深入剖析】二、NVMEM驱动框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E4%B8%89%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%8F%8A%E5%86%85%E5%9C%A8%E5%85%B3%E8%81%94/" class="">【NVMEM子系统深入剖析】三、核心数据结构及内在关联</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_nvmem_subsystem/nvmem%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%85%A5%E5%89%96%E6%9E%90%E5%9B%9Befuse%E9%A9%B1%E5%8A%A8%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B/" class="">【NVMEM子系统深入剖析】四、efuse驱动实现流程</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-9ae83851c5fe25a6d227e96b400b1ab9" class="toggle"  />
+    <label for="section-9ae83851c5fe25a6d227e96b400b1ab9" class="flex justify-between">
+      <a role="button" class="">Linux LED子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%80linux%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%B0%E6%89%8B%E5%BF%85%E8%AF%BB/" class="">【LED子系统深度剖析】一、开篇词|Linux驱动开发新手必读</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%8Cled%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6%E5%88%86%E6%9E%90/" class="">【LED子系统深度剖析】二、LED子系统框架分析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%89%E7%A1%AC%E4%BB%B6%E9%A9%B1%E5%8A%A8%E5%B1%82%E8%AF%A6%E8%A7%A3/" class="">【LED子系统深度剖析】三、硬件驱动层详解</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%9B%9B%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%80/" class="">【LED子系统深度剖析】四、核心层详解（一）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%BA%94%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%BA%8C/" class="">【LED子系统深度剖析】五、核心层详解（二）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AD%E6%A0%B8%E5%BF%83%E5%B1%82%E8%AF%A6%E8%A7%A3%E4%B8%89/" class="">【LED子系统深度剖析】六、核心层详解（三）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B8%83%E8%A7%A6%E5%8F%91%E5%99%A8%E5%AE%9E%E7%8E%B0/" class="">【LED子系统深度剖析】七、触发器实现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%85%AB%E5%B0%8F%E8%AF%95%E7%89%9B%E5%88%80/" class="">【LED子系统深度剖析】八、小试牛刀</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】九、数据结构详解（番外篇）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/" class="">【LED子系统深度剖析】十、详细实现流程（番外篇）</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-bf0229851221605a75715f5f9633256a" class="toggle"  />
+    <label for="section-bf0229851221605a75715f5f9633256a" class="flex justify-between">
+      <a role="button" class="">Linux MMC 子系统</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%80mmc_sd_sdio%E4%BB%8B%E7%BB%8D/" class="">【MMC子系统】一、MMC_SD_SDIO介绍</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%8Cemmc%E5%8D%8F%E8%AE%AE/" class="">【MMC子系统】二、EMMC协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%B8%89mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%A1%86%E6%9E%B6/" class="">【MMC子系统】三、MMC子系统框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/" class="">【MMC子系统】四、MMC控制器驱动层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/" class="">【MMC子系统】五、MMC核心层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%85%ADmmc%E5%9D%97%E8%AE%BE%E5%A4%87%E5%B1%82/" class="">【MMC子系统】六、MMC块设备层</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-541874a152001b263009202c99a285c4" class="toggle"  />
+    <label for="section-541874a152001b263009202c99a285c4" class="flex justify-between">
+      <a role="button" class="">Bluetooth蓝牙开发详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%80%E6%89%93%E9%80%A0%E5%85%A8%E7%BD%91%E6%9C%80%E8%AF%A6%E7%BB%86%E7%9A%84bluetooth%E5%BC%80%E5%8F%91%E6%95%99%E7%A8%8B/" class="">【Bluetooth蓝牙开发】一、打造全网最详细的Bluetooth开发教程</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%8C%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%A5%E9%97%A8/" class="">【Bluetooth蓝牙开发】二、蓝牙开发入门</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%89%E4%B8%80%E7%AF%87%E6%96%87%E7%AB%A0%E5%B8%A6%E4%BD%A0%E6%80%BB%E8%A7%88%E8%93%9D%E7%89%99%E5%8D%8F%E8%AE%AE/" class="">【Bluetooth蓝牙开发】三、一篇文章，带你总览蓝牙协议</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%9B%9Bble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E7%89%A9%E7%90%86%E5%B1%82%E6%B5%85%E6%9E%90/" class="">【Bluetooth蓝牙开发】四、BLE协议之物理层浅析</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%BA%94ble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E9%93%BE%E8%B7%AF%E5%B1%82/" class="">【Bluetooth蓝牙开发】五、BLE协议之链路层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ADble%E5%8D%8F%E8%AE%AE%E4%B9%8B%E4%BC%A0%E8%BE%93%E5%B1%82/" class="">【Bluetooth蓝牙开发】六、BLE协议之传输层</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/" class="">【Bluetooth蓝牙开发】七、BLE协议之L2CAP</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%85%ABble%E5%8D%8F%E8%AE%AE%E4%B9%8Batt/" class="">【Bluetooth蓝牙开发】八、BLE协议之ATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/" class="">【Bluetooth蓝牙开发】九、BLE协议——GATT</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81ble%E8%93%9D%E7%89%99%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%B9%BF%E6%92%AD%E6%89%AB%E6%8F%8F%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5/" class="">【Bluetooth蓝牙开发】十、BLE蓝牙通信流程（建立连接，广播，扫描，断开连接）</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%B8%80%E8%B6%85%E8%AF%A6%E7%BB%86%E7%9A%84bluez%E4%BA%A4%E5%8F%89%E7%BC%96%E8%AF%91/" class="">【Bluetooth蓝牙开发】十一、超详细的Bluez交叉编译</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E5%8D%81%E4%BA%8C%E8%93%9D%E7%89%99%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7%E9%9B%86%E5%90%88%E6%B1%87%E6%80%BB/" class="">【Bluetooth蓝牙开发】十二、蓝牙调试工具【集合汇总】</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <input type="checkbox" id="section-3962d06d522e4ac6aca7d70bdb913d71" class="toggle"  />
+    <label for="section-3962d06d522e4ac6aca7d70bdb913d71" class="flex justify-between">
+      <a role="button" class="">WiFi开发详解</a>
+    </label>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/" class="">WIFI基础知识汇总</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/" class="">一文详解路由器配置信息</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/docs/linux/wifi/wifi%E6%97%A0%E7%BC%9D%E6%BC%AB%E6%B8%B8%E8%AF%A6%E8%A7%A3/" class="">WiFi无缝漫游详解</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var a=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(b){localStorage.setItem("menu.scrollTop",a.scrollTop)}),a.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>【一文秒懂】Linux网络性能测试工具——Iperf</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#一文秒懂linux网络性能测试工具iperf">【一文秒懂】Linux网络性能测试工具——Iperf</a>
+      <ul>
+        <li><a href="#1iperf环境准备">1、Iperf环境准备</a>
+          <ul>
+            <li><a href="#11-linux源码安装iperf">1.1 Linux源码安装Iperf</a></li>
+            <li><a href="#12-arm交叉编译iperf">1.2 Arm交叉编译Iperf</a></li>
+          </ul>
+        </li>
+        <li><a href="#2指令分析">2、指令分析</a></li>
+        <li><a href="#3iperf测试">3、Iperf测试</a>
+          <ul>
+            <li><a href="#31-linux平台">3.1 Linux平台</a></li>
+            <li><a href="#32-arm平台">3.2 ARM平台</a></li>
+            <li><a href="#33-测试结果">3.3 测试结果</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+        <li><a href="#5推荐网站">5、推荐网站</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown book-article"><h1 id="一文秒懂linux网络性能测试工具iperf">
+  【一文秒懂】Linux网络性能测试工具——Iperf
+  <a class="anchor" href="#%e4%b8%80%e6%96%87%e7%a7%92%e6%87%82linux%e7%bd%91%e7%bb%9c%e6%80%a7%e8%83%bd%e6%b5%8b%e8%af%95%e5%b7%a5%e5%85%b7iperf">#</a>
+</h1>
+<p><strong>Iperf</strong>是一个网络性能测试工具，可以测试最大<code>TCP</code>和<code>UDP</code>带宽性能，具有多种参数和UDP特性，可以根据需要调整，可以报告带宽、延迟抖动和数据包丢失。</p>
+<p><strong>Iperf3</strong>在<code>NLNR/DAST</code>开的的原始版本进行重新设计，其目标是更小、更简单的代码库，并且还提供<code>Iperf</code>所不具备的新功能，如：<code>nuttcp</code> 和<code>netperf</code></p>
+<p><code>iperf</code>有<code>Linux,Windows,android,Mac</code>等版本，下面结合实际网络场景进行<code>iperf</code>工具使用的介绍</p>
+<p><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/ac6eddc451da81cbc6990e99775d2d110924312e.jpeg" alt="img" /></p>
+<p><span style="color: red;"><strong>确保使用<code>Iperf</code>测试的服务端和客户端都处于同一局域网内！</strong></span></p>
+<h2 id="1iperf环境准备">
+  1、Iperf环境准备
+  <a class="anchor" href="#1iperf%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87">#</a>
+</h2>
+<p><strong><code>Iperf</code>下载链接</strong>：<a href="https://iperf.fr/iperf-download.php#source">推荐下载源码路径</a>，<a href="https://iperf.fr/iperf-download.php">官网下载</a>、<a href="https://github.com/esnet/iperf/releases/tag/">Github下载</a>或者<a href="https://downloads.es.net/pub/iperf/">其他地址2</a></p>
+<h3 id="11-linux源码安装iperf">
+  1.1 Linux源码安装Iperf
+  <a class="anchor" href="#11-linux%e6%ba%90%e7%a0%81%e5%ae%89%e8%a3%85iperf">#</a>
+</h3>
+<p>以<code>Ubuntu20.04</code>为例，下载压缩包<code>iperf-3.1.3.tar.gz</code>，解压并进入目录。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">tar -zxvf iperf-3.1.3.tar.gz		<span style="color:#6272a4">#解压</span>
+<span style="color:#8be9fd;font-style:italic">cd</span> iperf-3.1.3/						<span style="color:#6272a4">#进入解压目录</span>
+mkdir linux_install_dir				<span style="color:#6272a4">#创建安装目录</span>
+./configure	--prefix<span style="color:#ff79c6">=</span>/home/dong/WorkSpace/Program/iperf-3.1.3/linux_install_dir		<span style="color:#6272a4">#--prefix设置安装目录，即iperf3生成路径，绝对路径</span>
+make clean							<span style="color:#6272a4">#清除掉之前编译的文件，确保不影响</span>
+make								<span style="color:#6272a4">#编译</span>
+make install						<span style="color:#6272a4">#安装</span>
+</code></pre></div><p>进入<code>linux_install_dir/bin</code>安装目录，可以看到<code>iperf3</code>可执行文件。我们可以通过<code>readelf -h iperf3 | grep Machine</code>可以查看运行平台。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Machine:                           Advanced Micro Devices X86-64
+</code></pre></div><h3 id="12-arm交叉编译iperf">
+  1.2 Arm交叉编译Iperf
+  <a class="anchor" href="#12-arm%e4%ba%a4%e5%8f%89%e7%bc%96%e8%af%91iperf">#</a>
+</h3>
+<p>以<code>Arm</code>平台为例，解压<code>iperf-3.11.tar.gz</code>，并进入目录。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">tar -zxvf iperf-3.1.3.tar.gz		<span style="color:#6272a4">#解压</span>
+<span style="color:#8be9fd;font-style:italic">cd</span> iperf-3.1.3/						<span style="color:#6272a4">#进入解压目录</span>
+mkdir arm_install_dir				<span style="color:#6272a4">#创建安装目录</span>
+
+./configure --host<span style="color:#ff79c6">=</span>arm-linux-gnueabihf --prefix<span style="color:#ff79c6">=</span>/home/dong/WorkSpace/Program/iperf-3.1.3/arm_install_dir/ <span style="color:#8be9fd;font-style:italic">CFLAGS</span><span style="color:#ff79c6">=</span>-static# --host设置使用的编译器；	--prefix 安装目录； CFLAGS静态编译
+
+make clean							<span style="color:#6272a4">#清除掉之前编译的文件，确保不影响</span>
+make								<span style="color:#6272a4">#编译</span>
+make install						<span style="color:#6272a4">#安装</span>
+</code></pre></div><p>进入<code>arm_install_dir/bin</code>安装目录，可以看到<code>iperf3</code>可执行文件。我们可以通过<code>readelf -h iperf3 | grep Machine</code>可以查看运行平台。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Machine:                           ARM
+</code></pre></div><p>最后，将<code>arm_install_dir/bin</code>目录下的<code>iperf3</code>，拷贝到目标运行平台即可！</p>
+<p><span style="color: red;"><strong>至此，<code>IPerf</code>环境搭建完毕！</strong></span></p>
+<h2 id="2指令分析">
+  2、指令分析
+  <a class="anchor" href="#2%e6%8c%87%e4%bb%a4%e5%88%86%e6%9e%90">#</a>
+</h2>
+<p><code>iperf</code>工具是基于服务器和客户端的工作模式，通讯双方可以作为服务端和客户端进行测试。</p>
+<p><code>Iperf</code>与<code>Iperf3</code>命令些许有些细微的差别，下面简单介绍一下相关命令。</p>
+<p>我们先键入<code>iperf3 -h</code>，查看命令列表</p>
+<p><img src="https://cdn.jsdelivr.net/gh/UNIONDONG/Get_Pic_Url/Media202205141632015.png" alt="image-20220514163159847" /></p>
+<p><strong>下面对常用的命令进行分析：</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>Server</strong>服务端指令:</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iperf -s / iperf3 -s</td>
+<td>启动服务，默认监听UDP，监听的默认端口为5201</td>
+</tr>
+<tr>
+<td>iperf -s -w 32M -D / iperf3 -s -D</td>
+<td>启动服务，-w 设置最大窗口，-D作为守护进程运行于后台</td>
+</tr>
+<tr>
+<td>iperf -i1 -u -s -p 5003 / iperf3 -s -p 5003</td>
+<td>启动服务，更换监听端口为5003</td>
+</tr>
+<tr>
+<td><strong>Client</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>iperf/iperf3 -c remotehost -i 1 -t 30</td>
+<td>启动iperf客户端，remotehost为连接的IP，-i为时间间隔，-t为测试时间</td>
+</tr>
+<tr>
+<td>iperf/iperf3 -c remotehost -i 1 -t 20 -R</td>
+<td>功能如上，-r 为反向测试，即 remotehost -&gt; 本机的测</td>
+</tr>
+<tr>
+<td>iperf/iperf3 -c remotehost -u -i 1 -b 200M</td>
+<td>启动iperf客户端，-u即测试udp，-b为最大测试带宽为200M</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong><code>-d</code>运行双测试模式，进行上下行带宽测试</strong></li>
+</ul>
+<p>这将使服务器端反向连接到客户端，使用-L 参数中指定的端口（或默认使用客户端连接到服务器端的端口）。</p>
+<ul>
+<li>
+<p><code>-P</code>：多线程模式，指定同时连接到服务器的数量。缺省值为1.需要客户端和服务器上的线程支持。如：<code>iperf -c 192.168.1.1 -P 10 -t 60</code>客户端同时向服务器端发起10个连接线程。</p>
+</li>
+<li>
+<p><code>-p</code> ：指定服务器侦听和客户端连接的服务器端口，缺省值是5201</p>
+</li>
+<li>
+<p><code>-w</code> ：设置最大窗口</p>
+</li>
+<li>
+<p><code>-D</code>：作为守护进程运行于后台</p>
+</li>
+<li>
+<p><code>-u</code>：使用<code>UDP</code>通信</p>
+</li>
+<li>
+<p><code>-R</code>：反向测试</p>
+</li>
+<li>
+<p><code>-i</code>：设置时间间隔</p>
+</li>
+<li>
+<p><code>-t</code>：设置测试时间</p>
+</li>
+<li>
+<p><code>-b</code>：设置最大测试带宽</p>
+</li>
+</ul>
+<h2 id="3iperf测试">
+  3、Iperf测试
+  <a class="anchor" href="#3iperf%e6%b5%8b%e8%af%95">#</a>
+</h2>
+<h3 id="31-linux平台">
+  3.1 Linux平台
+  <a class="anchor" href="#31-linux%e5%b9%b3%e5%8f%b0">#</a>
+</h3>
+<pre tabindex="0"><code>iperf3 -c 192.168.x.1 -b 200M -u -O 3 -R
+</code></pre><blockquote>
+<p>说明：带宽测试通常采用UDP模式，因为能测出极限带宽、时延抖动、丢包率。在进行测试时，首先以链路理论带宽作为数据发送速率进行测试，例如，从客户端到服务器之间的链路的理论带宽为100Mbps，先用-b 100M进行测试，然后根据测试结果（包括实际带宽，时延抖动和丢包率），再以实际带宽作为数据发送速率进行测试，会发现时延抖动和丢包率比第一次好很多，重复测试几次，就能得出稳定的实际带宽</p>
+</blockquote>
+<h3 id="32-arm平台">
+  3.2 ARM平台
+  <a class="anchor" href="#32-arm%e5%b9%b3%e5%8f%b0">#</a>
+</h3>
+<pre tabindex="0"><code>iperf3 -s
+</code></pre><h3 id="33-测试结果">
+  3.3 测试结果
+  <a class="anchor" href="#33-%e6%b5%8b%e8%af%95%e7%bb%93%e6%9e%9c">#</a>
+</h3>
+<pre tabindex="0"><code>PS F:\Develop\WIFI&amp;BT\测试相关\测试工具\iperf-3.1.3-win64&gt; .\iperf3.exe -c 192.168.4.234
+Connecting to host 192.168.4.234, port 5201
+[  4] local 192.168.4.85 port 55914 connected to 192.168.4.234 port 5201
+[ ID] Interval           Transfer     Bandwidth
+[  4]   0.00-1.01   sec  6.38 MBytes  53.0 Mbits/sec
+[  4]   1.01-2.00   sec  5.88 MBytes  49.6 Mbits/sec
+[  4]   2.00-3.01   sec  5.50 MBytes  45.6 Mbits/sec
+[  4]   3.01-4.01   sec  6.00 MBytes  50.6 Mbits/sec
+[  4]   4.01-5.01   sec  6.00 MBytes  50.4 Mbits/sec
+[  4]   5.01-6.00   sec  6.00 MBytes  50.6 Mbits/sec
+[  4]   6.00-7.01   sec  5.62 MBytes  46.7 Mbits/sec
+[  4]   7.01-8.01   sec  6.25 MBytes  52.7 Mbits/sec
+[  4]   8.01-9.01   sec  6.12 MBytes  51.4 Mbits/sec
+[  4]   9.01-10.00  sec  6.12 MBytes  51.7 Mbits/sec
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bandwidth
+[  4]   0.00-10.00  sec  59.9 MBytes  50.2 Mbits/sec                  sender
+[  4]   0.00-10.00  sec  59.9 MBytes  50.2 Mbits/sec                  receiver
+
+iperf Done.
+</code></pre><h2 id="4总结">
+  4、总结
+  <a class="anchor" href="#4%e6%80%bb%e7%bb%93">#</a>
+</h2>
+<ol>
+<li><strong>PC和模组确保在同一个局域网内</strong></li>
+<li>PC运行<code>iperf3 -s</code>作为服务器，模组运行<code>iperf3 -c 192.168.x.x -b 200M -u -O 3</code> 作为客户端，测试上行带宽，看<code>sender</code></li>
+<li>模组运行<code>iperf3 -s</code>作为服务器，PC运行<code>iperf3 -c 192.168.x.x -b 200M -u -O 3</code> 作为客户端，测试下行带宽，看<code>receiver</code></li>
+</ol>
+<h2 id="5推荐网站">
+  5、推荐网站
+  <a class="anchor" href="#5%e6%8e%a8%e8%8d%90%e7%bd%91%e7%ab%99">#</a>
+</h2>
+<p>[1]：<a href="https://iperf.fr/">Iperf官网</a></p>
+<p>[2]：<a href="https://github.com/esnet/iperf">Iperf-Github</a></p>
+<p>[3]：<a href="https://software.es.net/iperf/">Iperf3详细介绍</a></p>
+<p>[4]：<a href="https://fasterdata.es.net/performance-testing/network-troubleshooting-tools/iperf/">Iperf论坛</a></p>
+<p>[5]：<a href="https://baike.baidu.com/item/iperf/11067694?fr=aladdin">更详细的参数介绍</a></p>
+<p>[6]：https://blog.csdn.net/xiaodingqq/article/details/82177327</p>
+<p>[7]：https://blog.csdn.net/muaxi8/article/details/115739802</p>
+<center><b> <font color ="blue">欢迎关注【嵌入式艺术】，董哥原创！</font></b></center>
+<div align=center><img src="https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/blog.png" alt="img" width = "60%" height ="10%"/>
+</div>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function a(c){const a=window.getSelection(),b=document.createRange();b.selectNodeContents(c),a.removeAllRanges(),a.addRange(b)}document.querySelectorAll("pre code").forEach(b=>{b.addEventListener("click",function(c){if(window.getSelection().toString())return;a(b.parentElement),navigator.clipboard&&navigator.clipboard.writeText(b.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#一文秒懂linux网络性能测试工具iperf">【一文秒懂】Linux网络性能测试工具——Iperf</a>
+      <ul>
+        <li><a href="#1iperf环境准备">1、Iperf环境准备</a>
+          <ul>
+            <li><a href="#11-linux源码安装iperf">1.1 Linux源码安装Iperf</a></li>
+            <li><a href="#12-arm交叉编译iperf">1.2 Arm交叉编译Iperf</a></li>
+          </ul>
+        </li>
+        <li><a href="#2指令分析">2、指令分析</a></li>
+        <li><a href="#3iperf测试">3、Iperf测试</a>
+          <ul>
+            <li><a href="#31-linux平台">3.1 Linux平台</a></li>
+            <li><a href="#32-arm平台">3.2 ARM平台</a></li>
+            <li><a href="#33-测试结果">3.3 测试结果</a></li>
+          </ul>
+        </li>
+        <li><a href="#4总结">4、总结</a></li>
+        <li><a href="#5推荐网站">5、推荐网站</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

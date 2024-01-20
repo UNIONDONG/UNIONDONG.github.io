@@ -6,7 +6,7 @@ author:      "Donge"
 image:       ""
 tags:        ["Linux调试工具"]
 categories:  ["Tech" ]
-weight: 4
+weight: 1
 ---
 
 # 【一文秒懂】Linux内核调试工具——devmem

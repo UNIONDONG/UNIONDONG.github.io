@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>WiFi开发详解 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/wifi%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/</link>
+    <description>Recent content in WiFi开发详解 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 20 Jan 2024 10:21:19 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/wifi%E5%BC%80%E5%8F%91%E8%AF%A6%E8%A7%A3/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WIFI基础知识汇总</title>
+      <link>https://uniondong.github.io/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/</link>
+      <pubDate>Sat, 20 Jan 2024 10:14:21 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/</guid>
+      <description>WIFI基础知识汇总 #  1. Wi-Fi起源 #  现在我们大家对Wi-Fi肯定都不陌生，无论是笔记本，手机，智能电视，都离不开Wi-Fi。现在我们一般用的都是Wi-Fi5,Wi-Fi6也正在快速普及。
+在90年代，IEEE成立著名的802.11工作组，同时也定义了802.11的标准（Wi-Fi的核心技术标准）。最终形成了IEEE802.11标准版本：802.11b 工作于2.4G频段，802.11a工作于5.8G频段。
+于此同时，intersil、3Com、诺基亚&amp;hellip;六家公司，也成立了WECA：Wireless Ethernet Compatibility Alliance无线以太网相容性联盟，最终将该技术正式更名为了Wi-Fi，该组织也改名为Wi-Fi联盟（Wi-Fi Alliance），并且Wi-Fi联盟不承认wifi、WiFi等其他字眼。
+2. Wi-Fi定义 #  Wi-Fi是Wi-Fi联盟制造商的商标做为产品的品牌认证，是一个基于IEEE 802.11标准的无线局域网技术。
+无线网络上网可以简单的理解为无线上网，几乎所有智能手机、平板电脑和笔记本电脑都支持Wi-Fi上网，是当今使用最广的一种无线网络传输技术。
+ 从宏观来说，也可以理解为Wi-Fi=IEEE802.11标准
+  3. WLAN #  wlan：wireless local area network，无线局域网络的全称，它利用射频技术Radio Frequency； RF，使用电磁波构成局域网络，在空中实现通信。
+该技术的出现绝不是用来取代有线局域网络，而是用来弥补有线局域网络之不足。
+ 其实很多时候，人们将二者混用，其实实现wlan的方式有很多，wifi只是实现方式之一；
+  4. 802.11协议标准 #  802.11：802.11工作组所制定的一种无线局域网标准。
+IEEE802家族是由一系列局域网络(Local Area Network,LAN)技术标准所组成，802.11属于其中一员。
+WI-FI使用了802.11的媒体访问控制层（MAC）和物理层（PHY），其内部也包含了不同的协议。
+IEEE802.11协议族成员如下：
+802.11 a/b/g/n/ac：都是由802.11发展而来。不同的后缀代表着不同的物理层标准工作频段和不同的传输速率，也就是说它们的物理层和传输速度不同。
+5.0GHz和2.4GHz指的是无线路由器的工作频段。双频无线路由器是同时工作在5.0GHz和2.4GHz的模式下，而单频无线路由器只能工作在2.4GHz模式下。
+1、802.11b和802.11g工作在同一频段上，g能够兼容b，也就是说支持g的网卡都能支持b。
+2、802.11n协议为双频工作模式（包含2.4GHz和5GHz两个工作频段）。这样11n保障了与以往的802.11a b, g标准兼容。
+3、新一代wifi标准802.11 ac是从802.11 n上发展而来的，有着比802.11 n更高的速度。现在市面是说的双频路由器即支持2.4G和5G的路由器。
+4、802.11n 和802.11ac是WiFi的技术标准，就像手机3G网络一样，移动、联通、电信zhi都有自己不同的3G技术标准，WiFi也有不同的标准，，WiFi标准历经了802.11a/g/b/n/ac五代标准，其中802.11n是目前主流的应用，802.11ac是最新一代标准，也就是第五代标准。
+ 由于802.11ac标准可以达到千兆的无线速度，所以已经大有取代802.11n标准的趋势，估计为了一两年内，大部分无线产品报告手机、笔记本、平板、无线路由器都采用802.11ac标准，
+ 5. Wi-Fi所采用的技术 #  Wi-Fi使用的是无线电波技术，无线电波是电磁辐射的一种，而电磁辐射包括从伽玛射线到可见光到无线电波的种种。</description>
+    </item>
+    
+    <item>
+      <title>一文详解路由器配置信息</title>
+      <link>https://uniondong.github.io/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/</link>
+      <pubDate>Sat, 20 Jan 2024 10:21:19 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/</guid>
+      <description>一文详解路由器配置信息 #  上一篇文章，WIFI基础知识汇总，讲述了Wi-Fi的基础知识，这篇文章，我们以路由器视角，来更加详细的分析Wi-Fi的相关设置。
+ 1. 路由器铭牌 #  我们买到的路由器，仔细观察背后的铭牌，都会看到路由器的设置网址及登录的账户名以及密码。
+按照铭牌的提示信息，用电脑连接该路由器，确保电脑和路由器在同一局域网下，然后登录该网址，进行路由器配置！
+ 2、登录路由器主页 #  登录后的路由器主页如下：
+ 不同路由器，信息会略有不同，但是大同小异，该有的功能都有的！
+  3、路由设置 #  找到【路由设置】选项，然后进行WiFi配置，并且打开2.4G或5G的WiFi。
+在2.4G和5G模式中，有不同的网络协议进行选择，具体差别可以看上节文章：【WIFI基础知识汇总】
+ 2.4Gwifi有b/g/n模设置；5Gwifi有ac a/n/ac混合模式设置。 无线频宽代表每个通道的信道宽度。  找到【无线账号和密码】，进行设置WiFi的模式以及名称，密码！
+ 4、路由信息 #  找到【系统状态】，查看路由信息：
+在这个页面，我们能够看到路由器的详细信息，包括：IP地址、MAC地址、WiFi名称等信息。
+根据路由器的详细信息，我们也再详细了解一下路由器的一些特性。
+ 4.1 路由器的WAN口 #  WAN口就是路由器的外网接口，相当于外面的进线接口，它有自己的IP，MAC地址，和获取IP的多种方式。
+如下配置：
+可以选择动态IP，也可以选择静态IP，分配静态IP时，需要手动进行配置。
+同时，可以设置WAN口的通信速率，最大通信包，以及MAC地址等。
+ 4.2 路由器的LAN口 #  LAN的MAC就是路由器上LAN口一端的端口物理地址，一般我们连接电脑或电视。
+路由器的每一个端口，都有一个默认的MAC地址。
+ 4.3 路由器的无线MAC地址 #  该MAC地址，指的是路由器开启热点后的MAC地址信息，对应的还有IP地址。
+ Summary：
+路由器的每个端口都会有一个自己的MAC
+LAN的MAC就是路由器上连接电脑的一端的端口物理地址
+WAN的MAC就是路由器上连接猫或外网网线的端口物理地址
+在自己电脑上查到的MAC地址是自己电脑网卡的MAC地址，也就是自己电脑上网口的MAC地址
+开启的热点WIFI，也对应有无线的MAC
+ 4.4 无线中继 #  无线中继是将两台以上无线路由器组合，将收到的WIFI信号再发射出去，延伸无线网络的覆盖范围实现信号的中继和放大。</description>
+    </item>
+    
+  </channel>
+</rss>

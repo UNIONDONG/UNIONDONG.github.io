@@ -6,7 +6,36 @@
     <description>Recent content in Introduction on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 19 Jan 2024 21:45:04 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 20 Jan 2024 10:39:03 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WIFI基础知识汇总</title>
+      <link>https://uniondong.github.io/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/</link>
+      <pubDate>Sat, 20 Jan 2024 10:14:21 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/wifi/wifi%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86%E6%B1%87%E6%80%BB/</guid>
+      <description>WIFI基础知识汇总 #  1. Wi-Fi起源 #  现在我们大家对Wi-Fi肯定都不陌生，无论是笔记本，手机，智能电视，都离不开Wi-Fi。现在我们一般用的都是Wi-Fi5,Wi-Fi6也正在快速普及。
+在90年代，IEEE成立著名的802.11工作组，同时也定义了802.11的标准（Wi-Fi的核心技术标准）。最终形成了IEEE802.11标准版本：802.11b 工作于2.4G频段，802.11a工作于5.8G频段。
+于此同时，intersil、3Com、诺基亚&amp;hellip;六家公司，也成立了WECA：Wireless Ethernet Compatibility Alliance无线以太网相容性联盟，最终将该技术正式更名为了Wi-Fi，该组织也改名为Wi-Fi联盟（Wi-Fi Alliance），并且Wi-Fi联盟不承认wifi、WiFi等其他字眼。
+2. Wi-Fi定义 #  Wi-Fi是Wi-Fi联盟制造商的商标做为产品的品牌认证，是一个基于IEEE 802.11标准的无线局域网技术。
+无线网络上网可以简单的理解为无线上网，几乎所有智能手机、平板电脑和笔记本电脑都支持Wi-Fi上网，是当今使用最广的一种无线网络传输技术。
+ 从宏观来说，也可以理解为Wi-Fi=IEEE802.11标准
+  3. WLAN #  wlan：wireless local area network，无线局域网络的全称，它利用射频技术Radio Frequency； RF，使用电磁波构成局域网络，在空中实现通信。
+该技术的出现绝不是用来取代有线局域网络，而是用来弥补有线局域网络之不足。
+ 其实很多时候，人们将二者混用，其实实现wlan的方式有很多，wifi只是实现方式之一；
+  4. 802.11协议标准 #  802.11：802.11工作组所制定的一种无线局域网标准。
+IEEE802家族是由一系列局域网络(Local Area Network,LAN)技术标准所组成，802.11属于其中一员。
+WI-FI使用了802.11的媒体访问控制层（MAC）和物理层（PHY），其内部也包含了不同的协议。
+IEEE802.11协议族成员如下：
+802.11 a/b/g/n/ac：都是由802.11发展而来。不同的后缀代表着不同的物理层标准工作频段和不同的传输速率，也就是说它们的物理层和传输速度不同。
+5.0GHz和2.4GHz指的是无线路由器的工作频段。双频无线路由器是同时工作在5.0GHz和2.4GHz的模式下，而单频无线路由器只能工作在2.4GHz模式下。
+1、802.11b和802.11g工作在同一频段上，g能够兼容b，也就是说支持g的网卡都能支持b。
+2、802.11n协议为双频工作模式（包含2.4GHz和5GHz两个工作频段）。这样11n保障了与以往的802.11a b, g标准兼容。
+3、新一代wifi标准802.11 ac是从802.11 n上发展而来的，有着比802.11 n更高的速度。现在市面是说的双频路由器即支持2.4G和5G的路由器。
+4、802.11n 和802.11ac是WiFi的技术标准，就像手机3G网络一样，移动、联通、电信zhi都有自己不同的3G技术标准，WiFi也有不同的标准，，WiFi标准历经了802.11a/g/b/n/ac五代标准，其中802.11n是目前主流的应用，802.11ac是最新一代标准，也就是第五代标准。
+ 由于802.11ac标准可以达到千兆的无线速度，所以已经大有取代802.11n标准的趋势，估计为了一两年内，大部分无线产品报告手机、笔记本、平板、无线路由器都采用802.11ac标准，
+ 5. Wi-Fi所采用的技术 #  Wi-Fi使用的是无线电波技术，无线电波是电磁辐射的一种，而电磁辐射包括从伽玛射线到可见光到无线电波的种种。</description>
+    </item>
+    
     <item>
       <title>【一文秒懂】Linux字符设备驱动</title>
       <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8/</link>
@@ -22,6 +51,20 @@
 主要作用：cdev可以理解为char device，用来抽象一个字符设备。
 核心成员及含义：
  kobj：表示一个内核对象。 owner：指向该模块的指针 ops：指向文件操作的指针，包括open、read、write等操作接口 list：用于将该设备加入到内核模块链表中 dev：设备号，由主设备号和次设备号构成 count：表示有多少个同类型设备，也间接表示设备号的范围 __randomize_layout：一个编译器指令，用于随机化结构体的布局，以增加安全性。   2.2 file_operations #  struct file_operations { struct module *owner; loff_t (*llseek) (struct file *, loff_t, int); ssize_t (*read) (struct file *, char __user *, size_t, loff_t *); ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *); ssize_t (*read_iter) (struct kiocb *, struct iov_iter *); ssize_t (*write_iter) (struct kiocb *, struct iov_iter *); int (*iterate) (struct file *, struct dir_context *); int (*iterate_shared) (struct file *, struct dir_context *); __poll_t (*poll) (struct file *, struct poll_table_struct *); long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long); long (*compat_ioctl) (struct file *, unsigned int, unsigned long); int (*mmap) (struct file *, struct vm_area_struct *); unsigned long mmap_supported_flags; int (*open) (struct inode *, struct file *); int (*flush) (struct file *, fl_owner_t id); int (*release) (struct inode *, struct file *); int (*fsync) (struct file *, loff_t, loff_t, int datasync); int (*fasync) (int, struct file *, int); int (*lock) (struct file *, int, struct file_lock *); ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int); unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long); int (*check_flags)(int); int (*flock) (struct file *, int, struct file_lock *); ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int); ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int); int (*setlease)(struct file *, long, struct file_lock **, void **); long (*fallocate)(struct file *file, int mode, loff_t offset, loff_t len); void (*show_fdinfo)(struct seq_file *m, struct file *f); #ifndef CONFIG_MMU  unsigned (*mmap_capabilities)(struct file *); #endif  ssize_t (*copy_file_range)(struct file *, loff_t, struct file *, loff_t, size_t, unsigned int); int (*clone_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*dedupe_file_range)(struct file *, loff_t, struct file *, loff_t, u64); int (*fadvise)(struct file *, loff_t, loff_t, int); } __randomize_layout; 结构体名称：file_operations</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux内核调试工具——devmem</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</link>
+      <pubDate>Fri, 19 Jan 2024 21:23:10 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</guid>
+      <description>【一文秒懂】Linux内核调试工具——devmem #  1、介绍 #  我们在底层开发过程中，经常需要在终端查看或者修改设备寄存器的值，有这样一个工具&amp;mdash;-devmem，可用于读取或者修改物理寄存器的值，非常方便！
+简而言之，devmem就是在Linux命令行模式下，直接操作我们设备寄存器的值！
+2、如何使用 #  2.1 配置devmem #  进入menuconfig选项中，按下/搜索关键词即可！
+2.2、使用devmem #   进入Linux后，输入devmem -h查看帮助信息即可！
+ Usage: devmem ADDRESS [WIDTH [VALUE]] Read/write from physical address ADDRESS Address to act upon WIDTH Width (8/16/...) VALUE Data to be written []内部为可选内容，比较简单，这里直接上使用代码！
+ 读物理内存  devmem 0x10000000	#读指定的物理内存值 devmem 0x10000000 16	#读16bit物理内存的值  写物理内存  devmem 0x10000000 32 0x00000000	#以32bit写入给定的值到指定物理内存 devmem 0x10000000 8 0x010	#以8bit写入给定的值到指定物理内存  欢迎关注【嵌入式艺术】，董哥原创！  </description>
     </item>
     
     <item>
@@ -237,6 +280,39 @@ A：
     </item>
     
     <item>
+      <title>一文详解路由器配置信息</title>
+      <link>https://uniondong.github.io/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/</link>
+      <pubDate>Sat, 20 Jan 2024 10:21:19 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/wifi/%E4%B8%80%E6%96%87%E8%AF%A6%E8%A7%A3%E8%B7%AF%E7%94%B1%E5%99%A8%E9%85%8D%E7%BD%AE%E4%BF%A1%E6%81%AF/</guid>
+      <description>一文详解路由器配置信息 #  上一篇文章，WIFI基础知识汇总，讲述了Wi-Fi的基础知识，这篇文章，我们以路由器视角，来更加详细的分析Wi-Fi的相关设置。
+ 1. 路由器铭牌 #  我们买到的路由器，仔细观察背后的铭牌，都会看到路由器的设置网址及登录的账户名以及密码。
+按照铭牌的提示信息，用电脑连接该路由器，确保电脑和路由器在同一局域网下，然后登录该网址，进行路由器配置！
+ 2、登录路由器主页 #  登录后的路由器主页如下：
+ 不同路由器，信息会略有不同，但是大同小异，该有的功能都有的！
+  3、路由设置 #  找到【路由设置】选项，然后进行WiFi配置，并且打开2.4G或5G的WiFi。
+在2.4G和5G模式中，有不同的网络协议进行选择，具体差别可以看上节文章：【WIFI基础知识汇总】
+ 2.4Gwifi有b/g/n模设置；5Gwifi有ac a/n/ac混合模式设置。 无线频宽代表每个通道的信道宽度。  找到【无线账号和密码】，进行设置WiFi的模式以及名称，密码！
+ 4、路由信息 #  找到【系统状态】，查看路由信息：
+在这个页面，我们能够看到路由器的详细信息，包括：IP地址、MAC地址、WiFi名称等信息。
+根据路由器的详细信息，我们也再详细了解一下路由器的一些特性。
+ 4.1 路由器的WAN口 #  WAN口就是路由器的外网接口，相当于外面的进线接口，它有自己的IP，MAC地址，和获取IP的多种方式。
+如下配置：
+可以选择动态IP，也可以选择静态IP，分配静态IP时，需要手动进行配置。
+同时，可以设置WAN口的通信速率，最大通信包，以及MAC地址等。
+ 4.2 路由器的LAN口 #  LAN的MAC就是路由器上LAN口一端的端口物理地址，一般我们连接电脑或电视。
+路由器的每一个端口，都有一个默认的MAC地址。
+ 4.3 路由器的无线MAC地址 #  该MAC地址，指的是路由器开启热点后的MAC地址信息，对应的还有IP地址。
+ Summary：
+路由器的每个端口都会有一个自己的MAC
+LAN的MAC就是路由器上连接电脑的一端的端口物理地址
+WAN的MAC就是路由器上连接猫或外网网线的端口物理地址
+在自己电脑上查到的MAC地址是自己电脑网卡的MAC地址，也就是自己电脑上网口的MAC地址
+开启的热点WIFI，也对应有无线的MAC
+ 4.4 无线中继 #  无线中继是将两台以上无线路由器组合，将收到的WIFI信号再发射出去，延伸无线网络的覆盖范围实现信号的中继和放大。</description>
+    </item>
+    
+    <item>
       <title>【一文秒懂】Linux设备树详解</title>
       <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</link>
       <pubDate>Fri, 19 Jan 2024 21:43:13 +0800</pubDate>
@@ -443,6 +519,30 @@ OUTPUT_FORMAT(&amp;#34;elf32-littlearm&amp;#34;, &amp;#34;elf32-littlearm&amp;#3
     </item>
     
     <item>
+      <title>WiFi无缝漫游详解</title>
+      <link>https://uniondong.github.io/docs/linux/wifi/wifi%E6%97%A0%E7%BC%9D%E6%BC%AB%E6%B8%B8%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Sat, 20 Jan 2024 10:23:36 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/wifi/wifi%E6%97%A0%E7%BC%9D%E6%BC%AB%E6%B8%B8%E8%AF%A6%E8%A7%A3/</guid>
+      <description>WiFi无缝漫游详解 #  1、WLAN漫游简介 #   百度百科：：当网络环境存在多个相同SSID的AP，且它们的覆盖范围的重合时，无线用户可以在整个WLAN覆盖区内移动，无线网卡能够自动发现附近信号强度最大的AP，并通过这个AP收发数据，保持不间断的网络连接，这就称为无线漫游。
+ 简单来说：WLAN漫游是指STA在不同的AP覆盖范围之间移动，且保持用户业务不中断的行为。
+ AP：也就是无线接入点，是一个无线网络的创建者，是网络的中心节点。一般家庭或办公室使用的无线路由器就一个AP。 STA：每一个连接到无线网络中的终端(如笔记本电脑、PDA及其它可以联网的用户设备)都可称为一个站点。   如下图所示，STA1从AP1的覆盖范围移动到AP2的覆盖范围时保持业务不中断。
+  2、WiFi漫游由来 #  当家庭面积超过一定面积后，为了保证全家范围的wifi网络覆盖，我们就需要引入2个以上的WiFi接入点了。在多个WiFi接入点下，为了优化网络使用体验，免去手动切换wifi接入的麻烦，就需要引入WiFi漫游。
+  伪漫游：  一般最常见的伪漫游方法就是将2个以上的wifi接入点的SSID名称及密码设置相同，虽然起到了一定的切换作用，不过用过的朋友都知道效果非常的不好，先不说能否自动切换的问题，就算切换成功了，也会造成IP地址的改变，游戏掉网、断连接是必须的！因此在多AP情况下就必须引入一个新的名词：Wifi快速漫游
+   WiFi漫游  上文提到的设置SSID名称及密码相同的方案是最低能的做法，稍微懂一点网络知识的朋友都不会采用的；
+最次的方案也是要保证DHCP服务器的统一，保证切换Wifi时候IP地址不变。
+更进一阶，引入AC控制器，利用AC+AP的组合形式实现wifi漫游。目前市面上主流的TPlink、爱快、Mesh等产品的方案多是如此。
+其根本的原理是通过AC设定AP的RSSI阈值，将信号不稳定的设备T下线，迫使终端设备重新连接信号最强的AP，实现AP的自动切换。
+ 实话实说这种方案对于绝大多数的用户是完全够用的，AP切换过程中网络中断时间一般在200ms-500ms左右，影响不大，确实优化了网络体验。对于网络要求不高的朋友推荐选择。不过在该方案下游戏会有一段明显的卡顿，但不会掉线。
+  WiFi快速漫游   如果你是一个追求完美网络体验的朋友，而且想一次到位部署网络，不再折腾了，那么你就需要Wifi快速漫游了。上面介绍的第二种方案，虽然效果说得过去，但仍然无法保证切换过程尽可能的少丢包及进一步缩短网络中断时间。这个时候就必须引入Wifi快速漫游方案了，通过Wifi快速漫游进一步缩短网络中断时间，提高网络使用体验，真正实现游戏中不卡顿
+  对于有AC控制器的Wifi网络系统中，漫游过程可以简单分为3个阶段：漫游触发→选择新AP→重新认证。这时候就需要802.11k/v/r协议登场了。
+ 由于Wifi网络密码的存在，在重新认证阶段终端在切换AP的时候需要出示其缓存的密钥，AP检查密钥并进行四次握手，产生数据加密密钥，漫游完成。802.11r协议可以在以上基础上省略4次握手，进一步缩减了断网的时间。 802.11k能告诉终端，如何快速选择漫游AP。 802.11v能优化漫游触发。  能够应用802.11k/v/r协议的Wifi漫游都可以称之为快速漫游，不过这需要AP和终端都支持哦，实际上目前能够支持802.11k/v/r协议的终端并不多，苹果算是一个例外吧，新产品全都支持802.11k/v/r，所以Wifi快速漫游更适合使用苹果的土豪们
+ 综上，WLAN漫游策略主要解决以下问题：
+ 避免漫游过程中的认证时间过长导致丢包甚至业务中断：802.1x认证、Portal认证等认证过程报文交互次数和时间，大于WLAN连接过程，所以漫游需要避免重新认证授权及密钥协商过程。 保证用户授权信息不变：用户的认证和授权信息，是用户访问网络的通行证，如果需要漫游后业务不中断，必须确保用户在AC上的认证和授权信息不变 保证用户IP地址不变：应用层协议均以IP地址和TCP/UDP Session为用户业务承载，漫游后的用户必须能够保持原IP地址不变，对应的TCP/UDP Session才能不中断，应用层数据才能够保持正常转发   3、漫游基础知识 #  WLAN漫游的网络架构
+ AC控制器：可用来集中化控制和管理无线AP，是一个无线网络的核心，负责管理无线网络中的所有无线AP，对AP管理包括：下发配置、修改相关配置参数、射频智能管理、接入安全控制等。 漫游组：在WLAN网络中，可以对不同的AC进行分组，STA可以在同一个组的AC间进行漫游，这个组就叫漫游组。如图，AC1和AC2组成一个漫游组。 AC间隧道：为了支持AC间漫游，漫游组内的所有AC需要同步每个AC管理的STA和AP设备信息，因此在AC间建立一条隧道作为数据同步和报文转发的通道。 Master Controller：STA在同一个漫游组内的AC间进行漫游，需要漫游组内的AC能够试别组内其他AC。通过选定一个AC作为Master Controller，在该AC上维护漫游组成员表，并下发到漫游组内AC，使各AC之间相互试别并建立AC间隧道，如图，选的AC1作为Master Controller.</description>
+    </item>
+    
+    <item>
       <title>【一文秒懂】为什么Linux内核中不经常使用typedef</title>
       <link>https://uniondong.github.io/docs/linux/linux_driver_develop_basic/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E4%B8%BA%E4%BB%80%E4%B9%88linux%E5%86%85%E6%A0%B8%E4%B8%AD%E4%B8%8D%E7%BB%8F%E5%B8%B8%E4%BD%BF%E7%94%A8typedef/</link>
       <pubDate>Fri, 19 Jan 2024 21:45:04 +0800</pubDate>
@@ -601,20 +701,6 @@ mm_struct的结构体如下：
     </item>
     
     <item>
-      <title>【一文秒懂】Linux内核调试工具——devmem</title>
-      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</link>
-      <pubDate>Fri, 19 Jan 2024 21:23:10 +0800</pubDate>
-      
-      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7devmem/</guid>
-      <description>【一文秒懂】Linux内核调试工具——devmem #  1、介绍 #  我们在底层开发过程中，经常需要在终端查看或者修改设备寄存器的值，有这样一个工具&amp;mdash;-devmem，可用于读取或者修改物理寄存器的值，非常方便！
-简而言之，devmem就是在Linux命令行模式下，直接操作我们设备寄存器的值！
-2、如何使用 #  2.1 配置devmem #  进入menuconfig选项中，按下/搜索关键词即可！
-2.2、使用devmem #   进入Linux后，输入devmem -h查看帮助信息即可！
- Usage: devmem ADDRESS [WIDTH [VALUE]] Read/write from physical address ADDRESS Address to act upon WIDTH Width (8/16/...) VALUE Data to be written []内部为可选内容，比较简单，这里直接上使用代码！
- 读物理内存  devmem 0x10000000	#读指定的物理内存值 devmem 0x10000000 16	#读16bit物理内存的值  写物理内存  devmem 0x10000000 32 0x00000000	#以32bit写入给定的值到指定物理内存 devmem 0x10000000 8 0x010	#以8bit写入给定的值到指定物理内存  欢迎关注【嵌入式艺术】，董哥原创！  </description>
-    </item>
-    
-    <item>
       <title>【MMC子系统】四、MMC控制器驱动层</title>
       <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9B%9Bmmc%E6%8E%A7%E5%88%B6%E5%99%A8%E9%A9%B1%E5%8A%A8%E5%B1%82/</link>
       <pubDate>Fri, 19 Jan 2024 21:15:18 +0800</pubDate>
@@ -735,6 +821,23 @@ RAM分为两类：
     </item>
     
     <item>
+      <title>【一文秒懂】Linux网络性能测试工具——Iperf</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/</link>
+      <pubDate>Sat, 20 Jan 2024 09:47:12 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/</guid>
+      <description>【一文秒懂】Linux网络性能测试工具——Iperf #  Iperf是一个网络性能测试工具，可以测试最大TCP和UDP带宽性能，具有多种参数和UDP特性，可以根据需要调整，可以报告带宽、延迟抖动和数据包丢失。
+Iperf3在NLNR/DAST开的的原始版本进行重新设计，其目标是更小、更简单的代码库，并且还提供Iperf所不具备的新功能，如：nuttcp 和netperf
+iperf有Linux,Windows,android,Mac等版本，下面结合实际网络场景进行iperf工具使用的介绍
+确保使用Iperf测试的服务端和客户端都处于同一局域网内！
+1、Iperf环境准备 #  Iperf下载链接：推荐下载源码路径，官网下载、Github下载或者其他地址2
+1.1 Linux源码安装Iperf #  以Ubuntu20.04为例，下载压缩包iperf-3.1.3.tar.gz，解压并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir linux_install_dir	#创建安装目录 ./configure	--prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/linux_install_dir	#--prefix设置安装目录，即iperf3生成路径，绝对路径 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入linux_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。
+Machine: Advanced Micro Devices X86-64 1.2 Arm交叉编译Iperf #  以Arm平台为例，解压iperf-3.11.tar.gz，并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir arm_install_dir	#创建安装目录 ./configure --host=arm-linux-gnueabihf --prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/arm_install_dir/ CFLAGS=-static# --host设置使用的编译器；	--prefix 安装目录； CFLAGS静态编译 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入arm_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。</description>
+    </item>
+    
+    <item>
       <title>【MMC子系统】五、MMC核心层</title>
       <link>https://uniondong.github.io/docs/linux/linux_mmc_subsystem/mmc%E5%AD%90%E7%B3%BB%E7%BB%9F%E4%BA%94mmc%E6%A0%B8%E5%BF%83%E5%B1%82/</link>
       <pubDate>Fri, 19 Jan 2024 21:15:35 +0800</pubDate>
@@ -794,6 +897,24 @@ RAM分为两类：
  下面的代码部分，我们尽可能的只保留暂时用的到的部分，不涉及太多的体系架相关的细节。
  在Linux内核中，我们使用 typedef struct pglist_data pg_data_t表示一个节点
 /* * On NUMA machines, each NUMA node would have a pg_data_t to describe * it&amp;#39;s memory layout. On UMA machines there is a single pglist_data which * describes the whole memory. * * Memory statistics and page replacement data structures are maintained on a * per-zone basis.</description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux调试工具——GDB介绍</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdb%E4%BB%8B%E7%BB%8D/</link>
+      <pubDate>Sat, 20 Jan 2024 10:32:28 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdb%E4%BB%8B%E7%BB%8D/</guid>
+      <description>【一文秒懂】Linux调试工具——GDB介绍 #  1、GDB是什么 #  GDB：GNU Project Debugger是GNU工程仿真器，允许开发者能够去看程序内部发生的情况，或者发生crash时候， 知道程序正在做什么！它诞生于 GNU 计划（同时诞生的还有 GCC、Emacs 等），是 Linux 下常用的程序调试器。发展至今，GDB 已经迭代了诸多个版本，当下的 GDB 支持调试多种编程语言编写的程序，包括 C、C++、Go、Objective-C、OpenCL、Ada 等。实际场景中，GDB 更常用来调试 C 和 C++ 程序。
+GDB主要功能有四个方面：
+ 启动程序：指定任何可以影响其运行行为的动作 停止程序：使程序在指定条件下停止 检查错误：当程序停止时，检查发生了什么 纠正错误：更改程序中的内容，纠正错误  GDB可以在本地、远程、仿真器上执行。
+2、GDB如何使用 #   如何使用GDB？
+ 要想回答这个问题，从正统角度来分析，有两种方式：
+  GDB官方手册：https://sourceware.org/gdb/
+  GDB帮助信息：help all（命令行输入）
+  简单来说，GDB调试方法有3种：
+ 直接调试：gdb [exec file]，用于直接仿真一个执行程序 附属调试：gdb attach pid，用于直接调试一个已运行的程序（ubuntu注意权限问题） 核心转存调试：gdb [exec file] [core-dump file]，用于调试core-dump文件   Tips：GDB调试的[exec file]，该文件最好编译的时候带上-g选项，生成带调试信息的可执行文件。
+ 3、GDB常用指令 #  3.</description>
     </item>
     
     <item>
@@ -858,6 +979,26 @@ MAX_ORDER：就是指数
     </item>
     
     <item>
+      <title>【一文秒懂】Linux远程调试工具——gdbserver</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdbserver/</link>
+      <pubDate>Sat, 20 Jan 2024 10:34:18 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7gdbserver/</guid>
+      <description>【一文秒懂】Linux远程调试工具——gdbserver #  1、介绍 #   对于开发者来说，调试必不可少。
+对于开发PC软件，通常系统已经继承了调试工具（比如Linux系统的GDB），或者IDE直接支持对程序的调试。
+而对于开发嵌入式软件来说调试的手段比较有限，很多开发者仅有的调试手段依然是最原始的打印（我也是其中之一）。
+当然除了打印调试之外还有通过gdb+gdbserver来调试，gdbserver在目标系统中运行，gdb则在宿主机上运行。
+ 简而言之，gdbserver 是一个程序，它允许宿主机可以通过网络，远程调试目标板。
+2、如何使用 #  2.1 编译器准备 #   这里就不再详细讲解编译器的安装什么的了，网上一大把！
+ #直接安装 sudo apt-get install gcc-arm-linux-gnueabihf	#源码安装 $ tar zxvf gdb-7.12.tar.gz $ cd gdb-7.12/ $ ./configure --target=arm-linux --prefix=$PWD/__install $ make $ make install  编译完成后，最终会生成gdbserver 的可执行程序，这个就是我们要使用的工具。
+ 2.2 目标机准备 #   我们将gdb_server可执行程序放置目标板上。 再将我们要调试的程序放置目标板上，如helloworld 使用gdb_server进行调试，使用方法如下：  gdbserver 192.168.xx.xx:1234 ./helloworld 192.168.xx.xx：IP地址信息
+1234：自定义端口号
+./helloworld：运行要仿真的程序
+此时gdbserver监听端口号1234，并等待客户端连接。
+2.3 宿主机准备 #   在宿主机(Ubuntu)上，使用gdb调试 远程连接目标机 运行程序  $ gdb (gdb) target remote 192.</description>
+    </item>
+    
+    <item>
       <title>【Bluetooth蓝牙开发】七、BLE协议之L2CAP</title>
       <link>https://uniondong.github.io/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B8%83ble%E5%8D%8F%E8%AE%AE%E4%B9%8Bl2cap/</link>
       <pubDate>Fri, 19 Jan 2024 21:01:12 +0800</pubDate>
@@ -885,6 +1026,23 @@ MAX_ORDER：就是指数
       <guid>https://uniondong.github.io/docs/linux/linux_kernel_lock/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3linux%E9%94%81%E6%9C%BA%E5%88%B6%E4%B8%83%E4%BA%92%E6%96%A5%E4%BD%93/</guid>
       <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
   欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux内核死锁检测</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B/</link>
+      <pubDate>Sat, 20 Jan 2024 10:36:40 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B/</guid>
+      <description>【一文秒懂】Linux内核死锁检测 #   最近遇到了一个驱动上面的BUG，导致终端敲命令都无响应，最终导致内核触发了hung_task_timeout…
+为什么会出现这种情况？该如何排查？
+ 1、死锁 #  死锁指两个或更多进程或线程因相互等待对方释放资源而互相阻塞，从而导致系统中所有的进程或线程都无法继续运行的情况。
+一个典型的死锁场景包括以下几个角色：
+ 资源：系统内的某个文件、某个设备、共享的内存区域等。 进程/线程：进程或线程需要访问某个资源来完成其工作，但其当前无法取得该资源的控制权，因为该资源已被其他进程或线程占用。 饥饿：由于进程无法获取其需要的资源，它不能继续前进或完成操作。如果没有正确的措施来处理和解决死锁，进程可能会一直等待，直到设备或整个系统崩溃。   2、常见的死锁方式 #  常见死锁的2种方式：
+ AA锁：包括重复上锁和上下文切换引起的上锁，即一个线程，持有A锁，还未释放，又去请求A锁 AB-BA死锁：一个F1线程，持有A锁，再去获取B锁，而一个F2线程持有B锁，再去获取A锁，这个时候处于的死锁状态  常见的死锁有以下4种情况：
+ 进程重复申请同一个锁，称为AA死锁。例如，重复申请同一个自旋锁；使用读写锁，第一次申请读锁，第二次申请写锁。 进程申请自旋锁时没有禁止硬中断，进程获取自旋锁以后，硬中断抢占，申请同一个自旋锁。这种AA死锁很隐蔽，人工审查很难发现。 两个进程都要获取锁L1和L2，进程1持有锁L1，再去获取锁L2，如果这个时候进程2持有锁L2并且正在尝试获取锁L1，那么进程1和进程2就会死锁，称为AB-BA死锁。 在一个处理器上进程1持有锁L1，再去获取锁L2，在另一个处理器上进程2持有锁L2，硬中断抢占进程2以后获取锁L1。这种AB-BA死锁很隐蔽，人工审查很难发现。  内核提供了Lockdep来检测死锁的异常情况
+ 3、Lockdep 内核配置 #   CONFIG_LOCKDEP： CONFIG_DEBUG_LOCK_ALLOC：检查内核是否错误地释放被持有的锁。 CONFIG_PROVE_LOCKING：允许内核报告死锁问题。 CONFIG_DEBUG_LOCKDEP ：在死锁发生，内核报告相应的死锁 CONFIG_LOCK_STAT：追踪锁竞争的点，解释的更详细   4、Lockdep 初探 #   lockdep操作的基本单元并非单个的锁实例，而是锁类（lock-class）。比如，struct inode结构体中的自旋锁i_lock字段就代表了这一类锁，而具体每个inode节点的锁只是该类锁中的一个实例。对所有这些实例，lockdep会把它们当作一个整体做处理，即把判断粒度放大，否则对可能有成千上万个的实例进行逐一判断，那处理难度可想而知，而且也没有必要. lockdep跟踪每个锁类的自身状态，也跟踪各个锁类之间的依赖关系，通过一系列的验证规则，以确保锁类状态和锁类之间的依赖总是正确的。另外，锁类一旦在初次使用时被注册，那么后续就会一直存在，所有它的具体实例都会关联到它。  锁的几个状态：
+ ever held in STATE context –&amp;gt; 该锁曾在STATE上下文被持有过 ever head as readlock in STATE context –&amp;gt; 该锁曾在STATE上下文被以读锁形式持有过 ever head with STATE enabled –&amp;gt; 该锁曾在启用STATE的情况下被持有过 ever head as readlock with STATE enabled –&amp;gt; 该锁曾在启用STATE的情况下被以读锁形式持有过   5、Lockdep 检查规则 #  单锁状态规则如下： （1）一个软中断不安全的锁类也是硬中断不安全的锁类。</description>
     </item>
     
     <item>
@@ -918,6 +1076,16 @@ MAX_ORDER：就是指数
     </item>
     
     <item>
+      <title>【一文秒懂】如何生成core Dump文件</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90core-dump%E6%96%87%E4%BB%B6/</link>
+      <pubDate>Sat, 20 Jan 2024 10:38:03 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90core-dump%E6%96%87%E4%BB%B6/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
       <title>【Bluetooth蓝牙开发】九、BLE协议——GATT</title>
       <link>https://uniondong.github.io/docs/linux/bluetooth/bluetooth%E8%93%9D%E7%89%99%E5%BC%80%E5%8F%91%E4%B9%9Dble%E5%8D%8F%E8%AE%AEgatt/</link>
       <pubDate>Fri, 19 Jan 2024 21:01:29 +0800</pubDate>
@@ -933,6 +1101,16 @@ MAX_ORDER：就是指数
       <pubDate>Fri, 19 Jan 2024 20:43:46 +0800</pubDate>
       
       <guid>https://uniondong.github.io/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E4%B9%9D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3%E7%95%AA%E5%A4%96%E7%AF%87/</guid>
+      <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
+  欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux之Core Dump文件详解</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E4%B9%8Bcore-dump%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Sat, 20 Jan 2024 10:38:42 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E4%B9%8Bcore-dump%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3/</guid>
       <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
   欢迎关注【嵌入式艺术】，董哥原创！  </description>
     </item>
@@ -955,6 +1133,24 @@ MAX_ORDER：就是指数
       <guid>https://uniondong.github.io/docs/linux/linux_led_subsystem/led%E5%AD%90%E7%B3%BB%E7%BB%9F%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E5%8D%81%E8%AF%A6%E7%BB%86%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B%E7%95%AA%E5%A4%96%E7%AF%87/</guid>
       <description> 我的圈子：高级工程师聚集地  创作理念：专注分享高质量嵌入式文章，让大家读有所得！  &amp;nbsp; 亲爱的读者，你好：  感谢你对我的专栏的关注和支持，我很高兴能和你分享我的知识和经验。如果你喜欢我的内容，想要阅读更多的精彩技术文章，可以扫码加入我的社群。
   欢迎关注【嵌入式艺术】，董哥原创！  </description>
+    </item>
+    
+    <item>
+      <title>【一文秒懂】Linux内核态内存泄露检测工具</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%80%81%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7/</link>
+      <pubDate>Sat, 20 Jan 2024 10:39:03 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E5%86%85%E6%A0%B8%E6%80%81%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7/</guid>
+      <description>【一文秒懂】Linux内核态内存泄露检测工具 #  1、Kmemleak介绍 #  在Linux内核开发中，Kmemleak是一种用于检测内核中内存泄漏的工具。
+ 内存泄漏指的是程序中已经不再使用的内存没有被妥善地释放，导致内存的浪费。内核中的内存泄漏同样会导致系统性能下降、系统崩溃等问题。
+ Kmemleak能够检测内核中的内存泄漏，通过检测内核中未被释放但又无法找到其使用位置的内存，进一步定位、修复内存泄漏的问题。
+ 在用户空间，我们常用Valgrind来检测；
+在内核空间，我们常用Kmemleak来检测。
+  2、如何使用Kmemleak #  2.1 内核配置 #  内核打开相应配置：
+ CONFIG_DEBUG_KMEMLEAK：Kmemleak被加入到内核 CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE设置为16000：该参数为记录内存泄露信息的内存池，越大记录信息越多。 CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF ：Kmemleak默认开关状态  依赖的配置：
+ CONFIG_DEBUG_KERNEL：打开内核调试功能 CONFIG_DEBUG_FS：需要借助到debugfs CONFIG_STACKTRACE：记录进程的堆栈信息   2.2 用户空间配置 #  我们要想使用Kmemleak，需要挂在debugfs，来查看泄露的情况。
+ 进入文件系统后，进行挂载：  mount -t debugfs nodev /sys/kernel/debug/	#	挂在debugfs  设置扫描时间：  echo scan=10 &amp;gt; /sys/kernel/debug/kmemleak	#	10S扫描一次  默认内存泄露检测时间为10min，上面设置为10s一次
+  查看泄露情况：  cat /sys/kernel/debug/kmemleak	#	查看内存泄露情况  其他指令：  echo scan &amp;gt; /sys/kernel/debug/kmemleak	#触发一次扫描 echo clear &amp;gt; /sys/kernel/debug/kmemleak #清除当前 kmemleak 记录的泄露信息 echo off &amp;gt; /sys/kernel/debug/kmemleak #关闭kmemleak（不可逆转的） echo stack=off &amp;gt; /sys/kernel/debug/kmemleak #关闭任务栈扫描 echo stack=on &amp;gt; /sys/kernel/debug/kmemleak #使能任务栈扫描 echo scan=on &amp;gt; /sys/kernel/debug/kmemleak #启动自动内存扫描线程 echo scan=off &amp;gt; /sys/kernel/debug/kmemleak #停止自动内存扫描线程 echo scan=&amp;lt;secs&amp;gt; &amp;gt; /sys/kernel/debug/kmemleak#设置自动扫描线程扫描间隔，默认是600，设置0则是停止扫描 echo dump=&amp;lt;addr&amp;gt; &amp;gt; /sys/kernel/debug/kmemleak #dump某个地址的内存块信息，比如上面的echo dump=0xffffffc008efd200 &amp;gt; /sys/kernel/debug/kmemleak即可查看详细信息  2.</description>
     </item>
     
     <item>

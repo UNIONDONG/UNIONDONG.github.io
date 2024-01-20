@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux网络性能测试工具 on Donge Blog</title>
+    <link>https://uniondong.github.io/tags/linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/</link>
+    <description>Recent content in Linux网络性能测试工具 on Donge Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 20 Jan 2024 09:47:12 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/tags/linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【一文秒懂】Linux网络性能测试工具——Iperf</title>
+      <link>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/</link>
+      <pubDate>Sat, 20 Jan 2024 09:47:12 +0800</pubDate>
+      
+      <guid>https://uniondong.github.io/docs/linux/linux_debug/%E4%B8%80%E6%96%87%E7%A7%92%E6%87%82linux%E7%BD%91%E7%BB%9C%E6%80%A7%E8%83%BD%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7iperf/</guid>
+      <description>【一文秒懂】Linux网络性能测试工具——Iperf #  Iperf是一个网络性能测试工具，可以测试最大TCP和UDP带宽性能，具有多种参数和UDP特性，可以根据需要调整，可以报告带宽、延迟抖动和数据包丢失。
+Iperf3在NLNR/DAST开的的原始版本进行重新设计，其目标是更小、更简单的代码库，并且还提供Iperf所不具备的新功能，如：nuttcp 和netperf
+iperf有Linux,Windows,android,Mac等版本，下面结合实际网络场景进行iperf工具使用的介绍
+确保使用Iperf测试的服务端和客户端都处于同一局域网内！
+1、Iperf环境准备 #  Iperf下载链接：推荐下载源码路径，官网下载、Github下载或者其他地址2
+1.1 Linux源码安装Iperf #  以Ubuntu20.04为例，下载压缩包iperf-3.1.3.tar.gz，解压并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir linux_install_dir	#创建安装目录 ./configure	--prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/linux_install_dir	#--prefix设置安装目录，即iperf3生成路径，绝对路径 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入linux_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。
+Machine: Advanced Micro Devices X86-64 1.2 Arm交叉编译Iperf #  以Arm平台为例，解压iperf-3.11.tar.gz，并进入目录。
+tar -zxvf iperf-3.1.3.tar.gz	#解压 cd iperf-3.1.3/	#进入解压目录 mkdir arm_install_dir	#创建安装目录 ./configure --host=arm-linux-gnueabihf --prefix=/home/dong/WorkSpace/Program/iperf-3.1.3/arm_install_dir/ CFLAGS=-static# --host设置使用的编译器；	--prefix 安装目录； CFLAGS静态编译 make clean	#清除掉之前编译的文件，确保不影响 make	#编译 make install	#安装 进入arm_install_dir/bin安装目录，可以看到iperf3可执行文件。我们可以通过readelf -h iperf3 | grep Machine可以查看运行平台。</description>
+    </item>
+    
+  </channel>
+</rss>

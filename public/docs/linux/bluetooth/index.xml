@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Bluetooth蓝牙开发 on Donge Blog</title>
+    <title>Bluetooth蓝牙开发详解 on Donge Blog</title>
     <link>https://uniondong.github.io/docs/linux/bluetooth/</link>
-    <description>Recent content in Bluetooth蓝牙开发 on Donge Blog</description>
+    <description>Recent content in Bluetooth蓝牙开发详解 on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Fri, 19 Jan 2024 21:02:11 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/docs/linux/bluetooth/index.xml" rel="self" type="application/rss+xml" />
