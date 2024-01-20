@@ -1,3 +1,168 @@
-/* You can add custom styles here. */
+.drainage-image-toc-after {
+    width: 98% !important;
+    height: 98% !important;
+    z-index: 1000;
+}
 
-// @import "plugins/numbered";
+.card {
+    width: 15rem;
+    height: 13rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.45rem;
+    background-color: #f3f3f3;
+    border-radius: 0.64rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .card::before {
+    content: "";
+    width: 15rem;
+    height: 5rem;
+    position: absolute;
+    top: 0;
+    border-top-left-radius: 0.64rem;
+    border-top-right-radius: 0.64rem;
+    border-bottom: 3px solid #fefefe;
+    background: linear-gradient(40deg, rgba(131,58,180,1) 0%, rgba(253,29,29,1) 50%, rgba(252,176,69,1) 100%);
+    transition: all 0.5s ease;
+  }
+
+  .card * {
+    z-index: 1;
+  }
+
+  .image {
+    width: 4rem !important;
+    height: 4rem !important;
+    background-color: #1468BF;
+    border-radius: 50%;
+    border: 4px solid #fefefe;
+    margin-top: 11rem;
+    transition: all 0.5s ease;
+  }
+
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.64rem;
+    transition: all 0.5s ease;
+  }
+
+  .card-info span {
+    font-weight: 600;
+    font-size: 1.3rem;
+    color: #161A42;
+    margin-top: 0.64rem;
+    line-height: 0.21rem;
+  }
+
+  .card-info p {
+    color: rgba(0, 0, 0, 0.5);
+  }
+
+  .button {
+    text-decoration: none;
+    background-color: #1468BF;
+    color: white;
+    padding: 0.21rem 0.85rem;
+    border-radius: 0.21rem;
+    border: 1px solid white;
+    transition: all 0.5s ease;
+    margin-bottom: 10rem;
+    font-size: 15px;
+  }
+
+  .card:hover::before {
+    width: 15rem;
+    height: 13rem;
+    border-bottom: none;
+    border-bottom-left-radius: 0.64rem;
+    border-bottom-right-radius: 0.64rem;
+    transform: scale(0.95);
+  }
+
+  .card:hover .card-info {
+    transform: translate(0%,-25%);
+  }
+
+  .card:hover .image {
+    transform: scale(2) translate(-60%,-20%);
+  }
+
+  .button:hover {
+    background-color: #FF6844;
+    transform: scale(1.1);
+  }
+
+
+  .card-toc-after {
+    position: fixed;
+    width: 15rem;
+    height: 6.8rem;
+    border-radius: 14px;
+    z-index: 999;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    bottom: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .bg-toc-after {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 210px;
+    height: 90px;
+    z-index: 2;
+    background: rgba(255, 255, 255, .95);
+    backdrop-filter: blur(24px);
+    border-radius: 10px;
+    overflow: hidden;
+    outline: 2px solid white;
+  }
+  
+  .blob-toc-after {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #ff0000;
+    opacity: 1;
+    filter: blur(12px);
+    animation: blob-bounce 5s infinite ease;
+  }
+  
+  @keyframes blob-bounce {
+    0% {
+      transform: translate(-100%, -100%) translate3d(0, 0, 0);
+    }
+  
+    25% {
+      transform: translate(-100%, -100%) translate3d(100%, 0, 0);
+    }
+  
+    50% {
+      transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
+    }
+  
+    75% {
+      transform: translate(-100%, -100%) translate3d(0, 100%, 0);
+    }
+  
+    100% {
+      transform: translate(-100%, -100%) translate3d(0, 0, 0);
+    }
+  }

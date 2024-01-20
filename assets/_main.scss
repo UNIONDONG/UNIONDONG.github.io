@@ -169,6 +169,8 @@ body[dir="rtl"] .book-menu {
 
 .book-post {
   margin-bottom: $padding-16 * 3;
+  margin-left: $padding-16 * 50;
+  margin-right: $padding-16 * 50;
 }
 
 .book-header {
@@ -285,6 +287,8 @@ body[dir="rtl"] .book-menu {
   transition: 0.2s ease-in-out;
   transition-property: transform, margin, opacity, visibility;
   will-change: transform, margin, opacity;
+  margin-left: $padding-16;
+  margin-right: $padding-16;
 }
 
 @media screen and (max-width: $mobile-breakpoint) {
@@ -359,6 +363,6 @@ body[dir="rtl"] .book-menu {
   .book-page,
   .book-menu .book-menu-content,
   .book-toc .book-toc-content {
-    padding: $padding-16 * 2 $padding-16;
+    padding: $padding-16 * 1 $padding-16;
   }
 }

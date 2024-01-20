@@ -40,6 +40,15 @@ enableEmoji = true
 home = ["HTML", "RSS"]
 
 [params]
+	SEOTitle = " 董哥的博客"
+	description = "高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】"
+	keyword = "董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式"
+	slogan = "专注分享高质量嵌入式文章，让大家读有所得！"
+
+	# Sidebar settings
+	sidebar_about_description = "君子慎独, 不欺暗室"
+	sidebar_avatar = "img/dxh.jpg"
+	
 	# (Optional, default light) Sets color theme: light, dark or auto.
 	# Theme 'auto' switches between dark and light modes based on browser/os preferences
 	BookTheme = 'light'
@@ -87,14 +96,6 @@ home = ["HTML", "RSS"]
     [markup.goldmark.renderer]
       unsafe = true
 
-	SEOTitle = " 董哥的博客"
-	description = "高级嵌入式Linux开发工程师，曾就职于世界五百强，目前就职于芯片原厂独角兽企业，有多年嵌入式Linux驱动、系统开发经验。荣获优质嵌入式领域创作者称号，拿下2022年度博客之星嵌入式领域TOP 5，全网收获超百万读者。公众号：【嵌入式艺术】"
-	keyword = "董哥, 董哥的博客, Donge Blog, 博客, 个人网站, Linux ARM 嵌入式"
-	slogan = "专注分享高质量嵌入式文章，让大家读有所得！"
-
-	# Sidebar settings
-	sidebar_about_description = "君子慎独, 不欺暗室"
-	sidebar_avatar = "img/dxh.jpg"
 
 
 
