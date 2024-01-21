@@ -86,6 +86,8 @@ home = ["HTML", "RSS"]
 	# Can be overwritten by same param in page frontmatter
 	BookComments = true
 
+	busuanzi.enable = true
+
 [markup]
   [markup.tableOfContents]
     endLevel = 3

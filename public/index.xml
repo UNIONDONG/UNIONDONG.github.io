@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Introduction on Donge Blog</title>
+    <title>Home on Donge Blog</title>
     <link>https://uniondong.github.io/</link>
-    <description>Recent content in Introduction on Donge Blog</description>
+    <description>Recent content in Home on Donge Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 20 Jan 2024 10:39:03 +0800</lastBuildDate><atom:link href="https://uniondong.github.io/index.xml" rel="self" type="application/rss+xml" />
@@ -1196,7 +1196,7 @@ MAX_ORDER：就是指数
     </item>
     
     <item>
-      <title>About</title>
+      <title></title>
       <link>https://uniondong.github.io/about/index_zh/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       

@@ -22,6 +22,18 @@
 
 </div>
 
+<!-- busuanzi -->
+{{ if .Site.Params.busuanzi.enable -}}
+<div class="busuanzi-footer">
+  <span id="busuanzi_container_site_pv">
+    👁️Total Views <span id="busuanzi_value_site_pv"></span> |
+  </span>
+  <span id="busuanzi_container_site_uv" >
+    👤Visitors <span id="busuanzi_value_site_uv"></span>
+  </span>
+</div>
+{{- end -}}
+
 {{ $script := resources.Get "clipboard.js" | resources.Minify }}
 {{ with $script.Content }}
   <script>{{ . | safeJS }}</script>

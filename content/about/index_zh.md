@@ -1,10 +1,4 @@
----
-menu:
-  before:
-    name: about_me
-    weight: 5
-title: About
----
+
 
 ## 1、个人介绍
 
