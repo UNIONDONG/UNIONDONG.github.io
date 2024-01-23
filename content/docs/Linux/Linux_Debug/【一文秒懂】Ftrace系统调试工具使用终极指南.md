@@ -32,7 +32,7 @@ weight: 1
 
 `Ftrace`的框架图如下：
 
-![在这里插入图片描述](https://img-blog.csdnimg.cn/eb77832145c246c99848330e16448451.png)
+![在这里插入图片描述](https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/eb77832145c246c99848330e16448451.png)
 
 由框架图我们可以知道：
 
