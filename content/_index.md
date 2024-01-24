@@ -21,21 +21,15 @@ type: docs
 
 ![image-20240124214811484](https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20240124214811484.png)
 
-&nbsp;
-
 
 **Communication Protocol**
 
 ![image-20240124214833818](https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20240124214833818.png)
 
-&nbsp;
-
 
 **Master Skills**
 
 ![image-20240124214843088](https://image-1305421143.cos.ap-nanjing.myqcloud.com/image/image-20240124214843088.png)
-
-&nbsp;
 
 **Environment**
 
